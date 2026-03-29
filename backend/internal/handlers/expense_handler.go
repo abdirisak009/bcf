@@ -73,6 +73,11 @@ func (h *ExpenseHandler) Update(c *gin.Context) {
 	existing.Amount = req.Amount
 	existing.Description = req.Description
 	existing.Category = req.Category
+	existing.Currency = req.Currency
+	existing.ProjectID = req.ProjectID
+	existing.ReceiptURL = req.ReceiptURL
+	existing.ExpenseDate = req.ExpenseDate
+	existing.PaidBy = req.PaidBy
 	if err := h.svc.Update(existing); err != nil {
 		pkgutils.Fail(c, http.StatusBadRequest, err.Error())
 		return

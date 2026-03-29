@@ -27,7 +27,7 @@ import {
   LayoutDashboard,
   type LucideIcon,
 } from 'lucide-react';
-import { OFFICE_ADDRESS } from '@/lib/site-config';
+import { OFFICE_ADDRESS, SITE_LOGO_SRC } from '@/lib/site-config';
 
 type DropdownItem = { label: string; href: string; icon: LucideIcon };
 
@@ -206,11 +206,11 @@ export default function Navigation() {
           <div className="flex justify-between items-center h-[4.5rem]">
             <Link href="/" className="flex-shrink-0 transition-opacity hover:opacity-90">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-hewaKh5CChoShCWQNvfbpnsVOGTuVh.png"
+                src={SITE_LOGO_SRC}
                 alt="Baraarug Consulting Firm"
-                width={180}
-                height={50}
-                className="h-12 w-auto object-contain"
+                width={200}
+                height={56}
+                className="h-12 w-auto max-w-[200px] object-contain"
                 priority
               />
             </Link>

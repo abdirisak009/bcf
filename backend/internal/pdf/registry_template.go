@@ -1,6 +1,7 @@
 package pdf
 
 import (
+	"bytes"
 	"strings"
 )
 
@@ -36,7 +37,19 @@ func FillRegistryTemplate(templateURL string, overlay CertificateData) ([]byte, 
 	if err != nil || len(stripped) == 0 {
 		stripped = b
 	}
-	return renderCertificatePDFOverlay(overlay, stripped)
+	out, err := renderCertificatePDFOverlay(overlay, stripped)
+	if err == nil {
+		return out, nil
+	}
+	// pdfcpu form stripping sometimes rewrites xref in a way gofpdi cannot parse — retry raw template.
+	if !bytes.Equal(stripped, b) {
+		out2, err2 := renderCertificatePDFOverlay(overlay, b)
+		if err2 == nil {
+			return out2, nil
+		}
+	}
+	// Last resort: full vector certificate (no AcroForm template).
+	return RenderCertificate(overlay, "")
 }
 
 // CertificateDataFromRegistry maps DB certificate + config signatory into overlay data.

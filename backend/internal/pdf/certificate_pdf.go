@@ -98,7 +98,15 @@ func stripFormFieldsFromPDF(pdfBytes []byte) ([]byte, error) {
 
 // renderCertificatePDFOverlay imports an Acrobat PDF (page 1) and draws only dynamic text.
 // Tune certOverlay* constants if your template uses different placeholder positions.
-func renderCertificatePDFOverlay(d CertificateData, pdfBytes []byte) ([]byte, error) {
+// gofpdi may panic on PDFs with xref streams or outputs from some tools; we recover and return an error.
+func renderCertificatePDFOverlay(d CertificateData, pdfBytes []byte) (out []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			out = nil
+			err = fmt.Errorf("pdf template import failed (gofpdi cannot read this PDF — re-export as PDF 1.4 from Acrobat, or use a simpler template): %v", r)
+		}
+	}()
+
 	pdf := gofpdf.New("L", "mm", "A4", "")
 	pdf.SetMargins(18, 18, 18)
 	pdf.SetAutoPageBreak(false, 0)
@@ -113,8 +121,8 @@ func renderCertificatePDFOverlay(d CertificateData, pdfBytes []byte) ([]byte, er
 	drawCertificateDynamicOverlayGofpdf(pdf, d, pageW)
 
 	var buf bytes.Buffer
-	if err := pdf.Output(&buf); err != nil {
-		return nil, err
+	if e := pdf.Output(&buf); e != nil {
+		return nil, e
 	}
 	return buf.Bytes(), nil
 }

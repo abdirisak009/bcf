@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import {
   Building2,
   CalendarRange,
@@ -11,7 +11,9 @@ import {
   Pencil,
   Percent,
   Plus,
+  Search,
   Trash2,
+  X,
 } from 'lucide-react'
 
 import { DashboardFormField } from '@/components/dashboard/dashboard-form-field'
@@ -70,6 +72,8 @@ import { cn } from '@/lib/utils'
 type BaseProps = {
   rows: Record<string, unknown>[]
   clients: Record<string, unknown>[]
+  /** Expense rows (same list as Expenses tab) — used for Spent detail popup. */
+  expenses?: Record<string, unknown>[]
   loading: boolean
   empty: string
   onRefresh: () => void
@@ -95,6 +99,35 @@ function formatContractValue(row: Record<string, unknown>): string {
   if (Number.isNaN(n)) return '—'
   const cur = String(row.contract_currency ?? 'USD').trim() || 'USD'
   return `${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${cur}`
+}
+
+function projectCurrency(row: Record<string, unknown>): string {
+  return String(row.contract_currency ?? 'USD').trim() || 'USD'
+}
+
+/** Sum of expenses assigned to this project (same currency label as contract). */
+function formatProjectExpenseTotal(row: Record<string, unknown>): string {
+  const v = row.expense_total
+  if (v == null || v === '') return '—'
+  const n = typeof v === 'number' ? v : parseFloat(String(v))
+  if (Number.isNaN(n)) return '—'
+  return `${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${projectCurrency(row)}`
+}
+
+/** Contract value − spent (only when contract value exists). */
+function formatProjectBalance(row: Record<string, unknown>): string {
+  const v = row.balance
+  if (v == null || v === '') return '—'
+  const n = typeof v === 'number' ? v : parseFloat(String(v))
+  if (Number.isNaN(n)) return '—'
+  return `${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${projectCurrency(row)}`
+}
+
+function projectBalanceIsNegative(row: Record<string, unknown>): boolean {
+  const v = row.balance
+  if (v == null || v === '') return false
+  const n = typeof v === 'number' ? v : parseFloat(String(v))
+  return Number.isFinite(n) && n < 0
 }
 
 function parseISODate(s: string): Date | null {
@@ -221,7 +254,55 @@ function projectCommentText(row: Record<string, unknown>): string {
   return String(row.description ?? '').trim()
 }
 
-export function ProjectsTable({ rows, clients, loading, empty, onRefresh }: BaseProps) {
+function parseExpenseOtherDescription(row: Record<string, unknown>): { otherLabel: string; notes: string } {
+  const cat = String(row.category ?? '').toLowerCase()
+  if (cat !== 'other') return { otherLabel: '', notes: String(row.description ?? '') }
+  const desc = String(row.description ?? '')
+  const idx = desc.indexOf('\n\n')
+  if (idx === -1) return { otherLabel: desc, notes: '' }
+  return { otherLabel: desc.slice(0, idx), notes: desc.slice(idx + 2) }
+}
+
+function expenseCategoryLabel(row: Record<string, unknown>): string {
+  const cat = String(row.category ?? '').toLowerCase()
+  if (cat !== 'other') return formatCell(row.category)
+  const { otherLabel } = parseExpenseOtherDescription(row)
+  const label = otherLabel.trim()
+  if (!label) return 'Other'
+  return `Other — ${label}`
+}
+
+function expenseNarrationShort(row: Record<string, unknown>): string {
+  const cat = String(row.category ?? '').toLowerCase()
+  if (cat === 'other') {
+    const { notes } = parseExpenseOtherDescription(row)
+    return notes.trim() || '—'
+  }
+  const d = String(row.description ?? '').trim()
+  return d || '—'
+}
+
+function expenseRowSortTime(row: Record<string, unknown>): number {
+  const ed = row.expense_date
+  if (typeof ed === 'string' && ed.length > 0) {
+    const t = Date.parse(ed)
+    if (!Number.isNaN(t)) return t
+  }
+  const ca = row.created_at
+  if (typeof ca === 'string') {
+    const t = Date.parse(ca)
+    if (!Number.isNaN(t)) return t
+  }
+  return 0
+}
+
+function expensesForProject(projectId: string, expenses: Record<string, unknown>[]): Record<string, unknown>[] {
+  return expenses
+    .filter((e) => e.project_id != null && String(e.project_id) === projectId)
+    .sort((a, b) => expenseRowSortTime(b) - expenseRowSortTime(a))
+}
+
+export function ProjectsTable({ rows, clients, expenses = [], loading, empty, onRefresh }: BaseProps) {
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
@@ -241,6 +322,32 @@ export function ProjectsTable({ rows, clients, loading, empty, onRefresh }: Base
   const [commentText, setCommentText] = useState('')
   const [commentPending, setCommentPending] = useState(false)
   const [commentErr, setCommentErr] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [filterClient, setFilterClient] = useState<string>('all')
+  const [spentProject, setSpentProject] = useState<Record<string, unknown> | null>(null)
+
+  const filteredRows = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return rows.filter((row) => {
+      const st = String(row.status ?? 'active').toLowerCase()
+      if (filterStatus !== 'all' && st !== filterStatus) return false
+      const cid = row.client_id ? String(row.client_id) : ''
+      if (filterClient !== 'all' && cid !== filterClient) return false
+      if (!q) return true
+      const name = String(row.name ?? '').toLowerCase()
+      const c = clients.find((x) => String(x.id) === cid) as Record<string, unknown> | undefined
+      const clientStr = c ? String(c.name ?? '').toLowerCase() : ''
+      return name.includes(q) || clientStr.includes(q)
+    })
+  }, [rows, searchQuery, filterStatus, filterClient, clients])
+
+  const spentLines = useMemo(() => {
+    if (!spentProject) return []
+    return expensesForProject(String(spentProject.id ?? ''), expenses)
+  }, [spentProject, expenses])
+
+  const hasActiveFilters = filterStatus !== 'all' || filterClient !== 'all' || searchQuery.trim() !== ''
 
   function openNew() {
     setEditId(null)
@@ -398,25 +505,87 @@ export function ProjectsTable({ rows, clients, loading, empty, onRefresh }: Base
 
   return (
     <>
-      <Card className="overflow-hidden border-brand-navy/12 bg-white shadow-sm">
-        <div className="h-1 bg-brand-teal" />
-        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-brand-navy/8 bg-brand-mint/25 py-4">
+      <Card className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-md ring-1 ring-slate-900/5">
+        <div className="h-1.5 bg-gradient-to-r from-brand-teal via-brand-navy to-brand-teal" />
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-brand-navy/10 bg-gradient-to-br from-brand-mint/35 via-white to-brand-mint/20 py-5">
           <div>
-            <CardTitle className="text-lg text-brand-navy">Projects</CardTitle>
-            <CardDescription className="text-slate-600">Consulting engagements — link to invoices and expenses.</CardDescription>
+            <CardTitle className="text-xl font-semibold tracking-tight text-brand-navy">Projects</CardTitle>
+            <CardDescription className="mt-1 max-w-xl text-slate-600">
+              Search and filter engagements. Click <span className="font-medium text-brand-teal">Spent</span> to see linked
+              expenses.
+            </CardDescription>
           </div>
-          <Button type="button" className="bg-brand-navy text-white hover:brightness-110" onClick={openNew}>
+          <Button type="button" className="bg-brand-navy text-white shadow-sm hover:brightness-110" onClick={openNew}>
             <Plus className="mr-2 size-4" />
             Add project
           </Button>
         </CardHeader>
+        {!loading && rows.length > 0 ? (
+          <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/90 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div className="relative min-w-[200px] max-w-md flex-1">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search name or client…"
+                className={cn(dashboardFormInputClass, 'h-10 border-slate-200 bg-white pl-9 shadow-sm')}
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className={cn(dashboardFormInputClass, 'h-10 w-full min-w-[9rem] border-slate-200 bg-white shadow-sm sm:w-auto')}
+                aria-label="Filter by status"
+              >
+                <option value="all">All statuses</option>
+                {PROJECT_STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filterClient}
+                onChange={(e) => setFilterClient(e.target.value)}
+                className={cn(dashboardFormInputClass, 'h-10 w-full min-w-[10rem] border-slate-200 bg-white shadow-sm sm:w-auto')}
+                aria-label="Filter by client"
+              >
+                <option value="all">All clients</option>
+                {clients.map((c) => (
+                  <option key={String(c.id)} value={String(c.id)}>
+                    {String(c.name ?? c.id)}
+                  </option>
+                ))}
+              </select>
+              {hasActiveFilters ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-10 border-slate-200"
+                  onClick={() => {
+                    setSearchQuery('')
+                    setFilterStatus('all')
+                    setFilterClient('all')
+                  }}
+                >
+                  <X className="mr-1 size-4" />
+                  Clear
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
         <CardContent className="px-0 pb-0">
           {loading ? (
-            <p className="text-muted-foreground px-6 py-6 text-sm">{empty}</p>
+            <p className="text-muted-foreground px-6 py-8 text-sm">{empty}</p>
           ) : rows.length === 0 ? (
-            <p className="text-muted-foreground px-6 py-6 text-sm">{empty}</p>
+            <p className="text-muted-foreground px-6 py-8 text-sm">{empty}</p>
+          ) : filteredRows.length === 0 ? (
+            <p className="text-muted-foreground px-6 py-8 text-sm">No projects match your search or filters.</p>
           ) : (
-            <ScrollArea className="max-h-[min(480px,calc(100dvh-18rem))] w-full">
+            <ScrollArea className="max-h-[min(520px,calc(100dvh-16rem))] w-full">
               <Table>
                 <TableHeader>
                   <TableRow className="border-brand-navy/10 bg-brand-navy hover:bg-brand-navy">
@@ -425,6 +594,8 @@ export function ProjectsTable({ rows, clients, loading, empty, onRefresh }: Base
                     <TableHead className="hidden font-semibold text-white sm:table-cell">Status</TableHead>
                     <TableHead className="hidden font-semibold text-white md:table-cell">Milestone</TableHead>
                     <TableHead className="hidden font-semibold text-white lg:table-cell">Contract value</TableHead>
+                    <TableHead className="hidden font-semibold text-white lg:table-cell">Spent</TableHead>
+                    <TableHead className="hidden font-semibold text-white lg:table-cell">Balance</TableHead>
                     <TableHead className="hidden font-semibold text-white lg:table-cell">Start date</TableHead>
                     <TableHead className="hidden font-semibold text-white lg:table-cell">End date</TableHead>
                     <TableHead className="hidden min-w-[10rem] font-semibold text-white xl:table-cell">Duration</TableHead>
@@ -432,12 +603,15 @@ export function ProjectsTable({ rows, clients, loading, empty, onRefresh }: Base
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((row) => {
+                  {filteredRows.map((row) => {
                     const id = String(row.id ?? '')
                     const cid = row.client_id ? String(row.client_id) : ''
                     const commentPreview = projectCommentText(row)
                     return (
-                      <TableRow key={id} className="odd:bg-white even:bg-brand-mint/15">
+                      <TableRow
+                        key={id}
+                        className="border-b border-slate-100 transition-colors odd:bg-white even:bg-brand-mint/[0.12] hover:bg-brand-mint/35"
+                      >
                         <TableCell className="font-medium text-brand-navy">{formatCell(row.name)}</TableCell>
                         <TableCell className="hidden text-sm md:table-cell">{clientLabel(cid)}</TableCell>
                         <TableCell className="hidden sm:table-cell">
@@ -455,6 +629,23 @@ export function ProjectsTable({ rows, clients, loading, empty, onRefresh }: Base
                         </TableCell>
                         <TableCell className="hidden text-sm text-slate-700 lg:table-cell">
                           {formatContractValue(row)}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-brand-teal underline decoration-brand-teal/50 underline-offset-2 transition hover:text-brand-navy hover:decoration-brand-navy"
+                            onClick={() => setSpentProject(row)}
+                          >
+                            {formatProjectExpenseTotal(row)}
+                          </button>
+                        </TableCell>
+                        <TableCell
+                          className={cn(
+                            'hidden text-sm font-medium lg:table-cell',
+                            projectBalanceIsNegative(row) ? 'text-red-600' : 'text-brand-navy',
+                          )}
+                        >
+                          {formatProjectBalance(row)}
                         </TableCell>
                         <TableCell className="hidden whitespace-nowrap text-xs text-slate-700 lg:table-cell">
                           {formatDateForTable(isoDateInput(row.contract_start))}
@@ -514,6 +705,74 @@ export function ProjectsTable({ rows, clients, loading, empty, onRefresh }: Base
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={spentProject !== null} onOpenChange={(o) => !o && setSpentProject(null)}>
+        <DialogContent className="max-h-[min(520px,85vh)] max-w-2xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-brand-navy">
+              Expense details — {spentProject ? formatCell(spentProject.name) : ''}
+            </DialogTitle>
+            <DialogDescription>
+              {spentProject ? (
+                <>
+                  Reported spent on project:{' '}
+                  <span className="font-semibold text-foreground">{formatProjectExpenseTotal(spentProject)}</span>
+                  {spentLines.length > 0 ? (
+                    <> · {spentLines.length} linked record{spentLines.length === 1 ? '' : 's'}</>
+                  ) : null}
+                </>
+              ) : null}
+            </DialogDescription>
+          </DialogHeader>
+          {spentLines.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-4 py-6 text-center text-sm text-slate-600">
+              No expenses linked to this project. Open <strong>Expenses</strong>, add an expense, and choose this project.
+            </p>
+          ) : (
+            <div className="rounded-lg border border-slate-200">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-brand-navy/95 hover:bg-brand-navy/95">
+                    <TableHead className="text-white">Date</TableHead>
+                    <TableHead className="text-white">Category</TableHead>
+                    <TableHead className="text-right text-white">Amount</TableHead>
+                    <TableHead className="hidden text-white sm:table-cell">Paid by</TableHead>
+                    <TableHead className="hidden min-w-[8rem] text-white md:table-cell">Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {spentLines.map((ex) => {
+                    const eid = String(ex.id ?? '')
+                    const amt = typeof ex.amount === 'number' ? ex.amount : parseFloat(String(ex.amount))
+                    const cur = String(ex.currency ?? 'USD').trim() || 'USD'
+                    return (
+                      <TableRow key={eid} className="border-slate-100">
+                        <TableCell className="whitespace-nowrap text-xs">
+                          {formatDateForTable(isoDateInput(ex.expense_date))}
+                        </TableCell>
+                        <TableCell className="max-w-[10rem] text-xs capitalize">{expenseCategoryLabel(ex)}</TableCell>
+                        <TableCell className="text-right font-mono text-xs font-medium">
+                          {!Number.isNaN(amt) ? amt.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '—'}{' '}
+                          {cur}
+                        </TableCell>
+                        <TableCell className="hidden text-xs text-slate-600 sm:table-cell">
+                          {ex.paid_by != null && String(ex.paid_by).trim() !== '' ? String(ex.paid_by) : '—'}
+                        </TableCell>
+                        <TableCell className="hidden max-w-[14rem] text-xs text-slate-600 md:table-cell">{expenseNarrationShort(ex)}</TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setSpentProject(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className={dashboardSheetWide}>

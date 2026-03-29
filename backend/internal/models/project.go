@@ -29,6 +29,10 @@ type Project struct {
 	MilestonePct     *float64   `gorm:"type:numeric(5,2)" json:"milestone_pct,omitempty"` // 0–100
 	CreatedAt        time.Time  `json:"created_at"`
 	UpdatedAt        time.Time  `json:"updated_at"`
+
+	// Computed for API (not stored): sum of expenses linked to this project; balance = contract_value − expense_total.
+	ExpenseTotal *float64 `gorm:"-" json:"expense_total,omitempty"`
+	Balance      *float64 `gorm:"-" json:"balance,omitempty"`
 }
 
 func (Project) TableName() string { return "projects" }

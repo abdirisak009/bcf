@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Facebook, Linkedin, Twitter, Instagram, MapPin, Phone, Mail, Globe, ArrowRight } from 'lucide-react';
-import { OFFICE_ADDRESS } from '@/lib/site-config';
+import { OFFICE_ADDRESS, SITE_LOGO_SRC } from '@/lib/site-config';
 
 export default function Footer() {
   return (
@@ -19,10 +19,12 @@ export default function Footer() {
             {/* Brand section */}
             <div className="md:col-span-1">
               <div className="mb-6 group cursor-pointer">
-                <img 
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-light-P0BU6tiM5ptby7QodAsAhFQEc478P5.png"
+                <Image
+                  src={SITE_LOGO_SRC}
                   alt="Baraarug Logo"
-                  className="h-16 w-auto transition-transform group-hover:scale-105"
+                  width={200}
+                  height={64}
+                  className="h-16 w-auto max-w-[220px] object-contain transition-transform group-hover:scale-105"
                 />
               </div>
               <p className="text-gray-300 leading-relaxed text-sm mb-6">

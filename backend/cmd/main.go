@@ -94,7 +94,7 @@ func main() {
 	expSvc := services.NewExpenseService(expRepo)
 	clientSvc := services.NewClientService(clientRepo)
 	partnerSvc := services.NewPartnerService(partnerRepo)
-	projSvc := services.NewProjectService(projRepo)
+	projSvc := services.NewProjectService(projRepo, expRepo)
 	finReportSvc := services.NewFinancialReportService(db, invRepo)
 	certRegSvc := services.NewCertificateRegistryService(certRepo, appRepo, cfg)
 	adminUsersSvc := services.NewAdminUsersService(authRepo)

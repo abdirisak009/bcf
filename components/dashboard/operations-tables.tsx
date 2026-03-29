@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/table'
 import { dashboardAuthHeaders } from '@/lib/dashboard-client'
 import { uploadDashboardFile } from '@/lib/dashboard-upload'
+import { OFFICE_ADDRESS } from '@/lib/site-config'
 import {
   dashboardFormInputClass,
   dashboardFormTextareaClass,
@@ -511,6 +512,102 @@ type ExpensesTableProps = BaseProps & {
   projects: Record<string, unknown>[]
 }
 
+/** Split stored description when category is `other`: first block = custom label, rest = notes. */
+function parseExpenseOtherDescription(row: Record<string, unknown>): { otherLabel: string; notes: string } {
+  const cat = String(row.category ?? '').toLowerCase()
+  if (cat !== 'other') return { otherLabel: '', notes: String(row.description ?? '') }
+  const desc = String(row.description ?? '')
+  const idx = desc.indexOf('\n\n')
+  if (idx === -1) return { otherLabel: desc, notes: '' }
+  return { otherLabel: desc.slice(0, idx), notes: desc.slice(idx + 2) }
+}
+
+function formatExpenseCategoryCell(row: Record<string, unknown>): string {
+  const cat = String(row.category ?? '').toLowerCase()
+  if (cat !== 'other') return formatCell(row.category)
+  const { otherLabel } = parseExpenseOtherDescription(row)
+  const label = otherLabel.trim()
+  if (!label) return 'Other'
+  return `Other — ${label}`
+}
+
+const LEDGER_ACCOUNT = '020611264001'
+const LEDGER_PHONE = '+252-613-685-943'
+
+function expenseSortTime(row: Record<string, unknown>): number {
+  const ed = row.expense_date
+  if (typeof ed === 'string' && ed.length > 0) {
+    const t = Date.parse(ed)
+    if (!Number.isNaN(t)) return t
+  }
+  const ca = row.created_at
+  if (typeof ca === 'string') {
+    const t = Date.parse(ca)
+    if (!Number.isNaN(t)) return t
+  }
+  return 0
+}
+
+function parseExpenseAmount(row: Record<string, unknown>): number {
+  const v = row.amount
+  const n = typeof v === 'number' ? v : parseFloat(String(v))
+  return Number.isFinite(n) ? n : 0
+}
+
+function formatLedgerDate(row: Record<string, unknown>): string {
+  const ed = row.expense_date
+  if (typeof ed === 'string' && ed.length >= 10) {
+    const d = new Date(ed.slice(0, 10) + 'T12:00:00')
+    if (!Number.isNaN(d.getTime())) {
+      const dd = String(d.getDate()).padStart(2, '0')
+      const mm = String(d.getMonth() + 1).padStart(2, '0')
+      const yyyy = d.getFullYear()
+      return `${dd}/${mm}/${yyyy}`
+    }
+  }
+  const ca = row.created_at
+  if (typeof ca === 'string') {
+    const d = new Date(ca)
+    if (!Number.isNaN(d.getTime())) {
+      const dd = String(d.getDate()).padStart(2, '0')
+      const mm = String(d.getMonth() + 1).padStart(2, '0')
+      const yyyy = d.getFullYear()
+      return `${dd}/${mm}/${yyyy}`
+    }
+  }
+  return '—'
+}
+
+function expenseNarration(row: Record<string, unknown>): string {
+  const cat = String(row.category ?? '').toLowerCase()
+  if (cat === 'other') {
+    const { otherLabel, notes } = parseExpenseOtherDescription(row)
+    const a = otherLabel.trim()
+    const b = notes.trim()
+    if (a && b) return `${a} — ${b}`
+    if (a) return a
+    if (b) return b
+    return '—'
+  }
+  const d = String(row.description ?? '').trim()
+  if (d) return d
+  return formatExpenseCategoryCell(row)
+}
+
+function expenseParticulars(row: Record<string, unknown>, projects: Record<string, unknown>[]): string {
+  const cat = formatExpenseCategoryCell(row)
+  if (row.project_id) {
+    const p = projects.find((x) => String(x.id) === String(row.project_id))
+    const name = p ? String((p as Record<string, unknown>).name ?? '') : ''
+    if (name) return `${cat} · ${name}`
+  }
+  return cat
+}
+
+function formatExpenseMoney(amount: number, currency: string): string {
+  return `${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${currency.trim() || 'USD'}`
+}
+
 export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: ExpensesTableProps) {
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -519,24 +616,44 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState('USD')
   const [category, setCategory] = useState('office')
+  const [otherCategory, setOtherCategory] = useState('')
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState('')
   const [expenseDate, setExpenseDate] = useState('')
   const [receiptUrl, setReceiptUrl] = useState('')
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [paidBy, setPaidBy] = useState('')
   const [del, setDel] = useState<{ id: string; label: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  const ledgerRows = useMemo(() => {
+    const list = [...rows]
+    list.sort((a, b) => {
+      const ta = expenseSortTime(a)
+      const tb = expenseSortTime(b)
+      if (ta !== tb) return ta - tb
+      return String(a.id ?? '').localeCompare(String(b.id ?? ''))
+    })
+    let running = 0
+    return list.map((row) => {
+      const debit = parseExpenseAmount(row)
+      running += debit
+      return { row, debit, balance: running }
+    })
+  }, [rows])
 
   function openNew() {
     setEditId(null)
     setAmount('')
     setCurrency('USD')
     setCategory('office')
+    setOtherCategory('')
     setDescription('')
     setProjectId('')
     setExpenseDate(new Date().toISOString().slice(0, 10))
     setReceiptUrl('')
     setReceiptFile(null)
+    setPaidBy('')
     setErr(null)
     setOpen(true)
   }
@@ -546,12 +663,21 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
     setAmount(String(row.amount ?? ''))
     setCurrency(String(row.currency ?? 'USD'))
     setCategory(String(row.category ?? 'office'))
-    setDescription(String(row.description ?? ''))
+    const cat = String(row.category ?? 'office').toLowerCase()
+    if (cat === 'other') {
+      const { otherLabel, notes } = parseExpenseOtherDescription(row)
+      setOtherCategory(otherLabel)
+      setDescription(notes)
+    } else {
+      setOtherCategory('')
+      setDescription(String(row.description ?? ''))
+    }
     setProjectId(row.project_id ? String(row.project_id) : '')
     const ed = row.expense_date
     setExpenseDate(typeof ed === 'string' ? ed.slice(0, 10) : new Date().toISOString().slice(0, 10))
     setReceiptUrl(typeof row.receipt_url === 'string' ? row.receipt_url : '')
     setReceiptFile(null)
+    setPaidBy(typeof row.paid_by === 'string' ? row.paid_by : String(row.paid_by ?? ''))
     setErr(null)
     setOpen(true)
   }
@@ -561,6 +687,11 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
     const a = Number.parseFloat(amount)
     if (!Number.isFinite(a) || a < 0) {
       setErr('Valid amount required.')
+      return
+    }
+    const cat = (category.trim() || 'office').toLowerCase()
+    if (cat === 'other' && !otherCategory.trim()) {
+      setErr('Specify the category name for Other.')
       return
     }
     setPending(true)
@@ -573,13 +704,24 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
       const payload: Record<string, unknown> = {
         amount: a,
         currency: currency.trim() || 'USD',
-        category: category.trim() || 'office',
+        category: cat || 'office',
       }
-      if (description.trim()) payload.description = description.trim()
+      if (cat === 'other') {
+        const oc = otherCategory.trim()
+        const notes = description.trim()
+        payload.description = notes ? `${oc}\n\n${notes}` : oc
+      } else if (description.trim()) {
+        payload.description = description.trim()
+      } else {
+        payload.description = null
+      }
       if (projectId) payload.project_id = projectId
       else payload.project_id = null
       if (expenseDate) payload.expense_date = new Date(`${expenseDate}T12:00:00.000Z`).toISOString()
       if (urlReceipt) payload.receipt_url = urlReceipt
+      else if (receiptUrl.trim()) payload.receipt_url = receiptUrl.trim()
+      else payload.receipt_url = null
+      payload.paid_by = paidBy.trim() || null
 
       const url = editId ? `/api/dashboard/expenses/${editId}` : '/api/dashboard/expenses'
       const res = await fetch(url, {
@@ -623,13 +765,34 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
 
   return (
     <>
-      <Card className="overflow-hidden border-brand-navy/12 bg-white shadow-sm">
-        <div className="h-1 bg-brand-teal" />
-        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-brand-navy/8 bg-brand-mint/25 py-4">
+      <Card className="overflow-hidden border border-slate-300/80 bg-white shadow-md">
+        <div className="bg-[#4ebce3] px-4 py-3 text-white sm:px-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-lg font-bold tracking-tight sm:text-xl">Baraarug Consulting Firm Ledger</p>
+              <p className="mt-0.5 text-sm font-medium text-white/95">Expenses register · Debit / Credit / Balance</p>
+            </div>
+            <span className="inline-flex w-fit shrink-0 rounded-md bg-white/20 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+              Monthly
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] text-slate-600 sm:px-6 sm:text-xs">
+          <span>
+            <span className="font-semibold text-slate-700">Account:</span> {LEDGER_ACCOUNT}
+          </span>
+          <span className="max-w-[min(100%,20rem)]">
+            <span className="font-semibold text-slate-700">Location:</span> {OFFICE_ADDRESS}
+          </span>
+          <span>
+            <span className="font-semibold text-slate-700">Tel:</span> {LEDGER_PHONE}
+          </span>
+        </div>
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-brand-navy/10 bg-brand-mint/20 py-4">
           <div>
             <CardTitle className="text-lg text-brand-navy">Expenses</CardTitle>
             <CardDescription className="text-slate-600">
-              {rows.length} row(s) · categories · optional project & receipt
+              {loading ? 'Loading…' : `${rows.length} entr${rows.length === 1 ? 'y' : 'ies'}`} · narration, particulars, debit &amp; running balance
             </CardDescription>
           </div>
           <Button type="button" className="bg-brand-navy text-white hover:brightness-110" onClick={openNew}>
@@ -638,58 +801,78 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
           </Button>
         </CardHeader>
         <CardContent className="px-0 pb-0">
-          {loading ? (
-            <p className="text-muted-foreground px-6 py-6 text-sm">{empty}</p>
-          ) : rows.length === 0 ? (
-            <p className="text-muted-foreground px-6 py-6 text-sm">{empty}</p>
-          ) : (
-            <ScrollArea className="max-h-[min(480px,calc(100dvh-18rem))] w-full">
+          <ScrollArea className="max-h-[min(520px,calc(100dvh-16rem))] w-full">
+            <div className="min-w-[880px]">
               <Table>
                 <TableHeader>
                   <TableRow className="border-brand-navy/10 bg-brand-navy hover:bg-brand-navy">
-                    <TableHead className="font-semibold text-white">Amount</TableHead>
-                    <TableHead className="font-semibold text-white">Category</TableHead>
-                    <TableHead className="hidden font-semibold text-white md:table-cell">Project</TableHead>
+                    <TableHead className="whitespace-nowrap font-semibold text-white">Date</TableHead>
+                    <TableHead className="min-w-[140px] font-semibold text-white">Description / Narration</TableHead>
+                    <TableHead className="hidden whitespace-nowrap font-semibold text-white md:table-cell">Paid by</TableHead>
+                    <TableHead className="min-w-[120px] font-semibold text-white">Particulars</TableHead>
+                    <TableHead className="whitespace-nowrap text-right font-semibold text-white">Debit</TableHead>
+                    <TableHead className="whitespace-nowrap text-right font-semibold text-white">Credit</TableHead>
+                    <TableHead className="whitespace-nowrap text-right font-semibold text-white">Balance</TableHead>
                     <TableHead className="w-[88px] pr-4 text-right font-semibold text-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((row) => {
-                    const id = String(row.id ?? '')
-                    return (
-                      <TableRow key={id} className="odd:bg-white even:bg-brand-mint/15">
-                        <TableCell className="font-mono text-sm">
-                          {formatCell(row.amount)} {String(row.currency ?? '')}
-                        </TableCell>
-                        <TableCell className="text-sm capitalize">{formatCell(row.category)}</TableCell>
-                        <TableCell className="hidden max-w-[160px] truncate text-xs md:table-cell">
-                          {row.project_id
-                            ? formatCell(
-                                (projects.find((p) => String(p.id) === String(row.project_id)) as Record<string, unknown> | undefined)?.name,
-                              )
-                            : '—'}
-                        </TableCell>
-                        <TableCell className="pr-2 text-right">
-                          <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => openEdit(row)}>
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive size-8"
-                            onClick={() => setDel({ id, label: String(row.amount) })}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="py-10 text-center text-sm text-slate-500">
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="size-5 animate-spin text-brand-teal" aria-hidden />
+                          {empty}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ) : rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="py-10 text-center text-sm text-slate-500">
+                        {empty}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    ledgerRows.map(({ row, debit, balance }) => {
+                      const id = String(row.id ?? '')
+                      const cur = String(row.currency ?? 'USD').trim() || 'USD'
+                      return (
+                        <TableRow key={id} className="border-slate-200 odd:bg-white even:bg-slate-50/80">
+                          <TableCell className="whitespace-nowrap font-mono text-xs text-slate-800">{formatLedgerDate(row)}</TableCell>
+                          <TableCell className="max-w-[220px] text-xs leading-snug text-slate-800">{expenseNarration(row)}</TableCell>
+                          <TableCell className="hidden max-w-[140px] text-xs text-slate-600 md:table-cell">
+                            {row.paid_by != null && String(row.paid_by).trim() !== '' ? String(row.paid_by) : '—'}
+                          </TableCell>
+                          <TableCell className="max-w-[180px] text-xs leading-snug text-slate-700">{expenseParticulars(row, projects)}</TableCell>
+                          <TableCell className="whitespace-nowrap text-right font-mono text-xs font-medium text-slate-900">
+                            {formatExpenseMoney(debit, cur)}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-right font-mono text-xs text-slate-400">—</TableCell>
+                          <TableCell className="whitespace-nowrap text-right font-mono text-xs font-semibold text-brand-navy">
+                            {formatExpenseMoney(balance, cur)}
+                          </TableCell>
+                          <TableCell className="pr-2 text-right">
+                            <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => openEdit(row)}>
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive size-8"
+                              onClick={() => setDel({ id, label: String(row.amount) })}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  )}
                 </TableBody>
               </Table>
-            </ScrollArea>
-          )}
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
 
@@ -717,7 +900,16 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
                 <Input id="ex-cur" value={currency} onChange={(e) => setCurrency(e.target.value)} className={dashboardFormInputClass} />
               </DashboardFormField>
               <DashboardFormField label="Category" htmlFor="ex-cat" icon={Receipt}>
-                <select id="ex-cat" value={category} onChange={(e) => setCategory(e.target.value)} className={dashboardFormInputClass}>
+                <select
+                  id="ex-cat"
+                  value={category}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    setCategory(v)
+                    if (v !== 'other') setOtherCategory('')
+                  }}
+                  className={dashboardFormInputClass}
+                >
                   <option value="salary">Salary</option>
                   <option value="transport">Transport</option>
                   <option value="office">Office</option>
@@ -725,6 +917,19 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
                   <option value="other">Other</option>
                 </select>
               </DashboardFormField>
+              {category === 'other' ? (
+                <DashboardFormField label="Specify category" htmlFor="ex-other" icon={Receipt} hint="Required when Other is selected">
+                  <Input
+                    id="ex-other"
+                    value={otherCategory}
+                    onChange={(e) => setOtherCategory(e.target.value)}
+                    className={dashboardFormInputClass}
+                    placeholder="e.g. Software subscription, Legal fees…"
+                    required
+                    autoComplete="off"
+                  />
+                </DashboardFormField>
+              ) : null}
               <DashboardFormField label="Expense date" htmlFor="ex-ed" icon={Receipt}>
                 <Input id="ex-ed" type="date" value={expenseDate} onChange={(e) => setExpenseDate(e.target.value)} className={dashboardFormInputClass} />
               </DashboardFormField>
@@ -737,6 +942,16 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
                     </option>
                   ))}
                 </select>
+              </DashboardFormField>
+              <DashboardFormField label="Paid by (optional)" htmlFor="ex-pb" icon={Receipt} hint="Who approved or paid this expense">
+                <Input
+                  id="ex-pb"
+                  value={paidBy}
+                  onChange={(e) => setPaidBy(e.target.value)}
+                  className={dashboardFormInputClass}
+                  placeholder="e.g. Finance, Director"
+                  autoComplete="off"
+                />
               </DashboardFormField>
               <DashboardFormField label="Receipt (optional)" htmlFor="ex-rc" icon={Receipt}>
                 <Input
@@ -752,13 +967,18 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
                   </a>
                 ) : null}
               </DashboardFormField>
-              <DashboardFormField label="Description (optional)" htmlFor="ex-d" icon={Receipt}>
+              <DashboardFormField
+                label={category === 'other' ? 'Additional notes (optional)' : 'Description (optional)'}
+                htmlFor="ex-d"
+                icon={Receipt}
+              >
                 <Textarea
                   id="ex-d"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
                   className={cn(dashboardFormTextareaClass, 'resize-y')}
+                  placeholder={category === 'other' ? 'Extra context beyond the category name…' : undefined}
                 />
               </DashboardFormField>
               {err ? <p className="text-destructive text-sm">{err}</p> : null}

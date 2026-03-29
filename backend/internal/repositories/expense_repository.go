@@ -41,3 +41,28 @@ func (r *ExpenseRepository) Update(e *models.Expense) error {
 func (r *ExpenseRepository) Delete(id uuid.UUID) error {
 	return r.db.Delete(&models.Expense{}, "id = ?", id).Error
 }
+
+// SumAmountsByProjectID returns total expense amount per project (only rows with a project_id).
+func (r *ExpenseRepository) SumAmountsByProjectID(projectIDs []uuid.UUID) (map[uuid.UUID]float64, error) {
+	out := make(map[uuid.UUID]float64)
+	if len(projectIDs) == 0 {
+		return out, nil
+	}
+	type agg struct {
+		ProjectID uuid.UUID `gorm:"column:project_id"`
+		SumAmount float64   `gorm:"column:sum_amount"`
+	}
+	var rows []agg
+	err := r.db.Model(&models.Expense{}).
+		Select("project_id, COALESCE(SUM(amount), 0) AS sum_amount").
+		Where("project_id IN ?", projectIDs).
+		Group("project_id").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		out[row.ProjectID] = row.SumAmount
+	}
+	return out, nil
+}

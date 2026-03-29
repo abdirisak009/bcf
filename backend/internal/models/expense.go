@@ -23,6 +23,7 @@ type Expense struct {
 	ProjectID   *uuid.UUID `gorm:"type:uuid;index" json:"project_id,omitempty"`
 	ReceiptURL  *string    `gorm:"type:text" json:"receipt_url,omitempty"`
 	ExpenseDate *time.Time `gorm:"type:date" json:"expense_date,omitempty"`
+	PaidBy      *string    `gorm:"size:255" json:"paid_by,omitempty"`
 	CreatedBy   *uuid.UUID `gorm:"type:uuid" json:"created_by,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`

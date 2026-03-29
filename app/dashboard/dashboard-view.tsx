@@ -19,6 +19,7 @@ import {
   Receipt,
   Settings,
   BarChart3,
+  FileDown,
   FileSpreadsheet,
   FolderKanban,
   TrendingUp,
@@ -32,6 +33,7 @@ import { NewsArticleForm } from '@/components/dashboard/news-article-form'
 import { NewsArticlesTable } from '@/components/dashboard/news-articles-table'
 import { NewsCategoryForm } from '@/components/dashboard/news-category-form'
 import { FinancialReportsPanel } from '@/components/dashboard/financial-reports-panel'
+import { ReportsHub } from '@/components/dashboard/reports-hub'
 import { InvoicesTable } from '@/components/dashboard/financial-invoices-table'
 import {
   ClientsTable,
@@ -101,6 +103,7 @@ type NavId =
   | 'payments'
   | 'expenses'
   | 'financial-reports'
+  | 'reports'
   | 'clients'
   | 'partners'
   | 'users'
@@ -117,6 +120,7 @@ const NAV_TITLE: Record<NavId, string> = {
   payments: 'Payments',
   expenses: 'Expenses',
   'financial-reports': 'Financial reports',
+  reports: 'Reports',
   clients: 'Clients',
   partners: 'Partners',
   users: 'Users & access',
@@ -230,6 +234,7 @@ const NAV_ORDER: NavId[] = [
   'payments',
   'expenses',
   'financial-reports',
+  'reports',
   'clients',
   'partners',
   'users',
@@ -334,8 +339,12 @@ export function DashboardView() {
   }
 
   async function refetchExpenses() {
-    const ex = await fetchJSON<ItemsData<Record<string, unknown>>>('/api/expenses?limit=500')
+    const [ex, proj] = await Promise.all([
+      fetchJSON<ItemsData<Record<string, unknown>>>('/api/expenses?limit=500'),
+      fetchJSON<ItemsData<Record<string, unknown>>>('/api/projects?limit=500'),
+    ])
     setExpenses(ex.success && ex.data?.items ? ex.data.items : [])
+    setProjectItems(proj.success && proj.data?.items ? proj.data.items : [])
   }
 
   async function refetchClients() {
@@ -493,6 +502,9 @@ export function DashboardView() {
             )}
             {canAccessNav(sessionUser, 'financial-reports') && (
               <NavButton id="financial-reports" icon={BarChart3} label="Financial reports" />
+            )}
+            {canAccessNav(sessionUser, 'reports') && (
+              <NavButton id="reports" icon={FileDown} label="Reports" />
             )}
             <p className="mt-4 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-white/45">
               Directory
@@ -852,6 +864,7 @@ export function DashboardView() {
               <ProjectsTable
                 rows={projectItems}
                 clients={clients}
+                expenses={expenses}
                 loading={loading}
                 empty={loading ? 'Loading…' : 'No projects — add consulting engagements here.'}
                 onRefresh={refetchProjects}
@@ -883,6 +896,14 @@ export function DashboardView() {
                 </p>
                 <FinancialReportsPanel />
               </div>
+            )}
+            {activeNav === 'reports' && (
+              <ReportsHub
+                loading={loading}
+                projects={projectItems}
+                expenses={expenses}
+                clients={clients}
+              />
             )}
             {activeNav === 'clients' && (
               <ClientsTable

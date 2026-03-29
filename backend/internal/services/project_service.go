@@ -11,11 +11,36 @@ import (
 )
 
 type ProjectService struct {
-	repo *repositories.ProjectRepository
+	repo    *repositories.ProjectRepository
+	expRepo *repositories.ExpenseRepository
 }
 
-func NewProjectService(repo *repositories.ProjectRepository) *ProjectService {
-	return &ProjectService{repo: repo}
+func NewProjectService(repo *repositories.ProjectRepository, expRepo *repositories.ExpenseRepository) *ProjectService {
+	return &ProjectService{repo: repo, expRepo: expRepo}
+}
+
+func (s *ProjectService) enrichProjectsWithExpenseTotals(projects []models.Project) error {
+	if s.expRepo == nil || len(projects) == 0 {
+		return nil
+	}
+	ids := make([]uuid.UUID, len(projects))
+	for i := range projects {
+		ids[i] = projects[i].ID
+	}
+	sums, err := s.expRepo.SumAmountsByProjectID(ids)
+	if err != nil {
+		return err
+	}
+	for i := range projects {
+		p := &projects[i]
+		spent := sums[p.ID]
+		p.ExpenseTotal = &spent
+		if p.ContractValue != nil {
+			b := *p.ContractValue - spent
+			p.Balance = &b
+		}
+	}
+	return nil
 }
 
 func (s *ProjectService) Create(p *models.Project) error {
@@ -39,11 +64,26 @@ func (s *ProjectService) Create(p *models.Project) error {
 }
 
 func (s *ProjectService) List(limit, offset int) ([]models.Project, error) {
-	return s.repo.List(limit, offset)
+	rows, err := s.repo.List(limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.enrichProjectsWithExpenseTotals(rows); err != nil {
+		return nil, err
+	}
+	return rows, nil
 }
 
 func (s *ProjectService) GetByID(id uuid.UUID) (*models.Project, error) {
-	return s.repo.GetByID(id)
+	p, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	rows := []models.Project{*p}
+	if err := s.enrichProjectsWithExpenseTotals(rows); err != nil {
+		return nil, err
+	}
+	return &rows[0], nil
 }
 
 func (s *ProjectService) Update(p *models.Project) error {
