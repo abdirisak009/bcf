@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-bcf
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: bcf
+      POSTGRES_PASSWORD: "Bcf@2026@@"
+      POSTGRES_DB: BcfDb
+    volumes:
+      - pgdata2:/var/lib/postgresql/data
+
+volumes:
+  pgdata2:

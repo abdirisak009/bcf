@@ -1,0 +1,213 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* —— Brand source (edit these 4 only to re-skin the site) —— */
+  --brand-navy: #175e7e;
+  --brand-mint: #cef4d1;
+  --brand-green: #7ce395;
+  --brand-teal: #55c593;
+  /* Derived from the 4 above — shadows, chart secondaries */
+  --brand-teal-hover: color-mix(in srgb, var(--brand-teal) 88%, black);
+  --brand-navy-muted: color-mix(in srgb, var(--brand-navy) 92%, white);
+  --brand-navy-deep: color-mix(in srgb, var(--brand-navy) 58%, black);
+  --brand-navy-mid: color-mix(in srgb, var(--brand-navy) 72%, black);
+  --brand-navy-soft: color-mix(in srgb, var(--brand-navy) 38%, white);
+  --brand-navy-ink: color-mix(in srgb, var(--brand-navy) 64%, black);
+  --brand-teal-deep: color-mix(in srgb, var(--brand-teal) 48%, black);
+  --brand-green-vivid: color-mix(in srgb, var(--brand-green) 45%, white);
+
+  --background: color-mix(in srgb, var(--brand-mint) 18%, white);
+  --foreground: color-mix(in srgb, var(--brand-navy) 25%, black);
+  --card: #ffffff;
+  --card-foreground: color-mix(in srgb, var(--brand-navy) 18%, black);
+  --popover: #ffffff;
+  --popover-foreground: color-mix(in srgb, var(--brand-navy) 18%, black);
+  /* Primary actions: teal */
+  --primary: var(--brand-teal);
+  --primary-foreground: #ffffff;
+  --secondary: color-mix(in srgb, var(--brand-mint) 55%, white);
+  --secondary-foreground: var(--brand-navy);
+  --muted: color-mix(in srgb, var(--brand-mint) 40%, white);
+  --muted-foreground: color-mix(in srgb, var(--brand-navy) 45%, gray);
+  --accent: color-mix(in srgb, var(--brand-mint) 70%, white);
+  --accent-foreground: var(--brand-navy);
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(1 0 0);
+  --border: color-mix(in srgb, var(--brand-navy) 12%, white);
+  --input: color-mix(in srgb, var(--brand-navy) 14%, white);
+  --ring: var(--brand-green);
+  --chart-1: var(--brand-navy);
+  --chart-2: var(--brand-teal);
+  --chart-3: var(--brand-green);
+  --chart-4: color-mix(in srgb, var(--brand-teal) 75%, white);
+  --chart-5: color-mix(in srgb, var(--brand-navy) 65%, white);
+  --sidebar: color-mix(in srgb, var(--brand-mint) 35%, white);
+  --sidebar-foreground: color-mix(in srgb, var(--brand-navy) 18%, black);
+  --sidebar-primary: var(--brand-teal);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: color-mix(in srgb, var(--brand-mint) 60%, white);
+  --sidebar-accent-foreground: var(--brand-navy);
+  --sidebar-border: color-mix(in srgb, var(--brand-navy) 12%, white);
+  --sidebar-ring: var(--brand-green);
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Merriweather, ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --radius: 0.5rem;
+  --shadow-x: 0px;
+  --shadow-y: 4px;
+  --shadow-blur: 8px;
+  --shadow-spread: -1px;
+  --shadow-opacity: 0.1;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+  --shadow-sm:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 1px 2px -2px hsl(0 0% 0% / 0.1);
+  --shadow:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 1px 2px -2px hsl(0 0% 0% / 0.1);
+  --shadow-md:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 2px 4px -2px hsl(0 0% 0% / 0.1);
+  --shadow-lg:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 4px 6px -2px hsl(0 0% 0% / 0.1);
+  --shadow-xl:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 8px 10px -2px hsl(0 0% 0% / 0.1);
+  --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  --background: color-mix(in srgb, var(--brand-navy) 92%, black);
+  --foreground: color-mix(in srgb, var(--brand-mint) 92%, white);
+  --card: color-mix(in srgb, var(--brand-navy) 75%, black);
+  --card-foreground: color-mix(in srgb, var(--brand-mint) 95%, white);
+  --popover: color-mix(in srgb, var(--brand-navy) 78%, black);
+  --popover-foreground: color-mix(in srgb, var(--brand-mint) 95%, white);
+  --primary: var(--brand-teal);
+  --primary-foreground: #0f172a;
+  --secondary: color-mix(in srgb, var(--brand-navy) 55%, white);
+  --secondary-foreground: var(--brand-mint);
+  --muted: color-mix(in srgb, var(--brand-navy) 50%, black);
+  --muted-foreground: color-mix(in srgb, var(--brand-mint) 65%, gray);
+  --accent: color-mix(in srgb, var(--brand-navy) 45%, gray);
+  --accent-foreground: var(--brand-mint);
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(1 0 0);
+  --border: color-mix(in srgb, var(--brand-teal) 28%, transparent);
+  --input: color-mix(in srgb, var(--brand-navy) 60%, white);
+  --ring: var(--brand-green);
+  --chart-1: var(--brand-teal);
+  --chart-2: var(--brand-green);
+  --chart-3: var(--brand-mint);
+  --chart-4: var(--brand-navy-muted);
+  --chart-5: color-mix(in srgb, var(--brand-teal) 80%, white);
+  --sidebar: color-mix(in srgb, var(--brand-navy) 82%, black);
+  --sidebar-foreground: color-mix(in srgb, var(--brand-mint) 95%, white);
+  --sidebar-primary: var(--brand-teal);
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: color-mix(in srgb, var(--brand-navy) 55%, white);
+  --sidebar-accent-foreground: var(--brand-mint);
+  --sidebar-border: color-mix(in srgb, var(--brand-teal) 22%, transparent);
+  --sidebar-ring: var(--brand-green);
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Merriweather, ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --radius: 0.5rem;
+  --shadow-x: 0px;
+  --shadow-y: 4px;
+  --shadow-blur: 8px;
+  --shadow-spread: -1px;
+  --shadow-opacity: 0.1;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+  --shadow-sm:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 1px 2px -2px hsl(0 0% 0% / 0.1);
+  --shadow:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 1px 2px -2px hsl(0 0% 0% / 0.1);
+  --shadow-md:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 2px 4px -2px hsl(0 0% 0% / 0.1);
+  --shadow-lg:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 4px 6px -2px hsl(0 0% 0% / 0.1);
+  --shadow-xl:
+    0px 4px 8px -1px hsl(0 0% 0% / 0.1), 0px 8px 10px -2px hsl(0 0% 0% / 0.1);
+  --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-mint: var(--brand-mint);
+  --color-brand-green: var(--brand-green);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-hover: var(--brand-teal-hover);
+  --color-brand-navy-muted: var(--brand-navy-muted);
+  --color-brand-navy-deep: var(--brand-navy-deep);
+  --color-brand-navy-mid: var(--brand-navy-mid);
+  --color-brand-navy-soft: var(--brand-navy-soft);
+  --color-brand-navy-ink: var(--brand-navy-ink);
+  --color-brand-teal-deep: var(--brand-teal-deep);
+  --color-brand-green-vivid: var(--brand-green-vivid);
+
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-serif: Merriweather, ui-serif, Georgia, serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

@@ -1,0 +1,20 @@
+Place your Acrobat PDF here as:
+
+  Certificate-tem.pdf
+
+The Go backend does not use AcroForm fill for the final PDF. It removes form field
+widgets (so grey field boxes are not shown), then draws names, dates, and IDs on
+top with Helvetica (large bold student name and course title).
+
+You may keep AcroForm fields in the template for authoring reference; typical names:
+
+  studentName, trainingName, fromDate, toDate, certificateNo, date, sigin
+
+Overlay positions are tuned in backend/internal/pdf/certificate_pdf.go (certOverlay*
+constants). If text does not line up with your design, adjust those values.
+
+Backend .env example (local Next.js on port 3000):
+
+  CERTIFICATE_TEMPLATE_URL=http://127.0.0.1:3000/Certificate-tem.pdf
+
+Restart the Go API after changing .env.
