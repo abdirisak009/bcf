@@ -25,6 +25,10 @@ type CertificateData struct {
 	IssueDate      string
 	SignatoryName  string
 	SignatoryTitle string
+	// VerifyPublicBaseURL optional (PUBLIC_SITE_URL or PUBLIC_WEB_URL). QR encodes URL to /verify?no=... when set.
+	VerifyPublicBaseURL string
+	// HeaderLogoURL optional PNG/JPEG (same source as website wordmark). Fetched at render; fallback text if empty or fetch fails.
+	HeaderLogoURL string
 }
 
 // RenderCertificate builds a landscape A4 PDF.
@@ -205,9 +209,17 @@ func drawCertificateDynamicOverlayGofpdf(pdf *gofpdf.Fpdf, d CertificateData, pa
 }
 
 func sanitizeCertText(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return s
+	}
+	// Mojibake: UTF-8 em dash mis-decoded (shows as â€" in some PDF viewers)
+	s = strings.ReplaceAll(s, "\u00e2\u20ac\u201d", "-")
+	s = strings.ReplaceAll(s, string([]byte{0xe2, 0x80, 0x94}), "-")
 	s = strings.ReplaceAll(s, "\u2013", "-")
 	s = strings.ReplaceAll(s, "\u2014", "-")
 	s = strings.ReplaceAll(s, "\u2012", "-")
+	s = strings.ReplaceAll(s, "\u2015", "-")
 	return s
 }
 
@@ -233,7 +245,7 @@ func renderCertificateRasterBackground(d CertificateData, imgBytes []byte, conte
 	pdf.RegisterImageOptionsReader("certbg", opt, bytes.NewReader(imgBytes))
 	pdf.ImageOptions("certbg", 0, 0, pageW, pageH, false, opt, 0, "")
 
-	drawCertificateFullTextFpdf(pdf, d, pageW)
+	drawCertificateLegacyTextOverlay(pdf, d, pageW)
 
 	var buf bytes.Buffer
 	if err := pdf.Output(&buf); err != nil {
@@ -244,24 +256,15 @@ func renderCertificateRasterBackground(d CertificateData, imgBytes []byte, conte
 
 func renderCertificateVector(d CertificateData) ([]byte, error) {
 	pdf := fpdf.New("L", "mm", "A4", "")
-	pdf.SetMargins(18, 18, 18)
+	pdf.SetMargins(0, 0, 0)
 	pdf.SetAutoPageBreak(false, 0)
 	pdf.AddPage()
 
 	pageW, pageH := 297.0, 210.0
-	nR, nG, nB := 33, 73, 137
-	tR, tG, tB := 85, 197, 147
-
 	pdf.SetFillColor(255, 255, 255)
 	pdf.Rect(0, 0, pageW, pageH, "F")
-	pdf.SetDrawColor(nR, nG, nB)
-	pdf.SetLineWidth(0.8)
-	pdf.Rect(12, 12, pageW-24, pageH-24, "D")
-	pdf.SetDrawColor(tR, tG, tB)
-	pdf.SetLineWidth(0.5)
-	pdf.Rect(16, 16, pageW-32, pageH-32, "D")
 
-	drawCertificateFullTextFpdf(pdf, d, pageW)
+	drawCertificateParticipationBararug(pdf, d, pageW, pageH)
 
 	var buf bytes.Buffer
 	if err := pdf.Output(&buf); err != nil {
@@ -270,17 +273,289 @@ func renderCertificateVector(d CertificateData) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func drawCertificateFullTextFpdf(pdf *fpdf.Fpdf, d CertificateData, pageW float64) {
+// Certificate brand colors — match frontend app/globals.css (brand-navy, brand-teal / brand-green).
+const (
+	certBrandNavyR, certBrandNavyG, certBrandNavyB  = 23, 94, 126  // #175e7e
+	certBrandTealR, certBrandTealG, certBrandTealB  = 85, 197, 147 // #55c593 — title + accents (site green)
+	certRuleGreyR, certRuleGreyG, certRuleGreyB     = 211, 211, 211 // #D3D3D3 separator
+)
+
+// drawCertificateParticipationBararug — landscape layout inspired by professional participation certificates:
+// Website logo + brand navy/teal; large green title; light footer band, signature / QR / date.
+func drawCertificateParticipationBararug(pdf *fpdf.Fpdf, d CertificateData, pageW, pageH float64) {
+	const (
+		margin    = 14.0
+		splitY    = 128.0
+		footerBgR = 240
+		footerBgG = 242
+		footerBgB = 245
+		labelBoxR = 228
+		labelBoxG = 231
+		labelBoxB = 235
+		bodyTextR = 45
+		bodyTextG = 52
+		bodyTextB = 60
+	)
+
+	// Footer band + thick accent separator (same brand-teal as certificate title)
+	pdf.SetFillColor(footerBgR, footerBgG, footerBgB)
+	pdf.Rect(0, splitY, pageW, pageH-splitY, "F")
+	pdf.SetFillColor(certBrandTealR, certBrandTealG, certBrandTealB)
+	pdf.Rect(0, splitY-2.2, pageW, 2.2, "F")
+
+	// Header: centered block — logo | vertical rule | large green title (brand-teal)
+	const (
+		headerTopY     = 11.0
+		leftColW       = 76.0
+		titleFontPt    = 24.0
+		titleLineH     = 14.0
+		ruleTop        = 9.0
+		gapAfterLogo   = 3.5
+		gapAfterSep    = 5.0
+		titlePadMM     = 4.0
+	)
+	pdf.SetFont("Helvetica", "B", titleFontPt)
+	titleBlockW := pdf.GetStringWidth("CERTIFICATE OF")
+	if w := pdf.GetStringWidth("PARTICIPATION"); w > titleBlockW {
+		titleBlockW = w
+	}
+	titleBlockW += titlePadMM
+
+	headerBlockW := leftColW + gapAfterLogo + gapAfterSep + titleBlockW
+	blockStartX := (pageW - headerBlockW) / 2
+	if blockStartX < margin {
+		blockStartX = margin
+	}
+	logoX := blockStartX
+	sepX := blockStartX + leftColW + gapAfterLogo
+	titleX := sepX + gapAfterSep
+
+	// Logo: same asset as home header (/public/logo.png via CERTIFICATE_LOGO_URL / PUBLIC_SITE_URL); scale similar to nav wordmark
+	logoW := leftColW - 2.0
+	logoH := logoW * logoAssetHpx / logoAssetWpx
+	if logoH > 32.0 {
+		logoH = 32.0
+		logoW = logoH * logoAssetWpx / logoAssetHpx
+	}
+
+	logoURL := strings.TrimSpace(d.HeaderLogoURL)
+	if logoURL == "" {
+		logoURL = DefaultLogoURL
+	}
+	imgBytes, imgType, errLogo := fetchImage(logoURL)
+	imgOK := errLogo == nil && len(imgBytes) > 0
+	if imgOK {
+		tp := strings.ToLower(imgType)
+		if tp != "png" && tp != "jpeg" && tp != "jpg" {
+			tp = "png"
+		}
+		opt := fpdf.ImageOptions{ImageType: tp, ReadDpi: true}
+		pdf.RegisterImageOptionsReader("cert_hdr_logo", opt, bytes.NewReader(imgBytes))
+		pdf.ImageOptions("cert_hdr_logo", logoX, headerTopY, logoW, logoH, false, opt, 0, "")
+	} else {
+		// Text fallback: same hierarchy as site — navy wordmark, teal tagline
+		pdf.SetFont("Helvetica", "B", 19)
+		pdf.SetTextColor(certBrandNavyR, certBrandNavyG, certBrandNavyB)
+		pdf.SetXY(logoX, headerTopY+1)
+		pdf.CellFormat(leftColW, 10, "Baraarug", "", 0, "L", false, 0, "")
+		pdf.SetFont("Helvetica", "B", 9)
+		pdf.SetTextColor(certBrandTealR, certBrandTealG, certBrandTealB)
+		pdf.SetXY(logoX, headerTopY+12)
+		pdf.CellFormat(leftColW, 6, "Consulting Firm", "", 0, "L", false, 0, "")
+	}
+
+	ruleBot := headerTopY + titleLineH*2 + 3.0
+	if ruleBot < logoH+headerTopY+2 {
+		ruleBot = logoH + headerTopY + 2
+	}
+	pdf.SetDrawColor(certRuleGreyR, certRuleGreyG, certRuleGreyB)
+	pdf.SetLineWidth(0.35)
+	pdf.Line(sepX, ruleTop, sepX, ruleBot)
+
+	pdf.SetFont("Helvetica", "B", titleFontPt)
+	pdf.SetTextColor(certBrandTealR, certBrandTealG, certBrandTealB)
+	pdf.SetXY(titleX, headerTopY)
+	pdf.CellFormat(titleBlockW, titleLineH, "CERTIFICATE OF", "", 0, "L", false, 0, "")
+	pdf.SetXY(titleX, headerTopY+titleLineH)
+	pdf.CellFormat(titleBlockW, titleLineH, "PARTICIPATION", "", 0, "L", false, 0, "")
+
+	bodyW := pageW - 2*margin
+	bodyStartY := ruleBot + 6.0
+
+	// One row: grey label (left) + gap + large name (right), vertically aligned; whole row centered when it fits
+	labelText := "This certificate is awarded to"
+	labelH := 9.0
+	gapLabelName := 4.0
+	pdf.SetFont("Helvetica", "B", 8.5)
+	labelW := pdf.GetStringWidth(labelText) + 12.0
+	if labelW < 78.0 {
+		labelW = 78.0
+	}
+	nameColW := bodyW - labelW - gapLabelName
+	if nameColW < 32.0 {
+		nameColW = 32.0
+	}
+
+	student := sanitizeCertText(strings.TrimSpace(d.StudentName))
+	if student == "" {
+		student = "Participant"
+	}
+	pdf.SetFont("Helvetica", "B", 23)
+	nameWOne := pdf.GetStringWidth(student)
+	rowW := labelW + gapLabelName + nameWOne
+	if rowW > bodyW {
+		rowW = labelW + gapLabelName + nameColW
+	}
+	rowX := margin + (bodyW-rowW)/2
+	if rowX < margin {
+		rowX = margin
+	}
+
+	pdf.SetFillColor(labelBoxR, labelBoxG, labelBoxB)
+	pdf.Rect(rowX, bodyStartY, labelW, labelH, "F")
+	pdf.SetFont("Helvetica", "B", 8.5)
+	pdf.SetTextColor(bodyTextR, bodyTextG, bodyTextB)
+	pdf.SetXY(rowX, bodyStartY+2.2)
+	pdf.CellFormat(labelW, 5, labelText, "", 0, "C", false, 0, "")
+
+	nameX := rowX + labelW + gapLabelName
+	pdf.SetFont("Helvetica", "B", 23)
+	pdf.SetTextColor(40, 45, 52)
+	pdf.SetXY(nameX, bodyStartY+0.5)
+	if nameWOne <= nameColW {
+		pdf.CellFormat(nameColW, 11, student, "", 0, "L", false, 0, "")
+	} else {
+		pdf.MultiCell(nameColW, 11, student, "", "L", false)
+	}
+	rowBottom := bodyStartY + labelH
+	if y := pdf.GetY(); y > rowBottom {
+		rowBottom = y
+	}
+
+	training := sanitizeCertText(strings.TrimSpace(d.TrainingName))
+	if training == "" {
+		training = "Professional training"
+	}
+	descY := rowBottom + 5.0
+	pdf.SetXY(margin, descY)
+	pdf.SetFont("Helvetica", "", 12)
+	pdf.SetTextColor(bodyTextR, bodyTextG, bodyTextB)
+	pdf.MultiCell(bodyW, 6.5, "For attending the training on", "", "C", false)
+	pdf.SetFont("Helvetica", "B", 14)
+	pdf.SetTextColor(bodyTextR, bodyTextG, bodyTextB)
+	pdf.MultiCell(bodyW, 7.8, training, "", "C", false)
+	pdf.SetFont("Helvetica", "", 11.5)
+	suffix := "A focused workshop on understanding, shaping, and strengthening organizational culture to enhance performance, collaboration, and employee engagement."
+	pdf.MultiCell(bodyW, 6.5, sanitizeCertText(suffix), "", "C", false)
+
+	pdf.SetFont("Helvetica", "", 9.5)
+	pdf.SetTextColor(100, 108, 120)
+	pdf.SetXY(0, pdf.GetY()+3)
+	pdf.CellFormat(pageW, 5.5, "Certificate no. "+strings.TrimSpace(d.CertificateNo), "", 0, "C", false, 0, "")
+
+	// Footer: signature (left), verification box (centre), dates (right)
+	footY := splitY + 10
+	sigX := margin
+	sigW := 72.0
+	pdf.SetDrawColor(60, 65, 75)
+	pdf.SetLineWidth(0.3)
+	pdf.Line(sigX, footY+18, sigX+sigW, footY+18)
+
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.SetTextColor(certBrandNavyR, certBrandNavyG, certBrandNavyB)
+	pdf.SetXY(sigX, footY + 19)
+	pdf.CellFormat(sigW, 5, strings.TrimSpace(d.SignatoryName), "", 0, "L", false, 0, "")
+
+	pdf.SetFont("Helvetica", "", 8)
+	pdf.SetTextColor(110, 118, 130)
+	pdf.SetXY(sigX, footY + 24.5)
+	title := sanitizeCertText(strings.TrimSpace(d.SignatoryTitle))
+	if title == "" {
+		title = "Authorised signatory - Baraarug Consulting Firm"
+	}
+	pdf.MultiCell(sigW+4, 3.8, title, "", "L", false)
+
+	// Centre: QR (JSON: org, participant, program, certificate_no, optional verify_url)
+	box := 26.0
+	cx := (pageW - box) / 2
+	qrY := footY + 3
+	if png, err := encodeCertificateQRPNG(d); err == nil && len(png) > 0 {
+		opt := fpdf.ImageOptions{ImageType: "png", ReadDpi: false}
+		pdf.RegisterImageOptionsReader("certqr", opt, bytes.NewReader(png))
+		pdf.ImageOptions("certqr", cx, qrY, box, box, false, opt, 0, "")
+	} else {
+		pdf.SetDrawColor(190, 195, 202)
+		pdf.SetLineWidth(0.25)
+		pdf.Rect(cx, qrY, box, box, "D")
+	}
+
+	// Right: issue date + training period
+	rightX := pageW - margin - 68
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.SetTextColor(certBrandNavyR, certBrandNavyG, certBrandNavyB)
+	pdf.SetXY(rightX, footY + 6)
+	pdf.CellFormat(68, 5, formatCertDateSlashed(d.IssueDate), "", 0, "R", false, 0, "")
+	pdf.SetFont("Helvetica", "", 8)
+	pdf.SetTextColor(110, 118, 130)
+	pdf.SetXY(rightX, footY + 12)
+	pdf.CellFormat(68, 4, "Training date", "", 0, "R", false, 0, "")
+
+	if strings.TrimSpace(d.FromDate) != "" || strings.TrimSpace(d.ToDate) != "" {
+		period := strings.TrimSpace(d.FromDate)
+		if strings.TrimSpace(d.ToDate) != "" {
+			if period != "" {
+				period += "  –  " + strings.TrimSpace(d.ToDate)
+			} else {
+				period = strings.TrimSpace(d.ToDate)
+			}
+		}
+		pdf.SetFont("Helvetica", "B", 9)
+		pdf.SetTextColor(certBrandNavyR, certBrandNavyG, certBrandNavyB)
+		pdf.SetXY(rightX, footY + 22)
+		pdf.CellFormat(68, 5, period, "", 0, "R", false, 0, "")
+		pdf.SetFont("Helvetica", "", 8)
+		pdf.SetTextColor(110, 118, 130)
+		pdf.SetXY(rightX, footY + 28)
+		pdf.CellFormat(68, 4, "Training period", "", 0, "R", false, 0, "")
+	}
+}
+
+func formatCertDateSlashed(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+	layouts := []string{
+		"2006-01-02",
+		"Jan 2, 2006",
+		"January 2, 2006",
+		"2 Jan 2006",
+		"02 Jan 2006",
+		time.RFC3339,
+	}
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, s); err == nil {
+			return t.UTC().Format("02 / Jan / 2006")
+		}
+	}
+	if t, err := time.Parse("2006-01-02T15:04:05Z07:00", s); err == nil {
+		return t.UTC().Format("02 / Jan / 2006")
+	}
+	return s
+}
+
+// drawCertificateLegacyTextOverlay — simple centred overlay when a raster/PDF template is used as background.
+func drawCertificateLegacyTextOverlay(pdf *fpdf.Fpdf, d CertificateData, pageW float64) {
 	nR, nG, nB := 33, 73, 137
 	pdf.SetTextColor(nR, nG, nB)
 
 	pdf.SetFont("Helvetica", "B", 11)
 	pdf.SetY(28)
-	pdf.CellFormat(pageW, 8, "BARARUG CONSULTING", "", 0, "C", false, 0, "")
+	pdf.CellFormat(pageW, 8, "Baraarug Consulting Firm", "", 0, "C", false, 0, "")
 
 	pdf.SetFont("Helvetica", "", 9)
 	pdf.SetTextColor(90, 100, 120)
-	pdf.CellFormat(pageW, 5, "Policy - Governance - Growth", "", 1, "C", false, 0, "")
+	pdf.CellFormat(pageW, 5, "Policy · Governance · Growth", "", 1, "C", false, 0, "")
 	pdf.SetTextColor(nR, nG, nB)
 
 	pdf.SetFont("Helvetica", "B", 22)

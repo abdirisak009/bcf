@@ -112,6 +112,8 @@ func (s *CertificateRegistryService) RenderCertificatePDF(c *models.Certificate)
 		issueDisp,
 		s.cfg.CertificateSignatoryName,
 		s.cfg.CertificateSignatoryTitle,
+		s.cfg.CertificateVerifyBaseURL(),
+		s.cfg.CertificateLogoURL,
 	)
 	return pdf.FillRegistryTemplate(s.cfg.CertificateTemplateURL, overlay)
 }

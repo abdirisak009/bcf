@@ -17,6 +17,9 @@
     "DASHBOARD_WRITE_KEY": "change-me-long-random-string",
     "CORS_ALLOW_ORIGINS": "http://localhost:3000,http://127.0.0.1:3000",
     "CERTIFICATE_TEMPLATE_URL": "",
-    "PUBLIC_DASHBOARD_URL": ""
+    "CERTIFICATE_LOGO_URL": "",
+    "PUBLIC_DASHBOARD_URL": "",
+    "PUBLIC_WEB_URL": "",
+    "PUBLIC_SITE_URL": ""
   }
 }

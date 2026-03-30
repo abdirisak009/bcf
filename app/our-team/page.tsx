@@ -108,8 +108,8 @@ const teamMembers: TeamMember[] = [
     bio: 'COO focused on public-sector consulting, audit, strategic policy, and transformation across the Horn of Africa.',
     expertise: ['Public Sector Consulting', 'Audit & Assurance', 'Strategic Policy', 'Organizational Transformation'],
     stats: [{ label: 'Years Exp.', value: '10+' }, { label: 'Projects Led', value: '50+' }, { label: 'Sectors', value: '8+' }],
-    photo: '/images/if.jpeg',
-    photoSrcFallbacks: ['/if.jpeg', '/ifrah.jpeg', '/ifrah.png'],
+    photo: '/ifrah.png',
+    photoSrcFallbacks: ['/images/if.jpeg', '/if.jpeg', '/ifrah.jpeg'],
     photoPortraitClassName: 'h-[250px] sm:h-[275px]',
     photoImageClassName:
       '!object-cover object-[50%_30%] -translate-y-2.5 sm:-translate-y-3 transition-transform duration-500 ease-out group-hover:scale-[1.02]',

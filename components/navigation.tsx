@@ -24,7 +24,6 @@ import {
   Newspaper,
   Library,
   MessageCircle,
-  LayoutDashboard,
   type LucideIcon,
 } from 'lucide-react';
 import { OFFICE_ADDRESS, SITE_LOGO_SRC } from '@/lib/site-config';
@@ -300,13 +299,6 @@ export default function Navigation() {
 
             <div className="hidden md:flex items-center gap-2.5 shrink-0">
               <Link
-                href="/dashboard"
-                className="mr-1 inline-flex h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-brand-navy transition-colors hover:text-brand-teal"
-              >
-                <LayoutDashboard size={17} strokeWidth={2} aria-hidden />
-                Dashboard
-              </Link>
-              <Link
                 href="/sign-in"
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full border-2 border-brand-navy/90 bg-white px-5 text-sm font-semibold text-brand-navy shadow-sm transition-all duration-300 hover:border-brand-navy hover:bg-brand-navy hover:text-white hover:shadow-md"
               >
@@ -394,14 +386,6 @@ export default function Navigation() {
                 );
               })}
               <div className="mt-4 flex flex-col gap-2.5">
-                <Link
-                  href="/dashboard"
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white text-sm font-semibold text-brand-navy transition hover:border-brand-teal hover:text-brand-teal"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <LayoutDashboard size={18} strokeWidth={2} aria-hidden />
-                  Dashboard
-                </Link>
                 <Link
                   href="/sign-in"
                   className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-brand-navy bg-white text-sm font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white"

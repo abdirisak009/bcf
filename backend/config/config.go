@@ -28,6 +28,9 @@ type Config struct {
 	DashboardWriteKey string
 	// InvoiceLogoURL optional: PNG/JPEG URL embedded on generated invoice PDFs (default: Bararug light wordmark).
 	InvoiceLogoURL string
+	// CertificateLogoURL optional: PNG/JPEG URL for vector certificate header.
+	// Default when unset: {PUBLIC_SITE_URL or PUBLIC_WEB_URL}/logo.png (same file as the home page /public/logo.png), else INVOICE_LOGO_URL.
+	CertificateLogoURL string
 	// InvoiceCompanyAddress optional: multiline (\\n) sender block on the PDF header (right column).
 	InvoiceCompanyAddress string
 	// CertificateTemplateURL optional: PDF (Acrobat template, page 1 imported) or PNG/JPEG background for training certificates.
@@ -45,6 +48,10 @@ type Config struct {
 	WhatsAppUltramsgInstance  string // Ultramsg instance id
 	WhatsAppUltramsgToken     string
 	PublicDashboardURL        string // e.g. https://yoursite.com/dashboard — shown in the message
+	// PublicWebURL optional origin (legacy / fallback for certificate QR when PublicSiteURL is empty).
+	PublicWebURL string
+	// PublicSiteURL optional public **website** origin where Next.js runs (e.g. https://bararug.so). Used for QR links to /verify?no=.... No trailing slash.
+	PublicSiteURL string
 
 	// WhatsApp sendText API (e.g. WAHA / similar) — POST JSON with X-Api-Key; chatId = PHONE_DIGITS@c.us
 	WhatsAppSendTextURL     string
@@ -66,6 +73,27 @@ func Load() (*Config, error) {
 		}
 	}
 
+	invoiceLogo := getenvWithJSON(
+		j,
+		"INVOICE_LOGO_URL",
+		"https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-hewaKh5CChoShCWQNvfbpnsVOGTuVh.png",
+	)
+	publicSiteURL := strings.TrimRight(strings.TrimSpace(getenvWithJSON(j, "PUBLIC_SITE_URL", "")), "/")
+	publicWebURL := strings.TrimRight(strings.TrimSpace(getenvWithJSON(j, "PUBLIC_WEB_URL", "")), "/")
+
+	certLogo := strings.TrimSpace(getenvWithJSON(j, "CERTIFICATE_LOGO_URL", ""))
+	if certLogo == "" {
+		siteBase := publicSiteURL
+		if siteBase == "" {
+			siteBase = publicWebURL
+		}
+		if siteBase != "" {
+			certLogo = siteBase + "/logo.png"
+		} else {
+			certLogo = invoiceLogo
+		}
+	}
+
 	return &Config{
 		DBHost:            getenvWithJSON(j, "DB_HOST", "localhost"),
 		DBPort:            getenvWithJSON(j, "DB_PORT", "5433"),
@@ -78,12 +106,8 @@ func Load() (*Config, error) {
 		GinMode:           getenvWithJSON(j, "GIN_MODE", "release"),
 		Environment:       getenvWithJSON(j, "APP_ENV", "development"),
 		DashboardWriteKey: getenvWithJSON(j, "DASHBOARD_WRITE_KEY", ""),
-		// Same asset as public navigation (Home) — works on white PDF background.
-		InvoiceLogoURL: getenvWithJSON(
-			j,
-			"INVOICE_LOGO_URL",
-			"https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-hewaKh5CChoShCWQNvfbpnsVOGTuVh.png",
-		),
+		InvoiceLogoURL:    invoiceLogo,
+		CertificateLogoURL: certLogo,
 		// Sender block under "From" (company name is already in the header left).
 		InvoiceCompanyAddress: getenvWithJSON(
 			j,
@@ -109,7 +133,9 @@ func Load() (*Config, error) {
 		WhatsAppCallMeBotAPIKey:  getenvWithJSON(j, "WHATSAPP_CALLMEBOT_APIKEY", ""),
 		WhatsAppUltramsgInstance: getenvWithJSON(j, "WHATSAPP_ULTRAMSG_INSTANCE", ""),
 		WhatsAppUltramsgToken:    getenvWithJSON(j, "WHATSAPP_ULTRAMSG_TOKEN", ""),
-		PublicDashboardURL:     getenvWithJSON(j, "PUBLIC_DASHBOARD_URL", ""),
+		PublicDashboardURL: getenvWithJSON(j, "PUBLIC_DASHBOARD_URL", ""),
+		PublicSiteURL:      publicSiteURL,
+		PublicWebURL:       publicWebURL,
 		WhatsAppSendTextURL:    getenvWithJSON(j, "WHATSAPP_SENDTEXT_URL", ""),
 		WhatsAppSendTextAPIKey: getenvWithJSON(j, "WHATSAPP_SENDTEXT_API_KEY", ""),
 		WhatsAppSendTextSession: getenvWithJSON(j, "WHATSAPP_SENDTEXT_SESSION", "default"),
@@ -209,4 +235,16 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("JWT_SECRET must be at least 8 characters")
 	}
 	return nil
+}
+
+// CertificateVerifyBaseURL is the public site origin for QR links to /verify (PUBLIC_SITE_URL, else PUBLIC_WEB_URL).
+func (c *Config) CertificateVerifyBaseURL() string {
+	if c == nil {
+		return ""
+	}
+	s := strings.TrimRight(strings.TrimSpace(c.PublicSiteURL), "/")
+	if s != "" {
+		return s
+	}
+	return strings.TrimRight(strings.TrimSpace(c.PublicWebURL), "/")
 }

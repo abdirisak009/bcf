@@ -97,14 +97,16 @@ func (h *CertificateHandler) respondCertificatePDF(c *gin.Context, app *models.A
 	issueDisp := time.Now().UTC().Format("Jan 2, 2006")
 
 	data := pdf.CertificateData{
-		StudentName:    student,
-		TrainingName:   app.Training.Title,
-		FromDate:       fromDisp,
-		ToDate:         toDisp,
-		CertificateNo:  certNo,
-		IssueDate:      issueDisp,
-		SignatoryName:  h.cfg.CertificateSignatoryName,
-		SignatoryTitle: h.cfg.CertificateSignatoryTitle,
+		StudentName:         student,
+		TrainingName:        app.Training.Title,
+		FromDate:            fromDisp,
+		ToDate:              toDisp,
+		CertificateNo:       certNo,
+		IssueDate:           issueDisp,
+		SignatoryName:       h.cfg.CertificateSignatoryName,
+		SignatoryTitle:      h.cfg.CertificateSignatoryTitle,
+		VerifyPublicBaseURL: h.cfg.CertificateVerifyBaseURL(),
+		HeaderLogoURL:       h.cfg.CertificateLogoURL,
 	}
 
 	out, err := pdf.FillCertificateLikeRegistry(h.cfg.CertificateTemplateURL, data)
