@@ -19,6 +19,39 @@ import (
 	"github.com/bararug/website-backend/internal/services"
 )
 
+func corsOrigins(cfg *config.Config) []string {
+	base := []string{
+		"http://localhost:3000",
+		"http://127.0.0.1:3000",
+		"http://localhost:3002",
+		"http://127.0.0.1:3002",
+		"http://178.18.245.131:3000",
+	}
+	seen := make(map[string]struct{}, len(base)+len(cfg.CORSAllowOrigins))
+	out := make([]string, 0, len(base)+len(cfg.CORSAllowOrigins))
+	for _, o := range base {
+		if o == "" {
+			continue
+		}
+		if _, ok := seen[o]; ok {
+			continue
+		}
+		seen[o] = struct{}{}
+		out = append(out, o)
+	}
+	for _, o := range cfg.CORSAllowOrigins {
+		if o == "" {
+			continue
+		}
+		if _, ok := seen[o]; ok {
+			continue
+		}
+		seen[o] = struct{}{}
+		out = append(out, o)
+	}
+	return out
+}
+
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
@@ -127,7 +160,7 @@ func main() {
 	r.Use(middleware.Logger())
 	r.Use(gin.Recovery())
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3002", "http://127.0.0.1:3002", "http://178.18.245.131:3000"},
+		AllowOrigins:     corsOrigins(cfg),
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Dashboard-Key"},
 		AllowCredentials: true,

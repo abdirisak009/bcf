@@ -49,6 +49,9 @@ type Config struct {
 	WhatsAppSendTextURL     string
 	WhatsAppSendTextAPIKey  string
 	WhatsAppSendTextSession string // default session name, e.g. "default"
+
+	// CORSAllowOrigins: comma-separated in CORS_ALLOW_ORIGINS (e.g. http://62.72.35.109,https://bcf.so) — merged with built-in dev origins.
+	CORSAllowOrigins []string
 }
 
 func Load() (*Config, error) {
@@ -104,6 +107,7 @@ func Load() (*Config, error) {
 		WhatsAppSendTextURL:    getenv("WHATSAPP_SENDTEXT_URL", ""),
 		WhatsAppSendTextAPIKey: getenv("WHATSAPP_SENDTEXT_API_KEY", ""),
 		WhatsAppSendTextSession: getenv("WHATSAPP_SENDTEXT_SESSION", "default"),
+		CORSAllowOrigins:        splitCommaList(os.Getenv("CORS_ALLOW_ORIGINS")),
 	}, nil
 }
 
@@ -112,6 +116,20 @@ func getenv(k, def string) string {
 		return v
 	}
 	return def
+}
+
+func splitCommaList(s string) []string {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	var out []string
+	for _, p := range strings.Split(s, ",") {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // loadDotEnv finds .env whether you run from backend/ or backend/cmd/ (go run main.go).
