@@ -138,6 +138,8 @@ The script:
 
 ## Troubleshooting
 
+- **`127.0.0.1:8080` / “more-private address space loopback” / CORS from your VPS IP:** The browser runs on each visitor’s device. `NEXT_PUBLIC_API_URL` must be a **public** URL (e.g. `http://YOUR_VPS_IP:8080` or `https://yourdomain.com` behind Nginx), **never** `http://127.0.0.1:8080`. Set it in `deployment.config.json` or `.env.production`, then **`pnpm build`** again. Add your Next origin to `CORS_ALLOW_ORIGINS` (e.g. `http://62.72.35.109:3000`) and restart the API.
 - **API 401 / CORS errors:** fix `CORS_ALLOW_ORIGINS` and reload the API.
 - **Frontend still calls old API URL:** rebuild Next (`pnpm build`); `NEXT_PUBLIC_*` is embedded at build time.
 - **502 from Nginx:** check `systemctl status bcf-api bcf-web` and that ports 8080 / 3000 match your unit files.
+- **Vercel Analytics 404 on VPS:** Expected when not on Vercel; analytics only loads when `VERCEL=1`.

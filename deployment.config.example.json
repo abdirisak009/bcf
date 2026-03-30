@@ -1,5 +1,5 @@
 {
-  "$comment": "Copy to deployment.config.json (gitignored) and adjust. Env vars still override these values when set.",
+  "$comment": "Copy to deployment.config.json (gitignored). For VPS: set NEXT_PUBLIC_API_URL to http://YOUR_PUBLIC_IP:8080 (not 127.0.0.1). Rebuild Next after changing NEXT_PUBLIC_*. Add Next origin to CORS_ALLOW_ORIGINS (e.g. http://62.72.35.109:3000).",
   "frontend": {
     "NEXT_PUBLIC_API_URL": "http://127.0.0.1:8080"
   },
@@ -15,7 +15,7 @@
     "GIN_MODE": "release",
     "APP_ENV": "production",
     "DASHBOARD_WRITE_KEY": "change-me-long-random-string",
-    "CORS_ALLOW_ORIGINS": "http://localhost:3000,http://127.0.0.1:3000",
+    "CORS_ALLOW_ORIGINS": "http://localhost:3000,http://127.0.0.1:3000,http://62.72.35.109:3000",
     "CERTIFICATE_TEMPLATE_URL": "",
     "CERTIFICATE_LOGO_URL": "",
     "PUBLIC_DASHBOARD_URL": "",

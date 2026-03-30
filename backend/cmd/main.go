@@ -27,6 +27,8 @@ func corsOrigins(cfg *config.Config) []string {
 		"http://localhost:3002",
 		"http://127.0.0.1:3002",
 		"http://178.18.245.131:3000",
+		// Production VPS (Next on :3000) — also set CORS_ALLOW_ORIGINS for other hosts.
+		"http://62.72.35.109:3000",
 	}
 	seen := make(map[string]struct{}, len(base)+len(cfg.CORSAllowOrigins))
 	out := make([]string, 0, len(base)+len(cfg.CORSAllowOrigins))
