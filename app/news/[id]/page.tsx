@@ -71,7 +71,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
   return (
     <main className="min-h-screen bg-white font-sans antialiased text-slate-800">
       <Navigation />
-      <article className="pb-16 md:pb-24" style={{ paddingTop: '104px' }}>
+      <article className="pb-16 pt-24 sm:pt-28 md:pb-24">
         {article.featured_image_url ? (
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <div className="relative aspect-[21/9] max-h-[min(52vh,420px)] w-full overflow-hidden rounded-2xl bg-slate-100 shadow-lg ring-1 ring-slate-200/80">

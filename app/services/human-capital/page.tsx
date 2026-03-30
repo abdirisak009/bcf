@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
+import { PageHeroShell, pageHeroSubtitleClass, pageHeroEyebrowClass, pageHeroTitleClass } from '@/components/page-hero';
 
 const subServices = [
   {
@@ -119,23 +120,20 @@ export default function HumanCapitalPage() {
     <main className="min-h-screen bg-white font-sans">
       <Navigation />
 
-      {/* HERO */}
-      <section className="relative overflow-hidden flex items-center justify-center" style={{ paddingTop: '104px', minHeight: '460px' }}>
-        <div className="absolute inset-0 bg-brand-navy" />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-teal/15 rounded-full -mr-48 -mt-48 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-white/5 rounded-full -ml-32 -mb-32 blur-3xl" />
-        <div className="relative z-10 max-w-5xl mx-auto px-6 py-20 text-center">
-          <div className="inline-flex items-center gap-2 bg-brand-teal/20 border border-brand-teal/40 text-brand-teal px-5 py-2 rounded-full text-xs font-bold tracking-widest mb-8">
-            <Users size={13} /> SERVICES
-          </div>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight text-balance">
-            Institution &amp; Human <span className="text-brand-teal">Capital Development</span>
-          </h1>
-          <p className="text-xl text-white/75 max-w-2xl mx-auto leading-relaxed text-pretty">
-            Comprehensive HR management solutions and capacity building programs to enhance organizational effectiveness and staff performance.
-          </p>
+      <PageHeroShell innerClassName="max-w-5xl">
+        <div className="mb-2 flex justify-center sm:mb-3">
+          <span className={`${pageHeroEyebrowClass} gap-2`}>
+            <Users size={13} className="shrink-0" aria-hidden />
+            SERVICES
+          </span>
         </div>
-      </section>
+        <h1 className={pageHeroTitleClass}>
+          Institution &amp; Human <span className="text-brand-teal">Capital Development</span>
+        </h1>
+        <p className={pageHeroSubtitleClass}>
+          Comprehensive HR management solutions and capacity building programs to enhance organizational effectiveness and staff performance.
+        </p>
+      </PageHeroShell>
 
       {/* STATS BAR */}
       <section className="bg-brand-navy py-10">

@@ -7,6 +7,12 @@ import { ArrowRight } from 'lucide-react';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { KeyServiceAreasSection, type KeyServiceAreaItem } from '@/components/key-service-areas-section';
+import {
+  PageHeroShell,
+  pageHeroEyebrowClass,
+  pageHeroSubtitleClass,
+  pageHeroTitleClass,
+} from '@/components/page-hero';
 
 export type ServiceCard = {
   icon: LucideIcon;
@@ -19,7 +25,7 @@ export type ServicePageTemplateProps = {
   heroSubtitle: string;
   /** Small label above the hero title (e.g. sector tag) */
   heroEyebrow?: string;
-  /** Immersive hero: taller, stronger depth */
+  /** @deprecated Kept for compatibility; all service heroes use the same compact height as Our Team. */
   heroVariant?: 'default' | 'immersive';
   introTitle: string;
   introBody: string;
@@ -76,7 +82,7 @@ export default function ServicePageTemplate({
   heroTitle,
   heroSubtitle,
   heroEyebrow,
-  heroVariant = 'default',
+  heroVariant: _heroVariant = 'default',
   introTitle,
   introBody,
   subServices,
@@ -86,49 +92,19 @@ export default function ServicePageTemplate({
   ctaTitle,
   ctaBody,
 }: ServicePageTemplateProps) {
-  const immersive = heroVariant === 'immersive';
-
   return (
     <main className="min-h-screen bg-white font-sans antialiased">
       <Navigation />
 
-      <section
-        className={`relative overflow-hidden flex items-center justify-center ${immersive ? 'min-h-[min(560px,82vh)]' : ''}`}
-        style={{ paddingTop: '104px', minHeight: immersive ? undefined : '460px' }}
-      >
-        <div className="pointer-events-none absolute inset-0 bg-brand-navy" />
-        {immersive ? (
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[min(90vw,720px)] w-[min(90vw,720px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-teal/10 blur-[100px]" />
+      <PageHeroShell>
+        {heroEyebrow ? (
+          <div className="mb-2 flex justify-center sm:mb-3">
+            <span className={pageHeroEyebrowClass}>{heroEyebrow}</span>
+          </div>
         ) : null}
-        <div className="pointer-events-none absolute -right-48 -mt-48 top-0 h-[500px] w-[500px] rounded-full bg-brand-teal/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -left-32 bottom-0 h-[400px] w-[400px] rounded-full bg-white/5 blur-3xl" />
-        <div className="relative z-10 max-w-5xl mx-auto px-6 py-20 md:py-24 text-center pointer-events-auto">
-          {heroEyebrow ? (
-            <div className="mb-6 flex flex-col items-center gap-3">
-              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-[#b8f0d0] backdrop-blur-sm">
-                {heroEyebrow}
-              </span>
-              <div className="h-px w-12 bg-brand-teal" />
-            </div>
-          ) : null}
-          <h1
-            className={`font-bold text-white mb-6 leading-tight text-balance tracking-tight drop-shadow-sm ${
-              immersive
-                ? 'text-4xl sm:text-5xl md:text-6xl lg:text-[3.5rem] xl:text-7xl'
-                : 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl pt-2'
-            }`}
-          >
-            {heroTitle}
-          </h1>
-          <p
-            className={`text-white/90 max-w-3xl mx-auto leading-relaxed text-pretty ${
-              immersive ? 'text-lg md:text-xl lg:text-[1.35rem] font-light' : 'text-lg md:text-xl'
-            }`}
-          >
-            {heroSubtitle}
-          </p>
-        </div>
-      </section>
+        <h1 className={pageHeroTitleClass}>{heroTitle}</h1>
+        <p className={pageHeroSubtitleClass}>{heroSubtitle}</p>
+      </PageHeroShell>
 
       <section className="py-24 px-6 bg-white">
         <div className="max-w-6xl mx-auto">

@@ -95,11 +95,11 @@ export default function Services() {
   };
 
   return (
-    <section id="services" className="py-24 bg-brand-navy relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-teal/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+    <section id="services" className="py-24 bg-white relative overflow-hidden border-t border-slate-100">
+      {/* Subtle background decoration */}
+      <div className="absolute inset-0 pointer-events-none opacity-40">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-brand-teal/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-navy/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -110,13 +110,13 @@ export default function Services() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-brand-navy mb-4">
             What We <span className="text-brand-teal">Do</span>
           </h2>
           <div className="w-16 h-1 bg-brand-teal mx-auto mb-6" />
-          <p className="text-lg text-white/80 max-w-3xl mx-auto">
+          <p className="text-lg text-slate-600 max-w-3xl mx-auto">
             Comprehensive consulting solutions designed to{" "}
-            <span className="text-brand-teal">transform your organization</span>{" "}
+            <span className="font-semibold text-brand-teal">transform your organization</span>{" "}
             and drive sustainable growth across all sectors
           </p>
         </motion.div>
@@ -142,17 +142,17 @@ export default function Services() {
               >
                 <Link
                   href={service.href}
-                  className="block h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2 focus-visible:ring-offset-brand-navy"
+                  className="block h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                   aria-label={`${service.title} — open service page`}
                 >
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 h-full border border-white/10 hover:bg-white/15 hover:border-white/20 transition-all duration-300 cursor-pointer">
-                    <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-brand-teal/20 transition-colors duration-300">
-                      <Icon className="w-6 h-6 text-white group-hover:text-brand-teal transition-colors duration-300" aria-hidden />
+                  <div className="bg-slate-50 rounded-xl p-6 h-full border border-slate-200/80 shadow-sm hover:border-brand-teal/40 hover:bg-white hover:shadow-md transition-all duration-300 cursor-pointer">
+                    <div className="w-12 h-12 bg-brand-teal/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-brand-teal/15 transition-colors duration-300">
+                      <Icon className="w-6 h-6 text-brand-teal group-hover:text-brand-navy transition-colors duration-300" aria-hidden />
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-brand-teal transition-colors duration-300">
+                    <h3 className="text-lg font-semibold text-brand-navy mb-2 group-hover:text-brand-teal transition-colors duration-300">
                       {service.title}
                     </h3>
-                    <p className="text-white/70 text-sm leading-relaxed">
+                    <p className="text-slate-600 text-sm leading-relaxed">
                       {service.description}
                     </p>
                   </div>

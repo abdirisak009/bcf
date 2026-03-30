@@ -3,3 +3,9 @@ export const OFFICE_ADDRESS = 'Waberi Mall, First Floor, Mogadishu, Somalia';
 
 /** Main brand logo in `/public/logo.png` — header, footer */
 export const SITE_LOGO_SRC = '/logo.png';
+
+/** Facebook Page — home “latest posts” + footer/social (numeric ID from page URL). */
+export const FACEBOOK_PAGE_ID = '61575201336341';
+
+export const FACEBOOK_PAGE_URL =
+  'https://www.facebook.com/profile.php?id=61575201336341';

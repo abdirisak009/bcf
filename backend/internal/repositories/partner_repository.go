@@ -21,7 +21,7 @@ func (r *PartnerRepository) Create(p *models.Partner) error {
 
 func (r *PartnerRepository) List(limit, offset int) ([]models.Partner, error) {
 	var rows []models.Partner
-	err := r.db.Order("created_at DESC").Limit(limit).Offset(offset).Find(&rows).Error
+	err := r.db.Order("sort_order ASC, created_at ASC").Limit(limit).Offset(offset).Find(&rows).Error
 	return rows, err
 }
 

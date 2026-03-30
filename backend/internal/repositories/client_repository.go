@@ -21,7 +21,7 @@ func (r *ClientRepository) Create(c *models.Client) error {
 
 func (r *ClientRepository) List(limit, offset int) ([]models.Client, error) {
 	var rows []models.Client
-	err := r.db.Order("created_at DESC").Limit(limit).Offset(offset).Find(&rows).Error
+	err := r.db.Order("sort_order ASC, created_at ASC").Limit(limit).Offset(offset).Find(&rows).Error
 	return rows, err
 }
 

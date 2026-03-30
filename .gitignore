@@ -9,6 +9,10 @@ next.user-config.*
 
 # Environment variables
 .env*.local
+# Production secrets (copy from .env.production.example on VPS; do not commit real keys)
+.env.production
+# Deployment JSON (copy from deployment.config.example.json)
+deployment.config.json
 
 # Common ignores
 node_modules

@@ -58,7 +58,7 @@ export default function Leadership() {
   };
 
   return (
-    <section className="py-24 bg-[#f8fafc] relative overflow-hidden">
+    <section className="py-24 bg-white relative overflow-hidden border-t border-slate-100">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-30">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -89,11 +89,18 @@ export default function Leadership() {
             Organizations
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-bold text-brand-navy mb-4">
-            Our Organizational Structure
+            Leadership at a glance
           </h2>
           <div className="w-16 h-1 bg-brand-teal mx-auto mb-6" />
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            A framework built for efficiency and excellence
+            A framework built for efficiency and excellence.{" "}
+            <a
+              href="#organizational-structure"
+              className="font-semibold text-brand-teal underline-offset-4 hover:underline"
+            >
+              Full organizational chart
+            </a>{" "}
+            below.
           </p>
         </motion.div>
 

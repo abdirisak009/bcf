@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
+import { PageHeroShell, pageHeroSubtitleClass, pageHeroTitleClass } from '@/components/page-hero';
 import { TrendingUp, Users, Heart, Mail, ArrowRight } from 'lucide-react';
 
 export default function CareersPage() {
@@ -11,24 +12,12 @@ export default function CareersPage() {
     <main className="min-h-screen bg-white font-sans">
       <Navigation />
 
-      {/* ── HERO ── */}
-      <section
-        className="relative flex items-center justify-center overflow-hidden"
-        style={{ paddingTop: '140px', paddingBottom: '80px' }}
-      >
-        <div className="absolute inset-0 bg-brand-navy" />
-        <div className="absolute top-1/4 left-10 w-72 h-72 bg-brand-teal/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-brand-navy/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
-
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight text-balance">
-            Career Opportunities
-          </h1>
-          <p className="text-xl md:text-2xl text-white/75 max-w-2xl mx-auto leading-relaxed text-pretty">
-            Join our team of experts and be part of transformative consulting solutions that make a difference.
-          </p>
-        </div>
-      </section>
+      <PageHeroShell innerClassName="max-w-4xl">
+        <h1 className={pageHeroTitleClass}>Career Opportunities</h1>
+        <p className={pageHeroSubtitleClass}>
+          Join our team of experts and be part of transformative consulting solutions that make a difference.
+        </p>
+      </PageHeroShell>
 
       {/* ── COMING SOON ── */}
       <section className="relative overflow-hidden bg-slate-50 py-24 px-4 md:px-8">

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
+import { PageHeroShell, pageHeroSubtitleClass, pageHeroTitleClass } from '@/components/page-hero';
 import { KeyServiceAreasSection } from '@/components/key-service-areas-section';
 
 const subServices = [
@@ -151,24 +152,13 @@ export default function AuditAssurancePage() {
     <main className="min-h-screen bg-white font-sans">
       <Navigation />
 
-      {/* HERO */}
-      <section
-        className="relative overflow-hidden flex items-center justify-center"
-        style={{ paddingTop: '104px', minHeight: '460px' }}
-      >
-        <div className="pointer-events-none absolute inset-0 bg-brand-navy" />
-        <div className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px] bg-brand-teal/15 rounded-full -mr-48 -mt-48 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px] bg-white/5 rounded-full -ml-32 -mb-32 blur-3xl" />
-        <div className="relative z-10 max-w-5xl mx-auto px-6 py-20 text-center pointer-events-auto">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight text-balance pt-2">
-            Audit Assurance &amp; Risk Management
-          </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto leading-relaxed text-pretty">
-            Comprehensive audit and risk management solutions to help organizations maintain transparency, accountability,
-            and security
-          </p>
-        </div>
-      </section>
+      <PageHeroShell innerClassName="max-w-5xl">
+        <h1 className={pageHeroTitleClass}>Audit Assurance &amp; Risk Management</h1>
+        <p className={pageHeroSubtitleClass}>
+          Comprehensive audit and risk management solutions to help organizations maintain transparency, accountability,
+          and security
+        </p>
+      </PageHeroShell>
 
       {/* SERVICES GRID */}
       <section className="py-24 px-6 bg-white">

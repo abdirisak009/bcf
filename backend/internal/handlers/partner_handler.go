@@ -87,6 +87,7 @@ func (h *PartnerHandler) Update(c *gin.Context) {
 		return
 	}
 	existing.LogoURL = req.LogoURL
+	existing.SortOrder = req.SortOrder
 	if err := h.svc.Update(existing); err != nil {
 		pkgutils.Fail(c, http.StatusBadRequest, err.Error())
 		return

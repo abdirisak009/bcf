@@ -1,3 +1,31 @@
+import { readFileSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
+
+/** Load NEXT_PUBLIC_* from deployment.config.json when present. Existing process.env values win (e.g. .env.local). */
+function loadDeploymentFrontendEnv() {
+  const p = join(process.cwd(), 'deployment.config.json')
+  if (!existsSync(p)) {
+    return {}
+  }
+  try {
+    const raw = JSON.parse(readFileSync(p, 'utf8'))
+    const fe = raw.frontend ?? {}
+    const out = {}
+    for (const [k, v] of Object.entries(fe)) {
+      if (typeof v !== 'string' || !k.startsWith('NEXT_PUBLIC_')) {
+        continue
+      }
+      const fromEnv = process.env[k]
+      out[k] = fromEnv != null && fromEnv !== '' ? fromEnv : v
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+
+const deploymentEnv = loadDeploymentFrontendEnv()
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -5,6 +33,12 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
+    ],
+  },
+  env: {
+    ...deploymentEnv,
   },
 }
 

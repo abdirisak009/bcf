@@ -2,41 +2,75 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Facebook, Linkedin, Twitter, Instagram, MapPin, Phone, Mail, Globe, ArrowRight } from 'lucide-react';
+import {
+  Facebook,
+  Linkedin,
+  Twitter,
+  Instagram,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  ChevronUp,
+} from 'lucide-react';
 import { OFFICE_ADDRESS, SITE_LOGO_SRC } from '@/lib/site-config';
 
+const quickLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'About Us', href: '/about' },
+  { label: 'Services', href: '/services/strategic-policy' },
+  { label: 'Contact', href: '/contact' },
+] as const;
+
+const serviceLinks = [
+  { label: 'Strategic Policy', href: '/services/strategic-policy' },
+  { label: 'Business Development', href: '/services/business-development' },
+  { label: 'Research & Analysis', href: '/services/research-analytics' },
+  { label: 'Education', href: '/services/education-consultancy' },
+] as const;
+
+const legalLinks = [
+  { label: 'Privacy Policy', href: '#' },
+  { label: 'Terms of Services', href: '#' },
+  { label: 'Cookie Policy', href: '#' },
+] as const;
+
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="relative bg-brand-navy text-white overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-brand-teal/10 blur-3xl -mr-48 -mt-48"></div>
-      <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-brand-teal/10 blur-3xl -ml-48 -mb-48"></div>
+    <footer className="relative overflow-hidden bg-gradient-to-b from-brand-navy via-brand-navy to-[#0d2438] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(45,212,191,0.12),transparent_55%)]" />
+      <div className="pointer-events-none absolute -right-24 top-1/4 h-80 w-80 rounded-full bg-brand-teal/[0.08] blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-brand-teal/[0.06] blur-3xl" />
 
       <div className="relative z-10">
-        {/* Main footer content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid md:grid-cols-5 gap-12 mb-16">
-            {/* Brand section */}
-            <div className="md:col-span-1">
-              <div className="mb-6 group cursor-pointer">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Main grid */}
+          <div className="grid gap-12 border-b border-white/10 py-16 sm:gap-14 md:grid-cols-2 lg:grid-cols-4 lg:gap-10 lg:py-20">
+            {/* Brand — same logo treatment as header */}
+            <div className="lg:pr-4">
+              <Link
+                href="/"
+                className="mb-6 inline-block transition-opacity duration-300 hover:opacity-90"
+              >
                 <Image
                   src={SITE_LOGO_SRC}
-                  alt="Baraarug Logo"
+                  alt="Baraarug Consulting Firm"
                   width={200}
-                  height={64}
-                  className="h-16 w-auto max-w-[220px] object-contain transition-transform group-hover:scale-105"
+                  height={56}
+                  className="h-12 w-auto max-w-[200px] object-contain"
                 />
-              </div>
-              <p className="text-gray-300 leading-relaxed text-sm mb-6">
+              </Link>
+              <p className="mb-8 max-w-sm text-sm leading-relaxed text-white/70">
                 Empowering organizations through innovative solutions and sustainable transformation.
               </p>
-              {/* Social media icons */}
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-3">
                 {[
                   { icon: Facebook, href: '#', label: 'Facebook' },
                   { icon: Linkedin, href: '#', label: 'LinkedIn' },
                   { icon: Twitter, href: '#', label: 'Twitter' },
-                  { icon: Instagram, href: '#', label: 'Instagram' }
+                  { icon: Instagram, href: '#', label: 'Instagram' },
                 ].map((social, idx) => {
                   const Icon = social.icon;
                   return (
@@ -44,126 +78,132 @@ export default function Footer() {
                       key={idx}
                       href={social.href}
                       aria-label={social.label}
-                      className="w-10 h-10 rounded-full bg-white/10 hover:bg-brand-teal flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:shadow-lg"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/90 transition-all duration-300 hover:scale-110 hover:border-brand-teal/50 hover:bg-brand-teal/20 hover:text-white hover:shadow-lg hover:shadow-brand-teal/20"
                     >
-                      <Icon size={18} />
+                      <Icon size={17} strokeWidth={1.75} />
                     </Link>
                   );
                 })}
               </div>
             </div>
 
-            {/* Quick Links */}
             <div>
-              <h4 className="font-bold text-lg mb-6 relative inline-block">
+              <h4 className="mb-6 text-base font-bold tracking-tight">
                 Quick Links
-                <span className="absolute bottom-0 left-0 w-8 h-1 bg-brand-teal rounded"></span>
+                <span className="mt-2 block h-1 w-10 rounded-full bg-brand-teal shadow-[0_0_12px_rgba(45,212,191,0.45)]" />
               </h4>
               <ul className="space-y-3">
-                {['Home', 'About Us', 'Services', 'Contacts'].map((item, idx) => (
-                  <li key={idx}>
+                {quickLinks.map((item) => (
+                  <li key={item.href}>
                     <Link
-                      href="#"
-                      className="text-gray-300 hover:text-brand-teal transition-all duration-300 inline-flex items-center gap-2 group"
+                      href={item.href}
+                      className="group inline-flex items-center gap-2.5 text-sm text-white/70 transition-colors duration-300 hover:text-brand-teal"
                     >
-                      <span className="w-1.5 h-1.5 bg-brand-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                      {item}
+                      <span className="h-1 w-1 rounded-full bg-brand-teal/0 transition-all duration-300 group-hover:bg-brand-teal" />
+                      {item.label}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Our Services */}
             <div>
-              <h4 className="font-bold text-lg mb-6 relative inline-block">
+              <h4 className="mb-6 text-base font-bold tracking-tight">
                 Our Services
-                <span className="absolute bottom-0 left-0 w-8 h-1 bg-brand-teal rounded"></span>
+                <span className="mt-2 block h-1 w-10 rounded-full bg-brand-teal shadow-[0_0_12px_rgba(45,212,191,0.45)]" />
               </h4>
               <ul className="space-y-3">
-                {['Strategic Policy', 'Business Development', 'Research & Analysis', 'Education'].map((item, idx) => (
-                  <li key={idx}>
+                {serviceLinks.map((item) => (
+                  <li key={item.href}>
                     <Link
-                      href="#"
-                      className="text-gray-300 hover:text-brand-teal transition-all duration-300 inline-flex items-center gap-2 group"
+                      href={item.href}
+                      className="group inline-flex items-center gap-2.5 text-sm text-white/70 transition-colors duration-300 hover:text-brand-teal"
                     >
-                      <span className="w-1.5 h-1.5 bg-brand-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                      {item}
+                      <span className="h-1 w-1 rounded-full bg-brand-teal/0 transition-all duration-300 group-hover:bg-brand-teal" />
+                      {item.label}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Contact Info */}
             <div>
-              <h4 className="font-bold text-lg mb-6 relative inline-block">
+              <h4 className="mb-6 text-base font-bold tracking-tight">
                 Contact Us
-                <span className="absolute bottom-0 left-0 w-8 h-1 bg-brand-teal rounded"></span>
+                <span className="mt-2 block h-1 w-10 rounded-full bg-brand-teal shadow-[0_0_12px_rgba(45,212,191,0.45)]" />
               </h4>
-              <ul className="space-y-4">
-                <li className="flex gap-3 group">
-                  <MapPin className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-300 text-sm">{OFFICE_ADDRESS}</span>
+              <ul className="space-y-4 text-sm">
+                <li className="flex gap-3">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-brand-teal" aria-hidden />
+                  <span className="leading-relaxed text-white/70">{OFFICE_ADDRESS}</span>
                 </li>
-                <li className="flex gap-3 group">
-                  <Phone className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" />
-                  <Link href="tel:+252613685943" className="text-gray-300 hover:text-brand-teal text-sm transition-colors">
+                <li className="flex gap-3">
+                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-brand-teal" aria-hidden />
+                  <a
+                    href="tel:+252613685943"
+                    className="text-white/70 transition-colors hover:text-brand-teal"
+                  >
                     +252-613-685-943
-                  </Link>
+                  </a>
                 </li>
-                <li className="flex gap-3 group">
-                  <Mail className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" />
-                  <Link href="mailto:info@bcf.so" className="text-gray-300 hover:text-brand-teal text-sm transition-colors">
+                <li className="flex gap-3">
+                  <Mail className="mt-0.5 h-5 w-5 shrink-0 text-brand-teal" aria-hidden />
+                  <a
+                    href="mailto:info@bcf.so"
+                    className="text-white/70 transition-colors hover:text-brand-teal"
+                  >
                     info@bcf.so
-                  </Link>
+                  </a>
                 </li>
-                <li className="flex gap-3 group">
-                  <Globe className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" />
-                  <Link href="#" className="text-gray-300 hover:text-brand-teal text-sm transition-colors">
+                <li className="flex gap-3">
+                  <Globe className="mt-0.5 h-5 w-5 shrink-0 text-brand-teal" aria-hidden />
+                  <a
+                    href="https://www.bcf.so"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white/70 transition-colors hover:text-brand-teal"
+                  >
                     www.bcf.so
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="mb-8 h-px bg-white/20"></div>
-
-          {/* Bottom section */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-gray-400 text-sm">
-              © 2025 Baraarug Consulting Firm. All rights reserved.
+          {/* Single bottom bar: one row — copyright | legal | back to top */}
+          <div className="flex items-center justify-between gap-3 border-t border-white/15 py-6 sm:gap-5 sm:py-7">
+            <p className="min-w-0 flex-1 truncate text-[11px] leading-snug text-white/55 sm:text-sm">
+              <span className="sm:hidden">© {year} Baraarug</span>
+              <span className="hidden sm:inline">
+                © {year} Baraarug Consulting Firm. All rights reserved.
+              </span>
             </p>
-            <div className="flex gap-8 text-sm">
-              {['Privacy Policy', 'Terms of Services', 'Cookie Policy'].map((item, idx) => (
+
+            <nav
+              aria-label="Legal"
+              className="flex shrink-0 items-center gap-2 sm:gap-4 md:gap-5"
+            >
+              {legalLinks.map((item) => (
                 <Link
-                  key={idx}
-                  href="#"
-                  className="text-gray-400 hover:text-brand-teal transition-colors duration-300 inline-flex items-center gap-1 group"
+                  key={item.label}
+                  href={item.href}
+                  className="whitespace-nowrap text-[10px] text-white/55 transition-colors hover:text-brand-teal sm:text-sm"
                 >
-                  {item}
-                  <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-0.5" />
+                  {item.label}
                 </Link>
               ))}
-            </div>
-          </div>
-        </div>
+            </nav>
 
-        {/* Scroll to top button area */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-end">
-          <Link
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="inline-flex items-center gap-2 text-brand-teal hover:text-white transition-colors text-sm font-medium"
-          >
-            Back to top
-            <ArrowRight size={16} className="rotate-90" />
-          </Link>
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1.5 text-[10px] font-medium text-brand-teal transition-all duration-300 hover:border-brand-teal/40 hover:bg-brand-teal/10 hover:text-white sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm"
+            >
+              <span className="hidden min-[400px]:inline">Back to top</span>
+              <span className="min-[400px]:hidden">Top</span>
+              <ChevronUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} aria-hidden />
+            </button>
+          </div>
         </div>
       </div>
     </footer>

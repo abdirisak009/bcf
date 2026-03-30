@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -70,6 +71,10 @@ func main() {
 
 	db, err := database.Connect(cfg.PostgresDSN(), logMode)
 	if err != nil {
+		if strings.Contains(err.Error(), "connection refused") {
+			log.Printf("database: %v", err)
+			log.Fatal("hint: start PostgreSQL first — from backend/ run: docker compose up -d   (or: make db-up)")
+		}
 		log.Fatal(err)
 	}
 

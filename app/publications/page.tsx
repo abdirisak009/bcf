@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 
 import { ContentHubPage } from '@/components/content-hub-page'
 import { fetchPublicationsFromApi } from '@/lib/fetch-content-api'
-import { publications as staticPublications } from '@/lib/publications-news-data'
 import { mapPublicationRowToCard } from '@/lib/map-publications-to-cards'
 
 export const metadata: Metadata = {
@@ -13,10 +12,7 @@ export const metadata: Metadata = {
 
 export default async function PublicationsPage() {
   const apiRows = await fetchPublicationsFromApi(100)
-  const fromApi = apiRows.map(mapPublicationRowToCard)
-  /** Original catalogue entries from `publications-news-data` (always listed after dashboard items). */
-  const fromStatic = staticPublications.map((p) => ({ ...p, id: `static-${p.id}` }))
-  const items = [...fromApi, ...fromStatic]
+  const items = apiRows.map(mapPublicationRowToCard)
 
   return (
     <ContentHubPage

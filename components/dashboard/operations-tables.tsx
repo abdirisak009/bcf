@@ -1025,14 +1025,26 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
   const [pending, setPending] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [name, setName] = useState('')
+  const [sortOrder, setSortOrder] = useState(0)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [existingLogo, setExistingLogo] = useState<string | null>(null)
   const [del, setDel] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const sortedRows = useMemo(
+    () =>
+      [...rows].sort(
+        (a, b) =>
+          (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) ||
+          String(a.id ?? '').localeCompare(String(b.id ?? '')),
+      ),
+    [rows],
+  )
+
   function openNew() {
     setEditId(null)
     setName('')
+    setSortOrder(0)
     setLogoFile(null)
     setExistingLogo(null)
     setErr(null)
@@ -1042,6 +1054,7 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
   function openEdit(row: Record<string, unknown>) {
     setEditId(String(row.id ?? ''))
     setName(String(row.name ?? ''))
+    setSortOrder(Number(row.sort_order) || 0)
     const u = row.logo_url
     setExistingLogo(typeof u === 'string' && u.trim() ? u.trim() : null)
     setLogoFile(null)
@@ -1063,7 +1076,7 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
       if (logoFile) {
         logoUrl = await uploadDashboardFile(logoFile, 'clients')
       }
-      const payload: Record<string, unknown> = { name: n }
+      const payload: Record<string, unknown> = { name: n, sort_order: sortOrder }
       if (logoUrl) payload.logo_url = logoUrl
       else if (existingLogo) payload.logo_url = existingLogo
 
@@ -1132,12 +1145,13 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
                 <TableHeader>
                   <TableRow className="border-brand-navy/10 bg-brand-navy hover:bg-brand-navy">
                     <TableHead className="w-16 font-semibold text-white">Logo</TableHead>
+                    <TableHead className="w-14 font-semibold text-white">Order</TableHead>
                     <TableHead className="font-semibold text-white">Name</TableHead>
                     <TableHead className="w-[88px] pr-4 text-right font-semibold text-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((row) => {
+                  {sortedRows.map((row) => {
                     const id = String(row.id ?? '')
                     const logo = row.logo_url
                     const logoUrl = typeof logo === 'string' && logo.trim() ? logo.trim() : null
@@ -1152,6 +1166,9 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
                               <div className="flex size-full items-center justify-center text-[10px] text-slate-400">—</div>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground tabular-nums">
+                          {Number(row.sort_order) || 0}
                         </TableCell>
                         <TableCell className="font-medium text-brand-navy">{formatCell(row.name)}</TableCell>
                         <TableCell className="pr-2 text-right">
@@ -1183,13 +1200,24 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
           <div className={dashboardSheetHeader}>
             <SheetTitle className={dashboardSheetTitle}>{editId ? 'Edit client' : 'New client'}</SheetTitle>
             <SheetDescription className={cn('mt-2', dashboardSheetDescription)}>
-              Upload a logo (PNG/JPG/WebP). Stored under public/uploads/clients/.
+              Upload a logo (PNG/JPG/WebP). Stored under public/uploads/clients/. Order controls how the home page lists clients (lower first).
             </SheetDescription>
           </div>
           <form onSubmit={submit} className={dashboardSheetForm}>
             <div className={cn(dashboardSheetBody, 'space-y-4')}>
               <DashboardFormField label="Name" htmlFor="cl-name" icon={Building2}>
                 <Input id="cl-name" value={name} onChange={(e) => setName(e.target.value)} className={dashboardFormInputClass} required />
+              </DashboardFormField>
+              <DashboardFormField label="Display order" htmlFor="cl-order" icon={Building2}>
+                <Input
+                  id="cl-order"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(Number(e.target.value) || 0)}
+                  className={dashboardFormInputClass}
+                />
               </DashboardFormField>
               <DashboardFormField label="Logo" htmlFor="cl-logo" icon={Building2}>
                 <Input
@@ -1248,14 +1276,26 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
   const [pending, setPending] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [name, setName] = useState('')
+  const [sortOrder, setSortOrder] = useState(0)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [existingLogo, setExistingLogo] = useState<string | null>(null)
   const [del, setDel] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const sortedRows = useMemo(
+    () =>
+      [...rows].sort(
+        (a, b) =>
+          (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) ||
+          String(a.id ?? '').localeCompare(String(b.id ?? '')),
+      ),
+    [rows],
+  )
+
   function openNew() {
     setEditId(null)
     setName('')
+    setSortOrder(0)
     setLogoFile(null)
     setExistingLogo(null)
     setErr(null)
@@ -1265,6 +1305,7 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
   function openEdit(row: Record<string, unknown>) {
     setEditId(String(row.id ?? ''))
     setName(String(row.name ?? ''))
+    setSortOrder(Number(row.sort_order) || 0)
     const u = row.logo_url
     setExistingLogo(typeof u === 'string' && u.trim() ? u.trim() : null)
     setLogoFile(null)
@@ -1286,7 +1327,7 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
       if (logoFile) {
         logoUrl = await uploadDashboardFile(logoFile, 'partners')
       }
-      const payload: Record<string, unknown> = { name: n }
+      const payload: Record<string, unknown> = { name: n, sort_order: sortOrder }
       if (logoUrl) payload.logo_url = logoUrl
       else if (existingLogo) payload.logo_url = existingLogo
 
@@ -1355,12 +1396,13 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
                 <TableHeader>
                   <TableRow className="border-brand-navy/10 bg-brand-navy hover:bg-brand-navy">
                     <TableHead className="w-16 font-semibold text-white">Logo</TableHead>
+                    <TableHead className="w-14 font-semibold text-white">Order</TableHead>
                     <TableHead className="font-semibold text-white">Name</TableHead>
                     <TableHead className="w-[88px] pr-4 text-right font-semibold text-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((row) => {
+                  {sortedRows.map((row) => {
                     const id = String(row.id ?? '')
                     const logo = row.logo_url
                     const logoUrl = typeof logo === 'string' && logo.trim() ? logo.trim() : null
@@ -1375,6 +1417,9 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
                               <div className="flex size-full items-center justify-center text-[10px] text-slate-400">—</div>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground tabular-nums">
+                          {Number(row.sort_order) || 0}
                         </TableCell>
                         <TableCell className="font-medium text-brand-navy">{formatCell(row.name)}</TableCell>
                         <TableCell className="pr-2 text-right">
@@ -1406,13 +1451,24 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
           <div className={dashboardSheetHeader}>
             <SheetTitle className={dashboardSheetTitle}>{editId ? 'Edit partner' : 'New partner'}</SheetTitle>
             <SheetDescription className={cn('mt-2', dashboardSheetDescription)}>
-              Upload a logo. Stored under public/uploads/partners/.
+              Upload a logo. Stored under public/uploads/partners/. Order controls how the home page lists clients (lower first).
             </SheetDescription>
           </div>
           <form onSubmit={submit} className={dashboardSheetForm}>
             <div className={cn(dashboardSheetBody, 'space-y-4')}>
               <DashboardFormField label="Name" htmlFor="pr-name" icon={Handshake}>
                 <Input id="pr-name" value={name} onChange={(e) => setName(e.target.value)} className={dashboardFormInputClass} required />
+              </DashboardFormField>
+              <DashboardFormField label="Display order" htmlFor="pr-order" icon={Handshake}>
+                <Input
+                  id="pr-order"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(Number(e.target.value) || 0)}
+                  className={dashboardFormInputClass}
+                />
               </DashboardFormField>
               <DashboardFormField label="Logo" htmlFor="pr-logo" icon={Handshake}>
                 <Input

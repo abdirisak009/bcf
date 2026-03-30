@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -56,58 +57,63 @@ type Config struct {
 
 func Load() (*Config, error) {
 	loadDotEnv()
+	j := loadDeploymentJSON()
 
 	minutes := 60 * 24
-	if v := os.Getenv("JWT_EXPIRY_MINUTES"); v != "" {
+	if v := getenvWithJSON(j, "JWT_EXPIRY_MINUTES", ""); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			minutes = n
 		}
 	}
 
 	return &Config{
-		DBHost:            getenv("DB_HOST", "localhost"),
-		DBPort:            getenv("DB_PORT", "5433"),
-		DBUser:            getenv("DB_USER", "bcf"),
-		DBPass:            getenv("DB_PASSWORD", ""),
-		DBName:            getenv("DB_NAME", "BcfDb"),
-		JWTSecret:         getenv("JWT_SECRET", "supersecretkey"),
+		DBHost:            getenvWithJSON(j, "DB_HOST", "localhost"),
+		DBPort:            getenvWithJSON(j, "DB_PORT", "5433"),
+		DBUser:            getenvWithJSON(j, "DB_USER", "bcf"),
+		DBPass:            getenvWithJSON(j, "DB_PASSWORD", ""),
+		DBName:            getenvWithJSON(j, "DB_NAME", "BcfDb"),
+		JWTSecret:         getenvWithJSON(j, "JWT_SECRET", "supersecretkey"),
 		JWTExpiry:         time.Duration(minutes) * time.Minute,
-		HTTPPort:          getenv("HTTP_PORT", "8080"),
-		GinMode:           getenv("GIN_MODE", "release"),
-		Environment:       getenv("APP_ENV", "development"),
-		DashboardWriteKey: getenv("DASHBOARD_WRITE_KEY", ""),
+		HTTPPort:          getenvWithJSON(j, "HTTP_PORT", "8080"),
+		GinMode:           getenvWithJSON(j, "GIN_MODE", "release"),
+		Environment:       getenvWithJSON(j, "APP_ENV", "development"),
+		DashboardWriteKey: getenvWithJSON(j, "DASHBOARD_WRITE_KEY", ""),
 		// Same asset as public navigation (Home) — works on white PDF background.
-		InvoiceLogoURL: getenv(
+		InvoiceLogoURL: getenvWithJSON(
+			j,
 			"INVOICE_LOGO_URL",
 			"https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-hewaKh5CChoShCWQNvfbpnsVOGTuVh.png",
 		),
 		// Sender block under "From" (company name is already in the header left).
-		InvoiceCompanyAddress: getenv(
+		InvoiceCompanyAddress: getenvWithJSON(
+			j,
 			"INVOICE_COMPANY_ADDRESS",
 			"Mogadishu\nSomalia",
 		),
 		// Set to your Next.js public PDF, e.g. http://127.0.0.1:3000/Certificate-tem.pdf (form fields: StudentName, TrainingName, …).
-		CertificateTemplateURL: getenv("CERTIFICATE_TEMPLATE_URL", ""),
-		CertificateSignatoryName: getenv(
+		CertificateTemplateURL: getenvWithJSON(j, "CERTIFICATE_TEMPLATE_URL", ""),
+		CertificateSignatoryName: getenvWithJSON(
+			j,
 			"CERTIFICATE_SIGNATORY_NAME",
 			"Director",
 		),
-		CertificateSignatoryTitle: getenv(
+		CertificateSignatoryTitle: getenvWithJSON(
+			j,
 			"CERTIFICATE_SIGNATORY_TITLE",
 			"Bararug Consulting",
 		),
-		WhatsAppProvider:         strings.ToLower(strings.TrimSpace(getenv("WHATSAPP_PROVIDER", ""))),
-		WhatsAppNotifyTo:         getenv("WHATSAPP_NOTIFY_TO", ""),
-		WhatsAppWebhookURL:       getenv("WHATSAPP_WEBHOOK_URL", ""),
-		WhatsAppWebhookBearer:    getenv("WHATSAPP_WEBHOOK_BEARER", ""),
-		WhatsAppCallMeBotAPIKey:  getenv("WHATSAPP_CALLMEBOT_APIKEY", ""),
-		WhatsAppUltramsgInstance: getenv("WHATSAPP_ULTRAMSG_INSTANCE", ""),
-		WhatsAppUltramsgToken:    getenv("WHATSAPP_ULTRAMSG_TOKEN", ""),
-		PublicDashboardURL:     getenv("PUBLIC_DASHBOARD_URL", ""),
-		WhatsAppSendTextURL:    getenv("WHATSAPP_SENDTEXT_URL", ""),
-		WhatsAppSendTextAPIKey: getenv("WHATSAPP_SENDTEXT_API_KEY", ""),
-		WhatsAppSendTextSession: getenv("WHATSAPP_SENDTEXT_SESSION", "default"),
-		CORSAllowOrigins:        splitCommaList(os.Getenv("CORS_ALLOW_ORIGINS")),
+		WhatsAppProvider:         strings.ToLower(strings.TrimSpace(getenvWithJSON(j, "WHATSAPP_PROVIDER", ""))),
+		WhatsAppNotifyTo:         getenvWithJSON(j, "WHATSAPP_NOTIFY_TO", ""),
+		WhatsAppWebhookURL:       getenvWithJSON(j, "WHATSAPP_WEBHOOK_URL", ""),
+		WhatsAppWebhookBearer:    getenvWithJSON(j, "WHATSAPP_WEBHOOK_BEARER", ""),
+		WhatsAppCallMeBotAPIKey:  getenvWithJSON(j, "WHATSAPP_CALLMEBOT_APIKEY", ""),
+		WhatsAppUltramsgInstance: getenvWithJSON(j, "WHATSAPP_ULTRAMSG_INSTANCE", ""),
+		WhatsAppUltramsgToken:    getenvWithJSON(j, "WHATSAPP_ULTRAMSG_TOKEN", ""),
+		PublicDashboardURL:     getenvWithJSON(j, "PUBLIC_DASHBOARD_URL", ""),
+		WhatsAppSendTextURL:    getenvWithJSON(j, "WHATSAPP_SENDTEXT_URL", ""),
+		WhatsAppSendTextAPIKey: getenvWithJSON(j, "WHATSAPP_SENDTEXT_API_KEY", ""),
+		WhatsAppSendTextSession: getenvWithJSON(j, "WHATSAPP_SENDTEXT_SESSION", "default"),
+		CORSAllowOrigins:        splitCommaList(getenvWithJSON(j, "CORS_ALLOW_ORIGINS", "")),
 	}, nil
 }
 
@@ -116,6 +122,46 @@ func getenv(k, def string) string {
 		return v
 	}
 	return def
+}
+
+// getenvWithJSON returns os.Getenv(key) if set; else deployment.config.json backend[key]; else def.
+func getenvWithJSON(j map[string]string, key, def string) string {
+	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
+		return v
+	}
+	if j != nil {
+		if v := strings.TrimSpace(j[key]); v != "" {
+			return v
+		}
+	}
+	return def
+}
+
+// loadDeploymentJSON reads repo-root deployment.config.json (optional). Set BCF_DEPLOYMENT_CONFIG to an absolute path to override.
+func loadDeploymentJSON() map[string]string {
+	paths := []string{
+		strings.TrimSpace(os.Getenv("BCF_DEPLOYMENT_CONFIG")),
+		"deployment.config.json",
+		"../deployment.config.json",
+		"../../deployment.config.json",
+	}
+	for _, p := range paths {
+		if p == "" {
+			continue
+		}
+		raw, err := os.ReadFile(p)
+		if err != nil {
+			continue
+		}
+		var root struct {
+			Backend map[string]string `json:"backend"`
+		}
+		if err := json.Unmarshal(raw, &root); err != nil || root.Backend == nil {
+			continue
+		}
+		return root.Backend
+	}
+	return nil
 }
 
 func splitCommaList(s string) []string {

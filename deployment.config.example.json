@@ -1,0 +1,22 @@
+{
+  "$comment": "Copy to deployment.config.json (gitignored) and adjust. Env vars still override these values when set.",
+  "frontend": {
+    "NEXT_PUBLIC_API_URL": "http://127.0.0.1:8080"
+  },
+  "backend": {
+    "DB_HOST": "localhost",
+    "DB_PORT": "5433",
+    "DB_USER": "bcf",
+    "DB_PASSWORD": "your_password_here",
+    "DB_NAME": "BcfDb",
+    "JWT_SECRET": "change-me-to-a-long-random-string",
+    "JWT_EXPIRY_MINUTES": "1440",
+    "HTTP_PORT": "8080",
+    "GIN_MODE": "release",
+    "APP_ENV": "production",
+    "DASHBOARD_WRITE_KEY": "change-me-long-random-string",
+    "CORS_ALLOW_ORIGINS": "http://localhost:3000,http://127.0.0.1:3000",
+    "CERTIFICATE_TEMPLATE_URL": "",
+    "PUBLIC_DASHBOARD_URL": ""
+  }
+}

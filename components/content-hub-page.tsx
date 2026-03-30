@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Navigation from '@/components/navigation'
 import Footer from '@/components/footer'
+import { PageHeroShell, pageHeroSubtitleClass, pageHeroTitleClass } from '@/components/page-hero'
 import { ArrowRight, Calendar, Clock, FileText, Library, Newspaper } from 'lucide-react'
 import type { ContentCard } from '@/lib/publications-news-data'
 import { cn } from '@/lib/utils'
@@ -31,42 +32,29 @@ export function ContentHubPage({
     <main className="min-h-screen bg-white font-sans antialiased text-slate-800">
       <Navigation />
 
-      {/* Hero — distinct atmosphere per section */}
-      <section className="relative overflow-hidden bg-brand-navy" style={{ paddingTop: '104px' }}>
+      <PageHeroShell>
         <div
           className={cn(
-            'pointer-events-none absolute -right-32 top-0 h-[420px] w-[420px] rounded-full blur-3xl',
-            isNews ? 'bg-brand-teal/25' : 'bg-brand-navy/35',
+            'mx-auto mb-2 flex w-fit items-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md sm:mb-3 sm:px-4 sm:py-2 sm:text-xs',
+            isNews
+              ? 'border-white/20 bg-white/10 text-[#c8f5dc]'
+              : 'border-white/15 bg-white/10 text-[#b8d4e8]',
           )}
-        />
-        <div className="pointer-events-none absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
-
-        <div className="relative z-10 mx-auto max-w-5xl px-6 py-16 text-center md:py-24">
-          <div
-            className={cn(
-              'mx-auto mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] backdrop-blur-md',
-              isNews
-                ? 'border-white/20 bg-white/10 text-[#c8f5dc]'
-                : 'border-white/15 bg-brand-navy/30 text-[#b8d4e8]',
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" aria-hidden />
-            {eyebrow}
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight text-white text-balance sm:text-5xl md:text-6xl">
-            {title}
-            {titleAccent ? (
-              <span className={cn('mt-2 block', isNews ? 'text-brand-green' : 'text-brand-mint')}>
-                {titleAccent}
-              </span>
-            ) : null}
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/82 md:text-xl">
-            {subtitle}
-          </p>
-          <div className={cn('mx-auto mt-10 h-px w-32', isNews ? 'bg-brand-teal' : 'bg-brand-mint')} />
+        >
+          <Icon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" aria-hidden />
+          {eyebrow}
         </div>
-      </section>
+        <h1 className={pageHeroTitleClass}>
+          {title}
+          {titleAccent ? (
+            <span className={cn('mt-2 block', isNews ? 'text-brand-green' : 'text-brand-mint')}>
+              {titleAccent}
+            </span>
+          ) : null}
+        </h1>
+        <p className={pageHeroSubtitleClass}>{subtitle}</p>
+        <div className={cn('mx-auto mt-6 h-px w-24 sm:mt-7', isNews ? 'bg-brand-teal' : 'bg-brand-mint')} />
+      </PageHeroShell>
 
       <section className="relative border-t border-slate-200/80 bg-brand-mint/25 py-16 md:py-28">
         <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-[min(95vw,900px)] -translate-x-1/2 rounded-full bg-brand-teal/[0.05] blur-3xl" />

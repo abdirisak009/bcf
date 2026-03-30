@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { brand } from '@/lib/brand';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
+import { PageHeroShell, pageHeroSubtitleClass, pageHeroTitleClass } from '@/components/page-hero';
+import { AboutKeyClientsSection } from '@/components/about-key-clients';
+import ChairpersonMessage from '@/components/chairperson-message';
+import WhoWeAre from '@/components/who-we-are';
+import Leadership from '@/components/leadership';
 import { Heart, BookOpen, Lightbulb, Eye, Calendar, Users, Handshake, Flag, Users2, Download, Crown, Briefcase, Settings, TrendingUp, ClipboardList, BarChart3, Award, UserCheck, Globe, Shield, Layers, UserCog } from 'lucide-react';
 
 export default function AboutPage() {
@@ -28,47 +33,24 @@ export default function AboutPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-white">
       <Navigation />
 
-      {/* About Page Header */}
-      <section className="relative flex min-h-[500px] items-center justify-center overflow-hidden bg-brand-navy">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        </div>
-        
-        {/* Grid pattern overlay */}
-
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <div className="inline-block bg-white/20 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-semibold mb-8 border border-white/30">
+      <PageHeroShell>
+        <div className="mb-2 flex justify-center sm:mb-3">
+          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[10px] font-semibold tracking-wide text-white/95 backdrop-blur-sm sm:px-5 sm:py-2 sm:text-xs">
             Welcome to Baraarug Consulting Firm
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 drop-shadow-lg">About Baraarug</h1>
-          <p className="text-xl md:text-2xl text-white/90 drop-shadow-md">Discover our mission, vision, values, and the impact we create for organizations across Somalia</p>
+          </span>
         </div>
+        <h1 className={pageHeroTitleClass}>About Baraarug</h1>
+        <p className={pageHeroSubtitleClass}>
+          Discover our mission, vision, values, and the impact we create for organizations across Somalia
+        </p>
+      </PageHeroShell>
 
-        {/* Decorative accent line */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand-mint/80"></div>
-      </section>
-
-      {/* Who We Are + Guiding Principles Combined Section */}
-      <section className="bg-white py-24 px-4 md:px-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Who We Are Part */}
-          <div className="mb-24">
-            <div className="text-center mb-12">
-              <h2 className="text-5xl md:text-6xl font-bold text-brand-navy mb-6">Who We Are</h2>
-              <div className="w-20 h-1 bg-brand-teal mx-auto mb-8"></div>
-              <p className="text-xl text-slate-700 leading-relaxed max-w-3xl mx-auto">
-                Baraarug Consulting Firm, established in 2012, is a leading consulting provider in Somalia delivering expert services to drive institutional growth, enhance governance, and foster sustainable development. With over a decade of experience, we have become a trusted partner for organizations seeking transformative solutions and strategic guidance.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </section>
+      <ChairpersonMessage />
+      <WhoWeAre surface="light" />
+      <Leadership />
 
       {/* Guiding Principles - Full Width Section */}
       <section className="relative overflow-hidden bg-slate-100 py-28">
@@ -136,86 +118,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CEO's Message Section - Stunning Premium Design */}
-      <section className="relative overflow-hidden bg-brand-navy py-28 px-4 md:px-8">
-        {/* Decorative background elements */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-20 right-20 w-[500px] h-[500px] bg-brand-teal/8 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 right-1/3 w-80 h-80 bg-brand-teal/5 rounded-full blur-3xl"></div>
-        </div>
-
-        {/* Subtle grid pattern */}
-
-        <div className="relative z-10 max-w-7xl mx-auto">
-          {/* Section label */}
-          <div className="text-center mb-16">
-            <div className="inline-block bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-bold tracking-widest border border-white/20">
-              LEADERSHIP MESSAGE
-            </div>
-          </div>
-
-          <div className="flex flex-col lg:flex-row items-center gap-16">
-            {/* Left side - Image with decorative frame */}
-            <div className="flex-shrink-0 relative">
-              {/* Decorative corner accents */}
-              <div className="absolute -top-4 -left-4 w-24 h-24 border-t-4 border-l-4 border-brand-teal rounded-tl-3xl"></div>
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 border-b-4 border-r-4 border-brand-teal rounded-br-3xl"></div>
-
-              {/* Image container */}
-              <div className="relative w-80 h-[440px] rounded-3xl overflow-hidden shadow-2xl">
-                <img
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ayan-Uch9Jyu0GZvJ5LECcIPMRhAknj12Rh.jpg"
-                  alt="CEO Mrs. Ayan Ali"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-x-0 bottom-0 h-32 bg-brand-navy/45"></div>
-                
-                {/* Name overlay on image */}
-                <div className="absolute bottom-6 left-6 right-6">
-                  <h4 className="text-2xl font-bold text-white drop-shadow-lg">Mrs. Ayan Ali</h4>
-                  <p className="text-brand-teal font-bold text-sm tracking-wide">Chief Executive Officer</p>
-                </div>
-              </div>
-              
-              {/* Floating decorative dots */}
-              <div className="absolute -bottom-8 -left-8 grid grid-cols-4 gap-2">
-                {Array.from({ length: 16 }).map((_, i) => (
-                  <div key={i} className="w-2 h-2 bg-brand-teal/40 rounded-full"></div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right side - Content */}
-            <div className="flex-1 lg:pl-4">
-              <h2 className="text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">
-                Leadership <span className="text-brand-teal">Vision</span>
-              </h2>
-
-              <div className="mb-10 h-1.5 w-20 rounded-full bg-brand-teal"></div>
-
-              <p className="text-xl text-white/90 leading-relaxed mb-10">
-                At Baraarug Consulting Firm, we believe that true success is achieved through collaboration and a deep understanding of our clients&apos; needs. We are committed to working hand-in-hand with our clients, providing tailored solutions and strategic insights that drive measurable results.
-              </p>
-
-              {/* Quote highlight */}
-              <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-                <div className="absolute -top-4 left-8 text-brand-teal text-6xl font-serif leading-none">&ldquo;</div>
-                <p className="text-white/95 text-lg leading-relaxed pl-6">
-                  Our mission is to empower organizations through innovative, evidence-based consulting that creates lasting positive change across Somalia and beyond.
-                </p>
-                <div className="mt-6 flex items-center gap-4">
-                  <div className="w-12 h-0.5 bg-brand-teal"></div>
-                  <span className="text-brand-teal font-bold text-sm tracking-wider">AYAN ALI, CEO</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Organizational Structure Section - Premium Redesign */}
-      <section className="relative overflow-hidden bg-brand-mint/25 py-28 px-4 md:px-8">
+      {/* Organizational Structure — About page only; full chart */}
+      <section
+        id="organizational-structure"
+        className="relative overflow-hidden border-t border-slate-100 bg-white py-28 px-4 md:px-8"
+      >
         {/* Background dot pattern */}
         {/* Decorative blobs */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-navy/5 rounded-full -mr-64 -mt-64 blur-3xl"></div>
@@ -662,42 +569,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Key Clients Section */}
-      <section className="relative overflow-hidden bg-slate-50 py-28 px-4 md:px-8">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-teal/4 rounded-full -mr-48 -mt-48 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-navy/4 rounded-full -ml-32 -mb-32 blur-3xl"></div>
-
-        <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <div className="inline-block bg-brand-teal/15 text-brand-teal px-6 py-2 rounded-full text-sm font-bold mb-5 border border-brand-teal/30 tracking-widest">
-              TRUSTED PARTNERSHIPS
-            </div>
-            <h2 className="text-5xl md:text-6xl font-bold text-brand-navy mb-6">Key Clients</h2>
-            <div className="w-24 h-1.5 bg-brand-teal mx-auto mb-6 rounded-full"></div>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">Trusted by leading international organizations, government institutions, and development agencies across the region</p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5 mb-16">
-            {['UN-Habitat', 'African Union', 'CARE International', 'Action Against Hunger', 'FGS', 'NRC', 'UNDP', 'Somali Organization', 'WHO', 'EU Somalia', 'JUBA University', 'Premier Bank', 'SomBank', 'JALDESA', 'CARE Somalia', 'Goobjoog Media', 'SOM Police', 'MoF Somalia', 'MoH Somalia', 'World Bank', 'UNICEF', 'UNHCR', 'IOM', 'FAO'].map((name, idx) => (
-              <div key={idx} className="group relative">
-                <div className="absolute inset-0 bg-brand-navy/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative bg-white border-2 border-slate-100 group-hover:border-brand-teal/50 rounded-2xl p-5 flex items-center justify-center aspect-square shadow-sm group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1">
-                  <span className="text-brand-navy font-bold text-xs text-center leading-tight group-hover:text-brand-teal transition-colors duration-300">{name}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-6">
-            {[{value: '9+', label: 'Active Clients'}, {value: '200+', label: 'Projects Delivered'}, {value: '10+', label: 'Global Partners'}, {value: '3+', label: 'Countries'}].map((stat, idx) => (
-              <div key={idx} className="bg-white border-2 border-slate-100 rounded-2xl px-8 py-5 text-center shadow-md hover:border-brand-teal/40 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <p className="text-3xl font-bold text-brand-navy mb-1">{stat.value}</p>
-                <p className="text-slate-500 text-sm font-semibold tracking-wide uppercase">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <AboutKeyClientsSection />
 
       <Footer />
     </main>

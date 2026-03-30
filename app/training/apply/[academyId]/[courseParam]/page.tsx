@@ -21,9 +21,7 @@ export default async function TrainingApplyAcademyPage({ params }: Props) {
     <main className="min-h-screen bg-white font-sans antialiased">
       <Navigation />
 
-      <section
-        className="border-b border-slate-200 bg-brand-navy pt-[104px] pb-10"
-      >
+      <section className="border-b border-white/20 bg-brand-navy pt-24 pb-8 sm:pt-28">
         <div className="mx-auto max-w-3xl px-6">
           <Link
             href="/training"
