@@ -1,13 +1,7 @@
 import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
 import { Inter, JetBrains_Mono, Merriweather } from 'next/font/google'
+import { VercelAnalyticsOptional } from '@/components/vercel-analytics-optional'
 import './globals.css'
-
-/** Loaded only on Vercel (VERCEL=1); self-hosted VPS skips to avoid 404 on /_vercel/insights. */
-const VercelAnalytics = dynamic(
-  () => import('@vercel/analytics/next').then((m) => m.Analytics),
-  { ssr: false },
-)
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const merriweather = Merriweather({
@@ -51,7 +45,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {children}
-        {process.env.VERCEL === '1' ? <VercelAnalytics /> : null}
+        <VercelAnalyticsOptional enabled={process.env.VERCEL === '1'} />
       </body>
     </html>
   )
