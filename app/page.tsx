@@ -3,7 +3,6 @@ import Hero from '@/components/hero';
 import HomeExploreStrip from '@/components/home-explore-strip';
 import Services from '@/components/services';
 import NewsEvents from '@/components/news-events';
-import HomeFacebookNews from '@/components/home-facebook-news';
 import StrategicPartners from '@/components/strategic-partners';
 import Footer from '@/components/footer';
 import { fetchNewsFromApi, fetchPublicationsFromApi } from '@/lib/fetch-content-api';
@@ -24,7 +23,6 @@ export default async function Home() {
       <Hero />
       <HomeExploreStrip />
       <Services />
-      <HomeFacebookNews />
       <NewsEvents publications={publicationCards} news={newsCards} />
       <StrategicPartners />
       <Footer />

@@ -35,12 +35,11 @@ export default function ChairpersonMessage() {
                   <div className="relative overflow-hidden rounded-2xl bg-white p-1 shadow-inner ring-1 ring-white/80 sm:rounded-[1.35rem] sm:p-1.5">
                     <div className="relative overflow-hidden rounded-[1.15rem] sm:rounded-xl">
                       <img
-                        src="/ayan.png"
+                        src="/ayan.jpeg"
                         alt="Mrs. Ayan Ali - CEO"
                         loading="lazy"
-                        className="h-[min(32rem,78vh)] w-full object-cover object-top transition duration-700 ease-out group-hover:scale-[1.03]"
+                        className="h-[min(38rem,86vh)] w-full origin-[48%_40%] object-cover object-[40%_38%] scale-[1.14] transition duration-500 ease-out group-hover:scale-[1.2]"
                       />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-navy/25 via-transparent to-transparent opacity-80" />
                     </div>
                   </div>
 

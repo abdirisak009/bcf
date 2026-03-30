@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { PageHeroShell } from '@/components/page-hero';
 import { Mail, Award, Globe, ChevronRight, Star, Users, Briefcase, Linkedin } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Male avatar SVG icon
 function MaleAvatar({ className }: { className?: string }) {
@@ -63,6 +64,12 @@ type TeamMember = {
   photo?: string;
   /** Extra ring accent (e.g. gold for chairman portrait) */
   photoAccent?: boolean;
+  /** Optional classes for portrait `Image` (face framing / zoom), e.g. Ayan close-up */
+  photoImageClassName?: string;
+  /** Optional taller portrait strip (e.g. CEO headshot) */
+  photoPortraitClassName?: string;
+  /** If primary `photo` 404s, try these in order (e.g. `/images/if.jpeg` vs `/if.jpeg`) */
+  photoSrcFallbacks?: string[];
 };
 
 const teamMembers: TeamMember[] = [
@@ -72,10 +79,13 @@ const teamMembers: TeamMember[] = [
     gender: 'female',
     surface: 'bg-brand-navy',
     tagline: '14 Years of Visionary Leadership',
-    bio: 'Ayan Ali Aden is the CEO of Baraarug Consulting Firm with 14 years of experience in public financial management, fiscal governance, and institutional capacity building, including eight years in public procurement management. She has worked with the World Bank, AfDB, UNDP, and UN-Habitat.',
+    bio: 'CEO with 14 years in public financial management, procurement, and institutional reform — partnering with World Bank, AfDB, UNDP, and UN-Habitat.',
     expertise: ['Public Financial Management', 'Fiscal Governance', 'Institutional Capacity Building', 'Public Procurement'],
     stats: [{ label: 'Years Exp.', value: '14+' }, { label: 'Organizations', value: '10+' }, { label: 'Countries', value: '5+' }],
-    photo: '/Ayan.png',
+    photo: '/ayan.jpeg',
+    photoPortraitClassName: 'h-[270px] sm:h-[295px]',
+    photoImageClassName:
+      'object-cover object-[40%_38%] scale-[1.28] origin-[48%_42%] transition-transform duration-500 ease-out group-hover:scale-[1.34]',
   },
   {
     name: 'Dr. Abdinur Ahmed',
@@ -83,7 +93,7 @@ const teamMembers: TeamMember[] = [
     gender: 'male',
     surface: 'bg-brand-teal',
     tagline: 'Economic Theory & Climate Expert',
-    bio: 'Dr. Abdinur specializes in economic theory, financial inclusion, and climate change. He has served as Dean of Graduate Studies and Dean of the Faculty of Economics at SIMAD University, and has led research on the economic impacts of climate change across East Africa.',
+    bio: 'Former Dean at SIMAD University; research on climate economics, financial inclusion, and policy across East Africa.',
     expertise: ['Economic Theory', 'Financial Inclusion', 'Climate Economics', 'Policy Development'],
     stats: [{ label: 'Research Papers', value: '20+' }, { label: 'Yrs. Academic', value: '12+' }, { label: 'Policy Reports', value: '30+' }],
     photo: '/abdinor.jpg',
@@ -95,16 +105,59 @@ const teamMembers: TeamMember[] = [
     gender: 'female',
     surface: 'bg-brand-navy-mid',
     tagline: '10+ Years Driving Strategic Excellence',
-    bio: 'Ifrah Abdirahman brings over 10 years of experience in public sector consulting, audit, strategic policy development, and organizational transformation. She has expertise in financial oversight, risk management, and capacity building across the Horn of Africa.',
+    bio: 'COO focused on public-sector consulting, audit, strategic policy, and transformation across the Horn of Africa.',
     expertise: ['Public Sector Consulting', 'Audit & Assurance', 'Strategic Policy', 'Organizational Transformation'],
     stats: [{ label: 'Years Exp.', value: '10+' }, { label: 'Projects Led', value: '50+' }, { label: 'Sectors', value: '8+' }],
+    photo: '/images/if.jpeg',
+    photoSrcFallbacks: ['/if.jpeg', '/ifrah.jpeg', '/ifrah.png'],
+    photoPortraitClassName: 'h-[250px] sm:h-[275px]',
+    photoImageClassName:
+      '!object-cover object-[50%_30%] -translate-y-2.5 sm:-translate-y-3 transition-transform duration-500 ease-out group-hover:scale-[1.02]',
   },
 ];
+
+function TeamPortraitImage({
+  member,
+  className,
+  priority,
+}: {
+  member: TeamMember
+  className: string
+  priority: boolean
+}) {
+  const chain = useMemo(
+    () => [member.photo!, ...(member.photoSrcFallbacks ?? [])].filter((u) => Boolean(u?.trim())),
+    [member.photo, member.photoSrcFallbacks],
+  )
+  const [idx, setIdx] = useState(0)
+  const safeIdx = Math.min(idx, Math.max(0, chain.length - 1))
+  const src = chain[safeIdx] ?? member.photo!
+
+  useEffect(() => {
+    setIdx(0)
+  }, [member.photo, member.photoSrcFallbacks])
+
+  const onError = useCallback(() => {
+    setIdx((i) => (i < chain.length - 1 ? i + 1 : i))
+  }, [chain.length])
+
+  return (
+    <Image
+      src={src}
+      alt={member.name}
+      fill
+      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 360px"
+      className={className}
+      priority={priority}
+      onError={onError}
+    />
+  )
+}
 
 function TeamCard({ member, idx }: { member: TeamMember; idx: number }) {
   const { ref, visible } = useScrollReveal();
   const Avatar = member.gender === 'female' ? FemaleAvatar : MaleAvatar;
-  const tagPreview = member.expertise.slice(0, 3);
+  const tagPreview = member.expertise.slice(0, 2);
   const tagExtra = member.expertise.length - tagPreview.length;
   const hasPhoto = Boolean(member.photo?.trim());
 
@@ -114,110 +167,102 @@ function TeamCard({ member, idx }: { member: TeamMember; idx: number }) {
       className="group relative cursor-default"
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(32px)',
-        transition: `opacity 0.6s ease ${idx * 0.1}s, transform 0.6s ease ${idx * 0.1}s`,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+        transition: `opacity 0.5s ease ${idx * 0.08}s, transform 0.5s ease ${idx * 0.08}s`,
       }}
     >
       <div
-        className={`absolute -inset-[1px] ${member.surface} rounded-[1.75rem] opacity-0 blur-2xl transition-all duration-500 group-hover:opacity-[0.18]`}
+        className={`absolute -inset-[1px] ${member.surface} rounded-2xl opacity-0 blur-xl transition-all duration-500 group-hover:opacity-[0.14]`}
       />
 
-      <article className="relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-slate-200/90 bg-white shadow-[0_4px_6px_-1px_rgba(15,23,42,0.06),0_24px_48px_-20px_rgba(15,23,42,0.12)] ring-1 ring-slate-900/[0.04] transition-all duration-500 group-hover:-translate-y-2 group-hover:border-brand-teal/25 group-hover:shadow-[0_32px_64px_-24px_rgba(23,94,126,0.22)]">
-        {/* Portrait — full width, clearly visible */}
-        <div className="relative aspect-[3/4] w-full min-h-[220px] max-h-[340px] sm:max-h-[360px] overflow-hidden bg-slate-200">
+      <article className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-16px_rgba(23,94,126,0.12)] transition-all duration-300 group-hover:-translate-y-1 group-hover:border-slate-300/90 group-hover:shadow-[0_20px_50px_-24px_rgba(23,94,126,0.18)]">
+        {/* Portrait — clear photo, no dark color wash */}
+        <div
+          className={cn(
+            'relative h-[200px] w-full shrink-0 overflow-hidden bg-slate-100 sm:h-[220px]',
+            member.photoPortraitClassName,
+          )}
+        >
           {hasPhoto ? (
-            <>
-              <Image
-                src={member.photo!}
-                alt={member.name}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 380px"
-                className="object-cover object-[center_15%] transition-transform duration-[1.1s] ease-out group-hover:scale-[1.04]"
-                priority={idx < 2}
-              />
-              <div
-                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-navy/85 via-brand-navy/20 to-transparent"
-                aria-hidden
-              />
-              <div
-                className={`pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t ${member.photoAccent ? 'from-amber-950/40' : 'from-black/0'} to-transparent opacity-60`}
-                aria-hidden
-              />
-            </>
+            <TeamPortraitImage
+              member={member}
+              priority={idx < 2}
+              className={cn(
+                'object-cover object-[center_20%] transition-transform duration-500 ease-out group-hover:scale-[1.02]',
+                member.photoImageClassName,
+              )}
+            />
           ) : (
             <div
               className={`flex h-full w-full items-center justify-center ${member.surface} bg-gradient-to-br from-white/10 to-black/20`}
             >
-              <div className="rounded-full border-4 border-white/25 bg-white/10 p-1 shadow-2xl ring-4 ring-white/10">
-                <div className="flex h-36 w-36 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-white/10 sm:h-40 sm:w-40">
-                  <Avatar className="h-28 w-28 sm:h-32 sm:w-32" />
+              <div className="rounded-full border-[3px] border-white/25 bg-white/10 p-0.5 shadow-lg ring-2 ring-white/10">
+                <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-white/10 sm:h-32 sm:w-32">
+                  <Avatar className="h-24 w-24 sm:h-28 sm:w-28" />
                 </div>
               </div>
             </div>
           )}
-
-          <div className="absolute bottom-0 left-0 right-0 z-[1] px-4 pb-4 pt-12 text-left sm:px-5 sm:pb-5">
-            <p className="mb-1 inline-block rounded-md border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-white/95 backdrop-blur-sm sm:text-[10px]">
-              {member.tagline}
-            </p>
-            <h3 className="text-balance text-lg font-bold leading-tight tracking-tight text-white drop-shadow-md sm:text-xl">
-              {member.name}
-            </h3>
-            <p className="mt-0.5 text-sm font-medium text-brand-teal drop-shadow">{member.role}</p>
-          </div>
-
-          <span className="absolute right-3 top-3 z-[1] h-2.5 w-2.5 rounded-full border-2 border-white bg-brand-green shadow-md ring-2 ring-brand-navy/30" aria-hidden />
         </div>
 
-        <div className="flex flex-1 flex-col gap-3 px-4 pb-5 pt-4 sm:px-5 sm:pt-5">
-          <div className="grid grid-cols-3 gap-1 rounded-xl bg-gradient-to-b from-slate-50 to-white px-2 py-2.5 ring-1 ring-slate-200/80">
+        {/* Identity — on white, readable (professional) */}
+        <div className="border-b border-slate-100 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3.5 sm:px-5 sm:py-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-teal sm:text-[11px]">{member.tagline}</p>
+          <h3 className="mt-1.5 text-balance text-lg font-bold leading-snug tracking-tight text-brand-navy sm:text-xl">
+            {member.name}
+          </h3>
+          <p className="mt-1 text-sm font-semibold text-slate-600">{member.role}</p>
+        </div>
+
+        <div className="flex flex-1 flex-col gap-2.5 px-3 pb-3 pt-3 sm:px-4 sm:pb-4">
+          <div className="grid grid-cols-3 gap-0.5 rounded-xl bg-white px-1.5 py-2.5 ring-1 ring-slate-200/80">
             {member.stats.map((stat, sIdx) => (
-              <div key={sIdx} className="min-w-0 border-r border-slate-200/80 text-center last:border-r-0">
-                <p className="text-base font-black tabular-nums leading-none text-brand-navy sm:text-lg">{stat.value}</p>
-                <p className="mt-1 text-[9px] font-medium uppercase leading-tight tracking-wide text-slate-500 sm:text-[10px]">
+              <div key={sIdx} className="min-w-0 border-r border-slate-200/70 text-center last:border-r-0">
+                <p className="text-sm font-black tabular-nums leading-none text-brand-navy sm:text-base">{stat.value}</p>
+                <p className="mt-0.5 text-[8px] font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-[9px]">
                   {stat.label}
                 </p>
               </div>
             ))}
           </div>
 
-          <p className="line-clamp-3 text-[13px] leading-relaxed text-slate-600 sm:line-clamp-4 sm:text-sm">{member.bio}</p>
+          <p className="line-clamp-2 text-xs leading-snug text-slate-600 sm:text-[13px]">{member.bio}</p>
 
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1">
             {tagPreview.map((tag, tIdx) => (
               <span
                 key={tIdx}
-                className="rounded-md border border-brand-navy/10 bg-brand-mint/40 px-2 py-1 text-[10px] font-semibold text-brand-navy transition-colors group-hover:border-brand-teal/30 group-hover:bg-brand-mint/70 sm:text-[11px]"
+                className="rounded-md border border-brand-navy/10 bg-brand-mint/35 px-1.5 py-0.5 text-[9px] font-semibold text-brand-navy sm:text-[10px]"
               >
                 {tag}
               </span>
             ))}
             {tagExtra > 0 && (
-              <span className="self-center rounded-md border border-dashed border-slate-300 px-2 py-1 text-[10px] font-medium text-slate-500">
+              <span className="self-center rounded border border-dashed border-slate-300/80 px-1.5 py-0.5 text-[9px] font-medium text-slate-500">
                 +{tagExtra}
               </span>
             )}
           </div>
 
-          <div className="mt-auto flex gap-2 border-t border-slate-100 pt-4">
+          <div className="mt-auto flex gap-1.5 border-t border-slate-100 pt-2.5">
             <button
               type="button"
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl ${member.surface} py-2.5 text-xs font-bold text-white shadow-md transition hover:brightness-110 sm:text-sm`}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg ${member.surface} py-2 text-[11px] font-bold text-white shadow-sm transition hover:brightness-110 sm:gap-2 sm:text-xs`}
             >
-              <Mail className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+              <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
               Contact
             </button>
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-brand-teal hover:text-brand-teal sm:text-sm"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 text-[11px] font-bold text-slate-700 shadow-sm transition hover:border-brand-teal hover:text-brand-teal sm:text-xs"
             >
-              <Linkedin className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+              <Linkedin className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
               LinkedIn
             </button>
           </div>
         </div>
 
-        <div className={`h-1 w-full ${member.surface} opacity-90`} />
+        <div className={`h-0.5 w-full ${member.surface} opacity-80`} />
       </article>
     </div>
   );
@@ -306,21 +351,21 @@ export default function OurTeamPage() {
       </PageHeroShell>
 
       {/* Team Cards Section */}
-      <section className="relative overflow-hidden bg-brand-mint/25 py-28 px-4 md:px-8">
+      <section className="relative overflow-hidden bg-brand-mint/25 py-16 px-4 md:py-20 md:px-8">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-teal/4 rounded-full -mr-48 -mt-48 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-navy/4 rounded-full -ml-32 -mb-32 blur-3xl"></div>
 
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Section header */}
-          <div className="text-center mb-16">
-            <div className="inline-block bg-brand-navy/10 text-brand-navy px-6 py-2 rounded-full text-sm font-bold mb-5 border border-brand-navy/20 tracking-widest">
+          <div className="text-center mb-10 md:mb-12">
+            <div className="inline-block bg-brand-navy/10 text-brand-navy px-5 py-1.5 rounded-full text-xs font-bold mb-4 border border-brand-navy/20 tracking-widest md:text-sm">
               THE PEOPLE BEHIND BARAARUG
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-brand-navy mb-4">Our Leadership Team</h2>
-            <div className="mx-auto h-1.5 w-20 rounded-full bg-brand-teal"></div>
+            <h2 className="text-3xl md:text-4xl font-bold text-brand-navy mb-3">Our Leadership Team</h2>
+            <div className="mx-auto h-1 w-16 rounded-full bg-brand-teal"></div>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-9 xl:grid-cols-3 xl:items-stretch xl:gap-10">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-7 xl:grid-cols-3 xl:items-stretch xl:gap-8">
             {teamMembers.map((member, idx) => (
               <TeamCard key={member.name} member={member} idx={idx} />
             ))}
