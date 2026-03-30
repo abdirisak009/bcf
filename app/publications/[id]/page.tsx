@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, Download } from 'lucide-react'
 
 import Footer from '@/components/footer'
 import Navigation from '@/components/navigation'
+import { getApiInternalBase } from '@/lib/api'
 
 type PublicationRow = {
   id: string
@@ -17,7 +18,7 @@ type PublicationRow = {
 }
 
 async function fetchPublication(id: string): Promise<PublicationRow | null> {
-  const base = (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '')
+  const base = getApiInternalBase().replace(/\/$/, '')
   try {
     const res = await fetch(`${base}/api/publications/${id}`, {
       next: { revalidate: 30 },

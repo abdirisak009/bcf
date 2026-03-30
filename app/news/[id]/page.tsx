@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 
 import Footer from '@/components/footer'
 import Navigation from '@/components/navigation'
+import { getApiInternalBase } from '@/lib/api'
 
 type NewsArticleData = {
   id: string
@@ -19,7 +20,7 @@ type NewsArticleData = {
 }
 
 async function fetchNewsArticle(id: string): Promise<NewsArticleData | null> {
-  const base = (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '')
+  const base = getApiInternalBase().replace(/\/$/, '')
   try {
     const res = await fetch(`${base}/api/news/${id}`, {
       next: { revalidate: 30 },

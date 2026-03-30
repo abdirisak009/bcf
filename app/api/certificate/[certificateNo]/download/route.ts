@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 
-function backendBase(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '')
-}
+import { getApiInternalBase } from '@/lib/api'
 
 /** Public: download filled PDF for certificate number. */
 export async function GET(
@@ -11,7 +9,7 @@ export async function GET(
 ) {
   const { certificateNo } = await context.params
   const no = encodeURIComponent(certificateNo.trim())
-  const res = await fetch(`${backendBase()}/api/certificate/${no}/download`, {
+  const res = await fetch(`${getApiInternalBase()}/api/certificate/${no}/download`, {
     headers: { Accept: 'application/pdf' },
     cache: 'no-store',
   })

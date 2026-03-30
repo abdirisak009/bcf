@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 
-function backendBase(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '')
-}
+import { getApiInternalBase } from '@/lib/api'
 
 /** Public: verify approved training application by phone and return certificate PDF. */
 export async function POST(request: Request) {
@@ -13,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const res = await fetch(`${backendBase()}/api/certificates/issue-by-phone`, {
+  const res = await fetch(`${getApiInternalBase()}/api/certificates/issue-by-phone`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

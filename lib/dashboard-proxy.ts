@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 
+import { getApiInternalBase } from '@/lib/api'
+
 export function backendBase(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '')
+  return getApiInternalBase()
 }
 
 function unauthorized(): NextResponse {

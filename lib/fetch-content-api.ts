@@ -1,8 +1,9 @@
 import type { ApiNewsRow } from '@/lib/map-news-to-cards'
 import type { ApiPublicationRow } from '@/lib/map-publications-to-cards'
+import { getApiInternalBase } from '@/lib/api'
 
 function apiBase(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '')
+  return getApiInternalBase()
 }
 
 /** Latest news from the Go API (newest first). */

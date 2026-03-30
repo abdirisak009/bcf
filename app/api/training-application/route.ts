@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 
-function backendBase(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '')
-}
+import { getApiInternalBase } from '@/lib/api'
 
 /** Public: submits training application to Go API (stored in DB for dashboard). */
 export async function POST(request: Request) {
@@ -54,7 +52,7 @@ export async function POST(request: Request) {
     payload.training_format = body.training_format.trim()
   }
 
-  const res = await fetch(`${backendBase()}/api/trainings/apply`, {
+  const res = await fetch(`${getApiInternalBase()}/api/trainings/apply`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(payload),
