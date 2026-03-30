@@ -1,0 +1,20 @@
+[Unit]
+Description=Bararug / BCF Next.js (production)
+After=network.target bcf-api.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/bararug-website
+Environment=NODE_ENV=production
+# Next loads .env.production automatically; optional extra file:
+# EnvironmentFile=-/opt/bararug-website/.env.production
+# Requires `pnpm install` + `pnpm build` in this directory first (see scripts/vps-deploy.sh).
+ExecStart=/opt/bararug-website/node_modules/.bin/next start -H 127.0.0.1 -p 3000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

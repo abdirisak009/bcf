@@ -1,0 +1,21 @@
+[Unit]
+Description=Bararug / BCF Go API
+After=network.target postgresql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/bararug-website/backend
+EnvironmentFile=-/opt/bararug-website/backend/.env
+ExecStart=/opt/bararug-website/backend/bcf-api
+Restart=on-failure
+RestartSec=5
+
+# Hardening (optional; adjust if something breaks)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
