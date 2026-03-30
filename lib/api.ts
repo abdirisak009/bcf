@@ -12,18 +12,59 @@ export function getApiInternalBase(): string {
   return raw.replace(/\/$/, '')
 }
 
+function stripTrailingSlash(raw: string): string {
+  return raw.replace(/\/$/, '')
+}
+
+function isLoopbackHostname(hostname: string): boolean {
+  const h = hostname.toLowerCase()
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.localhost')
+}
+
+/**
+ * Browsers block a **public** page (e.g. `http://62.x:3000`) from fetching **loopback**
+ * (`http://127.0.0.1:8080`) — "more-private address space" / Private Network Access.
+ * Builds that bake `NEXT_PUBLIC_API_URL=http://127.0.0.1:8080` therefore break in production.
+ * On localhost we still allow loopback API URLs for normal dev.
+ */
+function browserResolvedPublicApiBase(pubRaw: string): string {
+  const pub = stripTrailingSlash(pubRaw)
+  let apiHost: string
+  try {
+    apiHost = new URL(pub).hostname
+  } catch {
+    return ''
+  }
+  const pageHost = window.location.hostname.toLowerCase()
+  const pageIsLocal =
+    pageHost === 'localhost' ||
+    pageHost === '127.0.0.1' ||
+    pageHost === '[::1]' ||
+    pageHost.endsWith('.localhost')
+
+  if (isLoopbackHostname(apiHost) && !pageIsLocal) {
+    return ''
+  }
+  return pub
+}
+
 /**
  * Base URL for API calls from **the browser**.
  *
- * - If `NEXT_PUBLIC_API_URL` is set → direct to that host (must be public, not 127.0.0.1 in production).
- * - If unset → empty string: use same-origin paths like `/api/academies/catalog` (Next proxies to Go). Works with Docker/VPS without baking the IP into the client bundle.
+ * - If `NEXT_PUBLIC_API_URL` is a safe, non-loopback URL (or you are on localhost dev) → use it.
+ * - If it points at loopback but the site is not served from localhost → **ignored**; use same-origin
+ *   `/api/...` (Next `app/api/[...path]` proxies to Go). Fixes production when the env was wrongly set to 127.0.0.1.
+ * - If unset → `''` (same-origin).
  *
  * On the **server** (SSR/RSC), this returns `getApiInternalBase()` so fetches reach Go from Node.
  */
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
     const pub = process.env.NEXT_PUBLIC_API_URL?.trim()
-    if (pub) return pub.replace(/\/$/, '')
+    if (pub) {
+      const resolved = browserResolvedPublicApiBase(pub)
+      if (resolved) return resolved
+    }
     return ''
   }
   return getApiInternalBase()
