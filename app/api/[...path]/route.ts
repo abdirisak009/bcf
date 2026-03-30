@@ -14,7 +14,7 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
   const target = `${base}/api/${segments.join('/')}${req.nextUrl.search}`
 
   const headers = new Headers()
-  const hopByHop = new Set([
+  const doNotForward = new Set([
     'connection',
     'keep-alive',
     'proxy-authenticate',
@@ -23,9 +23,12 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
     'trailers',
     'upgrade',
     'host',
+    // Let fetch set Content-Length for the new body; copying can mismatch or confuse some runtimes.
+    'content-length',
+    'transfer-encoding',
   ])
   req.headers.forEach((value, key) => {
-    if (!hopByHop.has(key.toLowerCase())) {
+    if (!doNotForward.has(key.toLowerCase())) {
       headers.set(key, value)
     }
   })
@@ -43,7 +46,22 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
     }
   }
 
-  return fetch(target, init)
+  try {
+    return await fetch(target, init)
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : 'Unknown error'
+    console.error('[api proxy] upstream fetch failed', { target, detail })
+    return Response.json(
+      {
+        success: false,
+        error:
+          'Cannot reach the Go API from Next.js. Set API_INTERNAL_URL to the backend base URL ' +
+          '(e.g. http://127.0.0.1:8080 on the same host, or your Docker service name). ' +
+          `(${detail})`,
+      },
+      { status: 502 },
+    )
+  }
 }
 
 type RouteCtx = { params: Promise<{ path: string[] }> }

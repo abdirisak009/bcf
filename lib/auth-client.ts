@@ -57,5 +57,16 @@ export async function loginRequest(body: LoginBody): Promise<ApiEnvelope<LoginDa
     body: JSON.stringify(body),
     cache: 'no-store',
   })
-  return (await res.json()) as ApiEnvelope<LoginData>
+  const text = await res.text()
+  try {
+    return JSON.parse(text) as ApiEnvelope<LoginData>
+  } catch {
+    return {
+      success: false,
+      error:
+        res.status >= 500
+          ? `Sign-in service error (${res.status}). Check API_INTERNAL_URL and that the Go API is running.`
+          : `Unexpected response (${res.status}).`,
+    }
+  }
 }
