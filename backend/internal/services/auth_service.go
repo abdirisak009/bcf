@@ -131,17 +131,3 @@ func logLoginFailure(userID uuid.UUID, verifyErr error) {
 		slog.Debug("auth login: password verify error", "user_id", userID.String(), "err", verifyErr.Error())
 	}
 }
-
-// logLoginFailure records why verify failed without logging secrets. Wrong-password attempts stay at Debug;
-// non-bcrypt DB values are Warn so production logs surface misconfigured rows.
-func logLoginFailure(userID uuid.UUID, verifyErr error) {
-	switch {
-	case errors.Is(verifyErr, pkgutils.ErrStoredPasswordNotBcrypt):
-		slog.Warn("auth login: password_hash is not bcrypt; update user with seed-admin or bootstrap env",
-			"user_id", userID.String())
-	case errors.Is(verifyErr, bcrypt.ErrMismatchedHashAndPassword):
-		slog.Debug("auth login: password mismatch", "user_id", userID.String())
-	default:
-		slog.Debug("auth login: password verify error", "user_id", userID.String(), "err", verifyErr.Error())
-	}
-}
