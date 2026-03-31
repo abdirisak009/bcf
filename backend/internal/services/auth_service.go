@@ -95,15 +95,29 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	if u == nil {
 		return nil, ErrInvalidCredentials
 	}
-	if err := pkgutils.ComparePasswordWithHash(u.PasswordHash, password); err != nil {
-		switch {
-		case errors.Is(err, pkgutils.ErrStoredPasswordNotBcrypt):
-			slog.Warn("auth login: password_hash is not bcrypt; update user with seed-admin or bootstrap env",
-				"user_id", u.ID.String())
-		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+
+	// bcrypt.CompareHashAndPassword(hashedPassword, password) — hash first, plaintext second (never swap).
+	storedHash := strings.TrimSpace(u.PasswordHash)
+	slog.Debug("auth login verify",
+		"email_len", len(email),
+		"password_len", len(password),
+		"hash_len", len(storedHash),
+		"user_id", u.ID.String(),
+	)
+	if storedHash == "" {
+		slog.Warn("auth login: empty password_hash in database", "user_id", u.ID.String())
+		return nil, ErrInvalidCredentials
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			slog.Debug("auth login: password mismatch", "user_id", u.ID.String())
-		default:
-			slog.Debug("auth login: password verify error", "user_id", u.ID.String(), "err", err.Error())
+		} else if !pkgutils.IsBcryptHash(storedHash) {
+			slog.Warn("auth login: password_hash is not a valid bcrypt string; use seed-admin or bootstrap",
+				"user_id", u.ID.String(), "bcrypt_err", err.Error())
+		} else {
+			slog.Debug("auth login: bcrypt error", "user_id", u.ID.String(), "err", err.Error())
 		}
 		return nil, ErrInvalidCredentials
 	}

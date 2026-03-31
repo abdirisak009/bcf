@@ -1,16 +1,12 @@
 package utils
 
 import (
-	"errors"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 const bcryptCost = bcrypt.DefaultCost
-
-// ErrStoredPasswordNotBcrypt is returned when the DB value is not a bcrypt hash (e.g. plain text from manual INSERT).
-var ErrStoredPasswordNotBcrypt = errors.New("stored password hash is not bcrypt format")
 
 // HashPassword returns a bcrypt hash of the plaintext password.
 // Callers should pass already-normalized plaintext (e.g. strings.TrimSpace) for consistency with login.
@@ -32,18 +28,16 @@ func IsBcryptHash(s string) bool {
 	return strings.HasPrefix(s, "$2a$") || strings.HasPrefix(s, "$2b$") || strings.HasPrefix(s, "$2y$")
 }
 
-// ComparePasswordWithHash verifies plaintext against a bcrypt hash with the same rules as production login:
-// trims plaintext and stored hash, rejects non-bcrypt stored values, then uses bcrypt.CompareHashAndPassword.
+// ComparePasswordWithHash verifies plaintext against a bcrypt hash using bcrypt.CompareHashAndPassword.
+// Order is (hash, password) as required by the standard library — never compare plain strings to each other.
+// Values are trimmed; empty after trim fails verification.
 func ComparePasswordWithHash(storedHash, plainPassword string) error {
-	plain := strings.TrimSpace(plainPassword)
 	hash := strings.TrimSpace(storedHash)
-	// Treat missing input like a failed verify so callers return generic invalid-credentials without leaking details.
+	plain := strings.TrimSpace(plainPassword)
 	if hash == "" || plain == "" {
 		return bcrypt.ErrMismatchedHashAndPassword
 	}
-	if !IsBcryptHash(hash) {
-		return ErrStoredPasswordNotBcrypt
-	}
+	// Let bcrypt validate the hash format; wrong/legacy/plain values return an error (e.g. ErrHashTooShort).
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(plain))
 }
 
