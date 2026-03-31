@@ -70,6 +70,18 @@ export function getApiBase(): string {
   return getApiInternalBase()
 }
 
+/**
+ * Full path for **browser** fetches to the Go API (always starts with `/api/`).
+ * - When `NEXT_PUBLIC_API_URL` is unset → same-origin `/api/...` (Next proxies to Go; recommended on VPS).
+ * - When set → `https://host:8080/api/...` (no duplicated `/api`).
+ */
+export function getBrowserApiUrl(apiPath: string): string {
+  const base = stripTrailingSlash(getApiBase())
+  const path = apiPath.startsWith('/') ? apiPath : `/${apiPath}`
+  if (!base) return path
+  return `${base}${path}`
+}
+
 export type ApiEnvelope<T> = {
   success: boolean
   data?: T

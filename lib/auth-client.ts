@@ -1,4 +1,4 @@
-import { getApiBase, type ApiEnvelope } from '@/lib/api'
+import { getBrowserApiUrl, type ApiEnvelope } from '@/lib/api'
 
 const TOKEN_KEY = 'bararug_auth_token'
 const USER_KEY = 'bararug_auth_user'
@@ -51,11 +51,15 @@ type LoginBody = { email: string; password: string }
 type LoginData = { token: string; user: AuthUser & { permissions?: string[] } }
 
 export async function loginRequest(body: LoginBody): Promise<ApiEnvelope<LoginData>> {
-  const res = await fetch(`${getApiBase()}/api/auth/login`, {
+  const res = await fetch(getBrowserApiUrl('/api/auth/login'), {
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      email: body.email.trim().toLowerCase(),
+      password: body.password.trim(),
+    }),
     cache: 'no-store',
+    credentials: 'omit',
   })
   const text = await res.text()
   try {

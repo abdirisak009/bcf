@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -24,13 +24,17 @@ export function SignInForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  /** Stops double-submit (double click / slow network) from sending two login POSTs. */
+  const submitLock = useRef(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (submitLock.current) return
+    submitLock.current = true
     setError(null)
     setLoading(true)
     try {
-      const res = await loginRequest({ email: email.trim(), password })
+      const res = await loginRequest({ email: email.trim(), password: password.trim() })
       if (!res.success || !res.data?.token || !res.data?.user) {
         setError(res.error ?? 'Could not sign in.')
         return
@@ -46,6 +50,7 @@ export function SignInForm() {
     } catch {
       setError('Network error. Is the API running?')
     } finally {
+      submitLock.current = false
       setLoading(false)
     }
   }
