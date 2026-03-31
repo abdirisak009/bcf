@@ -2,6 +2,20 @@ import { type NextRequest } from 'next/server'
 
 import { getApiInternalBase } from '@/lib/api'
 
+/** Gin binds JSON only when Content-Type includes application/json; repair broken clients (e.g. "application"). */
+function ensureJsonContentTypeForAuth(headers: Headers, segments: string[], body: ArrayBuffer) {
+  const prefix = segments[0] ?? ''
+  if (prefix !== 'auth') return
+  if (body.byteLength === 0) return
+  const ct = (headers.get('content-type') ?? '').toLowerCase()
+  const ok = ct.includes('application/json') || ct.includes('json')
+  if (ok) return
+  const first = new Uint8Array(body.slice(0, 1))[0]
+  if (first === 0x7b) {
+    headers.set('Content-Type', 'application/json; charset=utf-8')
+  }
+}
+
 /**
  * Proxies unmatched `/api/*` requests to the Go API. Lets the browser use same-origin URLs
  * (no NEXT_PUBLIC_API_URL) while Next reaches Go via API_INTERNAL_URL in Docker.
@@ -43,6 +57,7 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
     const body = await req.arrayBuffer()
     if (body.byteLength > 0) {
       init.body = body
+      ensureJsonContentTypeForAuth(headers, segments, body)
     }
   }
 

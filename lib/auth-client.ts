@@ -50,10 +50,18 @@ export function getAuthHeaders(): HeadersInit {
 type LoginBody = { email: string; password: string }
 type LoginData = { token: string; user: AuthUser & { permissions?: string[] } }
 
+/** Gin's ShouldBindJSON requires Content-Type to include application/json. */
+function loginJsonHeaders(): Headers {
+  const h = new Headers()
+  h.set('Accept', 'application/json')
+  h.set('Content-Type', 'application/json; charset=utf-8')
+  return h
+}
+
 export async function loginRequest(body: LoginBody): Promise<ApiEnvelope<LoginData>> {
   const res = await fetch(getBrowserApiUrl('/api/auth/login'), {
     method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    headers: loginJsonHeaders(),
     body: JSON.stringify({
       email: body.email.trim().toLowerCase(),
       password: body.password.trim(),
