@@ -97,7 +97,11 @@ func (s *AdminUsersService) Create(req *AdminCreateUserRequest) (*models.UserPub
 	if !validRole(req.Role) {
 		return nil, errors.New("invalid role")
 	}
-	hash, err := pkgutils.HashPassword(req.Password)
+	password := strings.TrimSpace(req.Password)
+	if len(password) < 8 {
+		return nil, errors.New("password must be at least 8 characters")
+	}
+	hash, err := pkgutils.HashPassword(password)
 	if err != nil {
 		return nil, err
 	}

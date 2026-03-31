@@ -2,8 +2,12 @@ package services
 
 import (
 	"errors"
+	"log/slog"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/bararug/website-backend/config"
 	"github.com/bararug/website-backend/internal/models"
@@ -43,7 +47,12 @@ type AuthResponse struct {
 
 func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	email := strings.ToLower(strings.TrimSpace(req.Email))
-	hash, err := pkgutils.HashPassword(req.Password)
+	// Trim so registration and login hash/compare the same string (avoids trailing-space mismatches).
+	password := strings.TrimSpace(req.Password)
+	if len(password) < 8 {
+		return nil, errors.New("password must be at least 8 characters")
+	}
+	hash, err := pkgutils.HashPassword(password)
 	if err != nil {
 		return nil, err
 	}
@@ -76,11 +85,19 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 
 func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	email := strings.ToLower(strings.TrimSpace(req.Email))
+	password := strings.TrimSpace(req.Password)
+	if password == "" {
+		return nil, ErrInvalidCredentials
+	}
 	u, err := s.repo.GetByEmail(email)
 	if err != nil {
 		return nil, err
 	}
-	if u == nil || !pkgutils.CheckPassword(u.PasswordHash, req.Password) {
+	if u == nil {
+		return nil, ErrInvalidCredentials
+	}
+	if err := pkgutils.ComparePasswordWithHash(u.PasswordHash, password); err != nil {
+		logLoginFailure(u.ID, err)
 		return nil, ErrInvalidCredentials
 	}
 	token, err := pkgutils.SignJWT(s.secret, s.expiry, u.ID, u.Email, u.Role)
@@ -99,4 +116,32 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 		Token: token,
 		User:  pub,
 	}, nil
+}
+
+// logLoginFailure records why verify failed without logging secrets. Wrong-password attempts stay at Debug;
+// non-bcrypt DB values are Warn so production logs surface misconfigured rows.
+func logLoginFailure(userID uuid.UUID, verifyErr error) {
+	switch {
+	case errors.Is(verifyErr, pkgutils.ErrStoredPasswordNotBcrypt):
+		slog.Warn("auth login: password_hash is not bcrypt; update user with seed-admin or bootstrap env",
+			"user_id", userID.String())
+	case errors.Is(verifyErr, bcrypt.ErrMismatchedHashAndPassword):
+		slog.Debug("auth login: password mismatch", "user_id", userID.String())
+	default:
+		slog.Debug("auth login: password verify error", "user_id", userID.String(), "err", verifyErr.Error())
+	}
+}
+
+// logLoginFailure records why verify failed without logging secrets. Wrong-password attempts stay at Debug;
+// non-bcrypt DB values are Warn so production logs surface misconfigured rows.
+func logLoginFailure(userID uuid.UUID, verifyErr error) {
+	switch {
+	case errors.Is(verifyErr, pkgutils.ErrStoredPasswordNotBcrypt):
+		slog.Warn("auth login: password_hash is not bcrypt; update user with seed-admin or bootstrap env",
+			"user_id", userID.String())
+	case errors.Is(verifyErr, bcrypt.ErrMismatchedHashAndPassword):
+		slog.Debug("auth login: password mismatch", "user_id", userID.String())
+	default:
+		slog.Debug("auth login: password verify error", "user_id", userID.String(), "err", verifyErr.Error())
+	}
 }
