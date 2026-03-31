@@ -100,6 +100,9 @@ func main() {
 	); err != nil {
 		log.Fatal("automigrate: ", err)
 	}
+	if err := database.EnsureBootstrapAdmins(db, cfg.BootstrapAdmins); err != nil {
+		log.Fatal("bootstrap admins: ", err)
+	}
 	// Backfill payment_date for legacy rows (zero/epoch timestamps).
 	if err := db.Exec(`UPDATE payments SET payment_date = created_at WHERE payment_date IS NULL OR payment_date < '1971-01-01'`).Error; err != nil {
 		log.Printf("warn: payment_date backfill: %v", err)

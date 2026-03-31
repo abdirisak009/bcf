@@ -13,6 +13,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// BootstrapAdmin optional: server startup creates this user if email does not exist yet (bcrypt hash).
+// Set BOOTSTRAP_ADMIN_1_EMAIL / BOOTSTRAP_ADMIN_1_PASSWORD (and _2_, _3_, … up to _5_).
+type BootstrapAdmin struct {
+	Email    string
+	Password string
+}
+
 type Config struct {
 	DBHost            string
 	DBPort            string
@@ -60,6 +67,9 @@ type Config struct {
 
 	// CORSAllowOrigins: comma-separated in CORS_ALLOW_ORIGINS (e.g. http://62.72.35.109,https://bcf.so) — merged with built-in dev origins.
 	CORSAllowOrigins []string
+
+	// BootstrapAdmins: optional; on startup, each pair is created as role=admin if that email is missing (password min 8 chars).
+	BootstrapAdmins []BootstrapAdmin
 }
 
 func Load() (*Config, error) {
@@ -140,6 +150,7 @@ func Load() (*Config, error) {
 		WhatsAppSendTextAPIKey: getenvWithJSON(j, "WHATSAPP_SENDTEXT_API_KEY", ""),
 		WhatsAppSendTextSession: getenvWithJSON(j, "WHATSAPP_SENDTEXT_SESSION", "default"),
 		CORSAllowOrigins:        splitCommaList(getenvWithJSON(j, "CORS_ALLOW_ORIGINS", "")),
+		BootstrapAdmins:         loadBootstrapAdmins(j),
 	}, nil
 }
 
@@ -204,6 +215,22 @@ func splitCommaList(s string) []string {
 	return out
 }
 
+// loadBootstrapAdmins reads BOOTSTRAP_ADMIN_{1..5}_EMAIL and _PASSWORD (from env or deployment.config.json backend).
+func loadBootstrapAdmins(j map[string]string) []BootstrapAdmin {
+	var out []BootstrapAdmin
+	for i := 1; i <= 5; i++ {
+		ek := fmt.Sprintf("BOOTSTRAP_ADMIN_%d_EMAIL", i)
+		pk := fmt.Sprintf("BOOTSTRAP_ADMIN_%d_PASSWORD", i)
+		email := strings.ToLower(strings.TrimSpace(getenvWithJSON(j, ek, "")))
+		pass := getenvWithJSON(j, pk, "")
+		if email == "" || pass == "" {
+			continue
+		}
+		out = append(out, BootstrapAdmin{Email: email, Password: pass})
+	}
+	return out
+}
+
 // loadDotEnv finds .env whether you run from backend/ or backend/cmd/ (go run main.go).
 func loadDotEnv() {
 	for _, p := range []string{".env", "../.env", "../../.env"} {
@@ -233,6 +260,11 @@ func (c *Config) PostgresDSN() string {
 func (c *Config) Validate() error {
 	if c.JWTSecret == "" || len(c.JWTSecret) < 8 {
 		return fmt.Errorf("JWT_SECRET must be at least 8 characters")
+	}
+	for _, b := range c.BootstrapAdmins {
+		if len(b.Password) < 8 {
+			return fmt.Errorf("BOOTSTRAP_ADMIN_* password for %q must be at least 8 characters", b.Email)
+		}
 	}
 	return nil
 }
