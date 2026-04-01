@@ -20,41 +20,6 @@ import (
 	"github.com/bararug/website-backend/internal/services"
 )
 
-func corsOrigins(cfg *config.Config) []string {
-	base := []string{
-		"http://localhost:3000",
-		"http://127.0.0.1:3000",
-		"http://localhost:3002",
-		"http://127.0.0.1:3002",
-		"http://178.18.245.131:3000",
-		// Production VPS (Next on :3000) — also set CORS_ALLOW_ORIGINS for other hosts.
-		"http://62.72.35.109:3000",
-	}
-	seen := make(map[string]struct{}, len(base)+len(cfg.CORSAllowOrigins))
-	out := make([]string, 0, len(base)+len(cfg.CORSAllowOrigins))
-	for _, o := range base {
-		if o == "" {
-			continue
-		}
-		if _, ok := seen[o]; ok {
-			continue
-		}
-		seen[o] = struct{}{}
-		out = append(out, o)
-	}
-	for _, o := range cfg.CORSAllowOrigins {
-		if o == "" {
-			continue
-		}
-		if _, ok := seen[o]; ok {
-			continue
-		}
-		seen[o] = struct{}{}
-		out = append(out, o)
-	}
-	return out
-}
-
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
@@ -172,14 +137,14 @@ func main() {
 	adminOnly := middleware.AuthAdminOrKey(cfg.JWTSecret, cfg.DashboardWriteKey)
 
 	r := gin.New()
+	r.Use(cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Dashboard-Key"},
+		AllowCredentials: false,
+	}))
 	r.Use(middleware.Logger())
 	r.Use(gin.Recovery())
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     corsOrigins(cfg),
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Dashboard-Key"},
-		AllowCredentials: true,
-	}))
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"success": true, "data": gin.H{"status": "ok"}})
