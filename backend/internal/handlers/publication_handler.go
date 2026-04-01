@@ -113,3 +113,5 @@ func (h *PublicationHandler) Delete(c *gin.Context) {
 	}
 	pkgutils.OK(c, http.StatusOK, gin.H{"deleted": true})
 }
+
+//fads
