@@ -1,6 +1,6 @@
 import { getToken } from '@/lib/auth-client'
 
-/** Upload to `public/uploads/{news|publications|clients|partners|expenses|certificates}/` via the dashboard API. */
+/** Upload to MinIO via `/api/dashboard/upload` (or `/api/upload`); URLs returned as `/api/files/{folder}/...`. */
 export async function uploadDashboardFile(
   file: File,
   folder: 'news' | 'publications' | 'clients' | 'partners' | 'expenses' | 'certificates',

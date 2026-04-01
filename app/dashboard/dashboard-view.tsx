@@ -707,7 +707,8 @@ export function DashboardView() {
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="max-w-xl text-sm text-slate-600">
-                    Uploads are saved under <span className="font-mono text-xs">public/uploads/publications/</span>{' '}
+                    Uploads go to MinIO; URLs look like{' '}
+                    <span className="font-mono text-xs">/api/files/publications/…</span>{' '}
                     in this repo.
                   </p>
                   <PublicationForm onCreated={refetchPublications} />

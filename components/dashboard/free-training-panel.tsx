@@ -1431,7 +1431,7 @@ export function FreeTrainingPanel() {
                   }}
                 />
                 <p className="text-muted-foreground text-xs">
-                  Shown on PDF certificates for this program. PNG or JPG; stored under public uploads.
+                  Shown on PDF certificates for this program. PNG or JPG; stored in MinIO (/api/files/certificates/…).
                 </p>
                 {certSigUrl ? (
                   <div className="flex flex-wrap items-end gap-3">
