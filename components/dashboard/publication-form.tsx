@@ -125,7 +125,7 @@ export function PublicationForm({ onCreated }: Props) {
           <SheetDescription className={cn('mt-2', dashboardSheetDescription)}>
             Files are stored under{' '}
             <span className="rounded bg-brand-mint/50 px-1 font-mono text-xs text-brand-navy">
-              /api/files/publications/… (MinIO)
+              /files/publications/… (MinIO)
             </span>{' '}
             in this project. Cover is optional; add a PDF and choose whether visitors read it in the browser or use download-first.
           </SheetDescription>

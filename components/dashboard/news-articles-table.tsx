@@ -88,7 +88,7 @@ export function NewsArticlesTable({ rows, loading, empty, onRefresh, categoriesV
     if (!deleteId) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/news/${deleteId}`, {
+      const res = await fetch(`/api/news/${deleteId}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })

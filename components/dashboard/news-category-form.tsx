@@ -46,13 +46,13 @@ export function NewsCategoryForm({ onCreated }: Props) {
     }
     setPending(true)
     try {
-      const res = await fetch('/api/dashboard/news-categories', {
+      const res = await fetch('/api/news/categories', {
         method: 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: n }),
       })
       const data = (await res.json()) as { success?: boolean; error?: string }
-      if (!res.ok) {
+      if (!res.ok || data.success === false) {
         setError(data.error ?? `Save failed (${res.status})`)
         return
       }

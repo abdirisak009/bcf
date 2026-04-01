@@ -1,9 +1,12 @@
 /**
  * Upload helpers: validate dashboard files and store buffers in MinIO.
- * Public URLs use `/api/files/...` (App Router) or optional presigned URLs.
+ * Public URLs use `/files/...` (same-origin; not under `/api` so nginx can route to Next when `/api` → Go).
+ * Legacy `/api/files/...` GET still works.
  */
 import path from 'path'
-import type { Readable } from 'stream'
+import { Readable } from 'stream'
+
+import { NextResponse } from 'next/server'
 
 import { ensureBucket, getBucketName, getMinioClient } from '@/lib/minio'
 
@@ -125,14 +128,19 @@ export function buildObjectKey(subdir: string, ext: string): string {
   return `${subdir}/${buildSafeFilename(ext)}`
 }
 
+export function isAllowedDashboardObjectKey(objectKey: string): boolean {
+  const first = objectKey.split('/')[0]
+  return (DASHBOARD_FOLDERS as readonly string[]).includes(first)
+}
+
 /**
- * Public URL served by Next (`GET /api/files/...`). Same-origin; works in <img> and DB.
+ * Public URL served by Next (`GET /files/...`). Same-origin; works in <img> and DB.
  * If MINIO_PRESIGNED_URLS=1, use getPresignedReadUrl instead for direct MinIO access.
  */
 export function publicFileUrl(objectKey: string): string {
   const segments = objectKey.split('/').filter(Boolean)
   const pathPart = segments.map((s) => encodeURIComponent(s)).join('/')
-  return `/api/files/${pathPart}`
+  return `/files/${pathPart}`
 }
 
 /** Upload buffer to MinIO; returns object key and public URL. */
@@ -163,7 +171,7 @@ export async function getPresignedReadUrl(
   return mc.presignedGetObject(bucket, objectKey, expirySeconds)
 }
 
-/** Stream object from MinIO (for GET /api/files). */
+/** Stream object from MinIO (for GET /files/... and GET /api/files/...). */
 export async function getObjectStream(objectKey: string): Promise<{
   stream: Readable
   contentType: string
@@ -181,4 +189,21 @@ export async function getObjectStream(objectKey: string): Promise<{
     meta?.['Content-Type'] ??
     'application/octet-stream'
   return { stream, contentType, size: stat.size }
+}
+
+/** Stream MinIO object as a Next.js response (shared by `/files` and `/api/files`). */
+export async function streamMinioFileToNextResponse(objectKey: string): Promise<NextResponse> {
+  const { stream, contentType, size } = await getObjectStream(objectKey)
+  const webBody =
+    typeof Readable.toWeb === 'function'
+      ? Readable.toWeb(stream)
+      : (stream as unknown as ReadableStream)
+  return new NextResponse(webBody as BodyInit, {
+    status: 200,
+    headers: {
+      'Content-Type': contentType,
+      ...(size > 0 ? { 'Content-Length': String(size) } : {}),
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+  })
 }

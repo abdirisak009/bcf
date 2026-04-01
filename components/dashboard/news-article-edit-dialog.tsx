@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { getApiBase } from '@/lib/api'
+import { getBrowserApiUrl } from '@/lib/api'
 import { dashboardAuthHeaders } from '@/lib/dashboard-client'
 import { uploadDashboardFile } from '@/lib/dashboard-upload'
 import {
@@ -99,7 +99,7 @@ export function NewsArticleEditDialog({
 
   const loadCategories = useCallback(async () => {
     try {
-      const res = await fetch('/api/dashboard/news-categories', { cache: 'no-store' })
+      const res = await fetch('/api/news/categories', { cache: 'no-store' })
       const json = (await res.json()) as {
         success?: boolean
         data?: { items?: CategoryRow[] }
@@ -124,7 +124,7 @@ export function NewsArticleEditDialog({
       setLoadingArticle(true)
       setError(null)
       try {
-        const res = await fetch(`${getApiBase()}/api/news/${articleId}`, {
+        const res = await fetch(getBrowserApiUrl(`/api/news/${articleId}`), {
           cache: 'no-store',
           headers: { Accept: 'application/json' },
         })
@@ -203,13 +203,13 @@ export function NewsArticleEditDialog({
         payload.category_id = null
       }
 
-      const res = await fetch(`/api/dashboard/news/${articleId}`, {
+      const res = await fetch(`/api/news/${articleId}`, {
         method: 'PATCH',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       const data = (await res.json()) as { success?: boolean; error?: string }
-      if (!res.ok) {
+      if (!res.ok || data.success === false) {
         setError(data.error ?? `Save failed (${res.status})`)
         return
       }

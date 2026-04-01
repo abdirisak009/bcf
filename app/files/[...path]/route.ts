@@ -8,7 +8,8 @@ import {
 type RouteCtx = { params: Promise<{ path: string[] }> }
 
 /**
- * GET /api/files/news/xxx.jpg — legacy same-origin path; new uploads use /files/...
+ * GET /files/news/... — stream from MinIO. Path is **not** under `/api` so reverse proxies can send
+ * `/api/*` to Go while Next still serves uploaded assets.
  */
 export async function GET(_req: Request, ctx: RouteCtx) {
   const { path: segments } = await ctx.params
@@ -28,7 +29,7 @@ export async function GET(_req: Request, ctx: RouteCtx) {
     if (msg.includes('NotFound') || msg.includes('NoSuchKey') || msg.includes('not found')) {
       return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
     }
-    console.error('[api/files]', e)
+    console.error('[files]', e)
     return NextResponse.json({ success: false, error: 'File unavailable' }, { status: 502 })
   }
 }

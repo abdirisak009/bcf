@@ -69,7 +69,7 @@ export function NewsArticleForm({ onCreated, categoriesVersion = 0 }: Props) {
 
   const loadCategories = useCallback(async () => {
     try {
-      const res = await fetch('/api/dashboard/news-categories', { cache: 'no-store' })
+      const res = await fetch('/api/news/categories', { cache: 'no-store' })
       const json = (await res.json()) as {
         success?: boolean
         data?: { items?: CategoryRow[] }
@@ -129,13 +129,13 @@ export function NewsArticleForm({ onCreated, categoriesVersion = 0 }: Props) {
         if (!Number.isNaN(d.getTime())) payload.published_at = d.toISOString()
       }
 
-      const res = await fetch('/api/dashboard/news', {
+      const res = await fetch('/api/news', {
         method: 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       const data = (await res.json()) as { success?: boolean; error?: string }
-      if (!res.ok) {
+      if (!res.ok || data.success === false) {
         setError(data.error ?? `Save failed (${res.status})`)
         return
       }

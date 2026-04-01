@@ -1200,7 +1200,7 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
           <div className={dashboardSheetHeader}>
             <SheetTitle className={dashboardSheetTitle}>{editId ? 'Edit client' : 'New client'}</SheetTitle>
             <SheetDescription className={cn('mt-2', dashboardSheetDescription)}>
-              Upload a logo (PNG/JPG/WebP). Stored in MinIO; served at /api/files/clients/…. Order controls how the home page lists clients (lower first).
+              Upload a logo (PNG/JPG/WebP). Stored in MinIO; served at /files/clients/…. Order controls how the home page lists clients (lower first).
             </SheetDescription>
           </div>
           <form onSubmit={submit} className={dashboardSheetForm}>
@@ -1451,7 +1451,7 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
           <div className={dashboardSheetHeader}>
             <SheetTitle className={dashboardSheetTitle}>{editId ? 'Edit partner' : 'New partner'}</SheetTitle>
             <SheetDescription className={cn('mt-2', dashboardSheetDescription)}>
-              Upload a logo. Stored in MinIO; served at /api/files/partners/…. Order controls how the home page lists partners (lower first).
+              Upload a logo. Stored in MinIO; served at /files/partners/…. Order controls how the home page lists partners (lower first).
             </SheetDescription>
           </div>
           <form onSubmit={submit} className={dashboardSheetForm}>
