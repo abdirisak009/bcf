@@ -40,14 +40,16 @@ export async function POST(req: Request) {
           ? 'partners'
           : folderRaw === 'expenses'
             ? 'expenses'
-            : 'news'
+            : folderRaw === 'certificates'
+              ? 'certificates'
+              : 'news'
 
   const originalName = 'name' in file && typeof file.name === 'string' ? file.name : 'file'
   const ext =
     path.extname(originalName).toLowerCase() ||
     (folder === 'news' || folder === 'clients' || folder === 'partners' ? '.jpg' : '.pdf')
 
-  if (folder === 'news' || folder === 'clients' || folder === 'partners') {
+  if (folder === 'news' || folder === 'clients' || folder === 'partners' || folder === 'certificates') {
     if (!IMAGE_EXT.has(ext)) {
       return NextResponse.json(
         { success: false, error: `Image: allowed types: ${[...IMAGE_EXT].join(', ')}` },
@@ -90,7 +92,9 @@ export async function POST(req: Request) {
           ? 'partners'
           : folder === 'expenses'
             ? 'expenses'
-            : 'news'
+            : folder === 'certificates'
+              ? 'certificates'
+              : 'news'
   const dir = path.join(process.cwd(), 'public', 'uploads', subdir)
   await mkdir(dir, { recursive: true })
   await writeFile(path.join(dir, safe), buf)

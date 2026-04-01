@@ -84,6 +84,7 @@ func (h *PublicationHandler) Update(c *gin.Context) {
 	existing.Category = req.Category
 	existing.CoverImageURL = req.CoverImageURL
 	existing.FileURL = req.FileURL
+	existing.FileDisplayMode = req.FileDisplayMode
 	if err := h.svc.Update(existing); err != nil {
 		pkgutils.Fail(c, http.StatusBadRequest, err.Error())
 		return
@@ -112,3 +113,5 @@ func (h *PublicationHandler) Delete(c *gin.Context) {
 	}
 	pkgutils.OK(c, http.StatusOK, gin.H{"deleted": true})
 }
+
+//fadsfdsa

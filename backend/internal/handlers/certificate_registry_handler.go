@@ -59,7 +59,7 @@ func (h *CertificateRegistryHandler) GetCertificate(c *gin.Context) {
 		pkgutils.Fail(c, http.StatusBadRequest, "certificate number required")
 		return
 	}
-	cert, err := h.svc.GetByCertificateNo(no)
+	data, err := h.svc.GetPublicMetadata(no)
 	if err != nil {
 		if errors.Is(err, services.ErrCertificateNotFound) {
 			pkgutils.Fail(c, http.StatusNotFound, "certificate not found")
@@ -68,7 +68,7 @@ func (h *CertificateRegistryHandler) GetCertificate(c *gin.Context) {
 		pkgutils.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	pkgutils.OK(c, http.StatusOK, services.ToCertificateDTO(cert))
+	pkgutils.OK(c, http.StatusOK, data)
 }
 
 // DownloadCertificate returns the filled PDF.
@@ -78,22 +78,16 @@ func (h *CertificateRegistryHandler) DownloadCertificate(c *gin.Context) {
 		pkgutils.Fail(c, http.StatusBadRequest, "certificate number required")
 		return
 	}
-	cert, err := h.svc.GetByCertificateNo(no)
+	pdfBytes, filename, err := h.svc.RenderCertificatePDFByNumber(no)
 	if err != nil {
 		if errors.Is(err, services.ErrCertificateNotFound) {
 			pkgutils.Fail(c, http.StatusNotFound, "certificate not found")
 			return
 		}
-		pkgutils.Fail(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	pdfBytes, err := h.svc.RenderCertificatePDF(cert)
-	if err != nil {
 		log.Printf("certificate pdf: %v", err)
 		pkgutils.Fail(c, http.StatusInternalServerError, "pdf generation failed")
 		return
 	}
-	filename := "certificate-" + strings.ReplaceAll(cert.CertificateNo, "/", "-") + ".pdf"
 	c.Header("Content-Type", "application/pdf")
 	c.Header("Content-Disposition", `attachment; filename="`+filename+`"`)
 	c.Header("Cache-Control", "no-store")

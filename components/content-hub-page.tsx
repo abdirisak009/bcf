@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Navigation from '@/components/navigation'
 import Footer from '@/components/footer'
 import { PageHeroShell, pageHeroSubtitleClass, pageHeroTitleClass } from '@/components/page-hero'
-import { ArrowRight, Calendar, Clock, FileText, Library, Newspaper } from 'lucide-react'
+import { ArrowRight, BookOpen, Calendar, Clock, FileText, Library, Newspaper } from 'lucide-react'
 import type { ContentCard } from '@/lib/publications-news-data'
 import { cn } from '@/lib/utils'
 
@@ -208,8 +208,12 @@ export function ContentHubPage({
                         >
                           {variant === 'publications' ? (
                             <>
-                              <FileText className="h-4 w-4 opacity-80" />
-                              View brief
+                              {item.pdfDisplayMode === 'read' ? (
+                                <BookOpen className="h-4 w-4 opacity-80" aria-hidden />
+                              ) : (
+                                <FileText className="h-4 w-4 opacity-80" aria-hidden />
+                              )}
+                              {item.pdfDisplayMode === 'read' ? 'Read document' : 'View brief'}
                               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/card:translate-x-0.5" />
                             </>
                           ) : (

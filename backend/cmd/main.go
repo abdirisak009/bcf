@@ -97,6 +97,8 @@ func main() {
 		&models.Expense{},
 		&models.Certificate{},
 		&models.UserPermission{},
+		&models.FreeTrainingProgram{},
+		&models.FreeTrainingRegistration{},
 	); err != nil {
 		log.Fatal("automigrate: ", err)
 	}
@@ -123,6 +125,7 @@ func main() {
 	projRepo := repositories.NewProjectRepository(db)
 	invRepo := repositories.NewInvoiceRepository(db)
 	certRepo := repositories.NewCertificateRepository(db)
+	freeTrainRepo := repositories.NewFreeTrainingRepository(db)
 
 	// Services
 	authSvc := services.NewAuthService(authRepo, cfg)
@@ -139,8 +142,9 @@ func main() {
 	partnerSvc := services.NewPartnerService(partnerRepo)
 	projSvc := services.NewProjectService(projRepo, expRepo)
 	finReportSvc := services.NewFinancialReportService(db, invRepo)
-	certRegSvc := services.NewCertificateRegistryService(certRepo, appRepo, cfg)
+	certRegSvc := services.NewCertificateRegistryService(certRepo, appRepo, freeTrainRepo, cfg)
 	adminUsersSvc := services.NewAdminUsersService(authRepo)
+	freeTrainSvc := services.NewFreeTrainingService(freeTrainRepo)
 
 	// Handlers
 	authH := handlers.NewAuthHandler(authSvc)
@@ -157,9 +161,10 @@ func main() {
 	projH := handlers.NewProjectHandler(projSvc)
 	invH := handlers.NewInvoiceHandler(invoiceSvc)
 	finReportH := handlers.NewFinancialReportHandler(finReportSvc)
-	certH := handlers.NewCertificateHandler(appRepo, cfg)
+	certH := handlers.NewCertificateHandler(appRepo, freeTrainSvc, cfg)
 	certRegH := handlers.NewCertificateRegistryHandler(certRegSvc)
 	adminUsersH := handlers.NewAdminUsersHandler(adminUsersSvc)
+	freeTrainH := handlers.NewFreeTrainingHandler(freeTrainSvc, cfg)
 
 	dash := func(p string) gin.HandlerFunc {
 		return middleware.AuthDashboard(cfg.JWTSecret, cfg.DashboardWriteKey, authRepo, p)
@@ -218,6 +223,19 @@ func main() {
 		api.GET("/certificate/:certificateNo/download", certRegH.DownloadCertificate)
 		api.GET("/certificate/:certificateNo", certRegH.GetCertificate)
 		api.POST("/trainings/apply", appH.Apply)
+
+		api.GET("/free-training-programs/public", freeTrainH.PublicListActive)
+		api.GET("/free-training-programs/public/slug/:slug", freeTrainH.PublicGetBySlug)
+		api.POST("/free-training-programs/public/slug/:slug/register", freeTrainH.PublicRegister)
+		api.POST("/free-training-programs/public/slug/:slug/certificate", freeTrainH.PublicIssueCertificate)
+		api.GET("/free-training-programs", dash(permissions.Trainings), freeTrainH.AdminListPrograms)
+		api.POST("/free-training-programs", dash(permissions.Trainings), freeTrainH.AdminCreateProgram)
+		api.GET("/free-training-programs/:id", dash(permissions.Trainings), freeTrainH.AdminGetProgram)
+		api.PATCH("/free-training-programs/:id", dash(permissions.Trainings), freeTrainH.AdminUpdateProgram)
+		api.DELETE("/free-training-programs/:id", dash(permissions.Trainings), freeTrainH.AdminDeleteProgram)
+		api.GET("/free-training-registrations", dash(permissions.Trainings), freeTrainH.AdminListRegistrations)
+		api.PATCH("/free-training-registrations/:id", dash(permissions.Trainings), freeTrainH.AdminPatchRegistration)
+		api.DELETE("/free-training-registrations/:id", dash(permissions.Trainings), freeTrainH.AdminDeleteRegistration)
 		api.GET("/trainings", trainH.List)
 		api.GET("/trainings/:id", trainH.Get)
 		api.POST("/trainings", dash(permissions.Trainings), trainH.Create)

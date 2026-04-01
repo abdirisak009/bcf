@@ -1,9 +1,9 @@
 import { getToken } from '@/lib/auth-client'
 
-/** Upload to `public/uploads/{news|publications|clients|partners|expenses}/` via the dashboard API. */
+/** Upload to `public/uploads/{news|publications|clients|partners|expenses|certificates}/` via the dashboard API. */
 export async function uploadDashboardFile(
   file: File,
-  folder: 'news' | 'publications' | 'clients' | 'partners' | 'expenses',
+  folder: 'news' | 'publications' | 'clients' | 'partners' | 'expenses' | 'certificates',
 ): Promise<string> {
   const fd = new FormData()
   fd.append('file', file)

@@ -21,16 +21,16 @@ type BootstrapAdmin struct {
 }
 
 type Config struct {
-	DBHost            string
-	DBPort            string
-	DBUser            string
-	DBPass            string
-	DBName            string
-	JWTSecret         string
-	JWTExpiry         time.Duration
-	HTTPPort          string
-	GinMode           string
-	Environment       string
+	DBHost      string
+	DBPort      string
+	DBUser      string
+	DBPass      string
+	DBName      string
+	JWTSecret   string
+	JWTExpiry   time.Duration
+	HTTPPort    string
+	GinMode     string
+	Environment string
 	// DashboardWriteKey optional: if set, POST /api/news accepts X-Dashboard-Key with this value (for server-side dashboard writes).
 	DashboardWriteKey string
 	// InvoiceLogoURL optional: PNG/JPEG URL embedded on generated invoice PDFs (default: Bararug light wordmark).
@@ -41,29 +41,33 @@ type Config struct {
 	// InvoiceCompanyAddress optional: multiline (\\n) sender block on the PDF header (right column).
 	InvoiceCompanyAddress string
 	// CertificateTemplateURL optional: PDF (Acrobat template, page 1 imported) or PNG/JPEG background for training certificates.
-	CertificateTemplateURL string
-	CertificateSignatoryName string
-	CertificateSignatoryTitle  string
+	CertificateTemplateURL    string
+	CertificateSignatoryName  string
+	CertificateSignatoryTitle string
 
 	// WhatsApp / outbound notifications for new training applications (optional).
 	// WHATSAPP_PROVIDER: webhook | callmebot | ultramsg (empty = disabled)
-	WhatsAppProvider          string
-	WhatsAppNotifyTo          string // admin recipient: digits with country code, e.g. 252613685943
-	WhatsAppWebhookURL        string
-	WhatsAppWebhookBearer     string // optional Authorization Bearer for webhook
-	WhatsAppCallMeBotAPIKey   string
-	WhatsAppUltramsgInstance  string // Ultramsg instance id
-	WhatsAppUltramsgToken     string
-	PublicDashboardURL        string // e.g. https://yoursite.com/dashboard — shown in the message
+	WhatsAppProvider         string
+	WhatsAppNotifyTo         string // admin recipient: digits with country code, e.g. 252613685943
+	WhatsAppWebhookURL       string
+	WhatsAppWebhookBearer    string // optional Authorization Bearer for webhook
+	WhatsAppCallMeBotAPIKey  string
+	WhatsAppUltramsgInstance string // Ultramsg instance id
+	WhatsAppUltramsgToken    string
+	PublicDashboardURL       string // e.g. https://yoursite.com/dashboard — shown in the message
 	// PublicWebURL optional origin (legacy / fallback for certificate QR when PublicSiteURL is empty).
 	PublicWebURL string
 	// PublicSiteURL optional public **website** origin where Next.js runs (e.g. https://bararug.so). Used for QR links to /verify?no=.... No trailing slash.
 	PublicSiteURL string
+	// CertificateQRPublicURL optional: HTTPS origin for PDF QR codes only (overrides PUBLIC_SITE_URL for /verify links). Use when PUBLIC_SITE_URL is http://127.0.0.1 for templates but production site is https://yourdomain.so.
+	CertificateQRPublicURL string
 
 	// WhatsApp sendText API (e.g. WAHA / similar) — POST JSON with X-Api-Key; chatId = PHONE_DIGITS@c.us
 	WhatsAppSendTextURL     string
 	WhatsAppSendTextAPIKey  string
 	WhatsAppSendTextSession string // default session name, e.g. "default"
+	// WhatsApp sendFile URL (e.g. WAHA POST /api/sendFile). If empty, derived from WhatsAppSendTextURL by replacing sendText with sendFile.
+	WhatsAppSendFileURL string
 
 	// CORSAllowOrigins: comma-separated in CORS_ALLOW_ORIGINS (e.g. http://62.72.35.109,https://bcf.so) — merged with built-in dev origins.
 	CORSAllowOrigins []string
@@ -90,6 +94,7 @@ func Load() (*Config, error) {
 	)
 	publicSiteURL := strings.TrimRight(strings.TrimSpace(getenvWithJSON(j, "PUBLIC_SITE_URL", "")), "/")
 	publicWebURL := strings.TrimRight(strings.TrimSpace(getenvWithJSON(j, "PUBLIC_WEB_URL", "")), "/")
+	certQRPublicURL := strings.TrimRight(strings.TrimSpace(getenvWithJSON(j, "CERTIFICATE_QR_SITE_URL", "")), "/")
 
 	certLogo := strings.TrimSpace(getenvWithJSON(j, "CERTIFICATE_LOGO_URL", ""))
 	if certLogo == "" {
@@ -105,18 +110,18 @@ func Load() (*Config, error) {
 	}
 
 	return &Config{
-		DBHost:            getenvWithJSON(j, "DB_HOST", "localhost"),
-		DBPort:            getenvWithJSON(j, "DB_PORT", "5433"),
-		DBUser:            getenvWithJSON(j, "DB_USER", "bcf"),
-		DBPass:            getenvWithJSON(j, "DB_PASSWORD", ""),
-		DBName:            getenvWithJSON(j, "DB_NAME", "BcfDb"),
-		JWTSecret:         getenvWithJSON(j, "JWT_SECRET", "supersecretkey"),
-		JWTExpiry:         time.Duration(minutes) * time.Minute,
-		HTTPPort:          getenvWithJSON(j, "HTTP_PORT", "8080"),
-		GinMode:           getenvWithJSON(j, "GIN_MODE", "release"),
-		Environment:       getenvWithJSON(j, "APP_ENV", "development"),
-		DashboardWriteKey: getenvWithJSON(j, "DASHBOARD_WRITE_KEY", ""),
-		InvoiceLogoURL:    invoiceLogo,
+		DBHost:             getenvWithJSON(j, "DB_HOST", "localhost"),
+		DBPort:             getenvWithJSON(j, "DB_PORT", "5433"),
+		DBUser:             getenvWithJSON(j, "DB_USER", "bcf"),
+		DBPass:             getenvWithJSON(j, "DB_PASSWORD", ""),
+		DBName:             getenvWithJSON(j, "DB_NAME", "BcfDb"),
+		JWTSecret:          getenvWithJSON(j, "JWT_SECRET", "supersecretkey"),
+		JWTExpiry:          time.Duration(minutes) * time.Minute,
+		HTTPPort:           getenvWithJSON(j, "HTTP_PORT", "8080"),
+		GinMode:            getenvWithJSON(j, "GIN_MODE", "release"),
+		Environment:        getenvWithJSON(j, "APP_ENV", "development"),
+		DashboardWriteKey:  getenvWithJSON(j, "DASHBOARD_WRITE_KEY", ""),
+		InvoiceLogoURL:     invoiceLogo,
 		CertificateLogoURL: certLogo,
 		// Sender block under "From" (company name is already in the header left).
 		InvoiceCompanyAddress: getenvWithJSON(
@@ -143,14 +148,16 @@ func Load() (*Config, error) {
 		WhatsAppCallMeBotAPIKey:  getenvWithJSON(j, "WHATSAPP_CALLMEBOT_APIKEY", ""),
 		WhatsAppUltramsgInstance: getenvWithJSON(j, "WHATSAPP_ULTRAMSG_INSTANCE", ""),
 		WhatsAppUltramsgToken:    getenvWithJSON(j, "WHATSAPP_ULTRAMSG_TOKEN", ""),
-		PublicDashboardURL: getenvWithJSON(j, "PUBLIC_DASHBOARD_URL", ""),
-		PublicSiteURL:      publicSiteURL,
-		PublicWebURL:       publicWebURL,
-		WhatsAppSendTextURL:    getenvWithJSON(j, "WHATSAPP_SENDTEXT_URL", ""),
-		WhatsAppSendTextAPIKey: getenvWithJSON(j, "WHATSAPP_SENDTEXT_API_KEY", ""),
-		WhatsAppSendTextSession: getenvWithJSON(j, "WHATSAPP_SENDTEXT_SESSION", "default"),
-		CORSAllowOrigins:        splitCommaList(getenvWithJSON(j, "CORS_ALLOW_ORIGINS", "")),
-		BootstrapAdmins:         loadBootstrapAdmins(j),
+		PublicDashboardURL:       getenvWithJSON(j, "PUBLIC_DASHBOARD_URL", ""),
+		PublicSiteURL:            publicSiteURL,
+		PublicWebURL:             publicWebURL,
+		CertificateQRPublicURL:   certQRPublicURL,
+		WhatsAppSendTextURL:      getenvWithJSON(j, "WHATSAPP_SENDTEXT_URL", ""),
+		WhatsAppSendTextAPIKey:   getenvWithJSON(j, "WHATSAPP_SENDTEXT_API_KEY", ""),
+		WhatsAppSendTextSession:  getenvWithJSON(j, "WHATSAPP_SENDTEXT_SESSION", "default"),
+		WhatsAppSendFileURL:      getenvWithJSON(j, "WHATSAPP_SENDFILE_URL", ""),
+		CORSAllowOrigins:         splitCommaList(getenvWithJSON(j, "CORS_ALLOW_ORIGINS", "")),
+		BootstrapAdmins:          loadBootstrapAdmins(j),
 	}, nil
 }
 
@@ -279,4 +286,37 @@ func (c *Config) CertificateVerifyBaseURL() string {
 		return s
 	}
 	return strings.TrimRight(strings.TrimSpace(c.PublicWebURL), "/")
+}
+
+// CertificateVerifyBaseURLForQR is used when building certificate PDFs: QR codes and verify links on the PDF.
+// If CERTIFICATE_QR_SITE_URL is set, it is used (HTTPS live site) even when PUBLIC_SITE_URL is localhost for dev templates.
+func (c *Config) CertificateVerifyBaseURLForQR() string {
+	if c == nil {
+		return ""
+	}
+	if s := strings.TrimRight(strings.TrimSpace(c.CertificateQRPublicURL), "/"); s != "" {
+		return s
+	}
+	return c.CertificateVerifyBaseURL()
+}
+
+// ResolvePublicAssetURL joins PUBLIC_SITE_URL (or PUBLIC_WEB_URL) with a site path like /uploads/... so the
+// API can HTTP-fetch assets stored by the Next.js public folder. Absolute http(s) URLs are unchanged.
+func (c *Config) ResolvePublicAssetURL(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	lower := strings.ToLower(raw)
+	if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") {
+		return raw
+	}
+	base := c.CertificateVerifyBaseURL()
+	if base == "" {
+		return raw
+	}
+	if strings.HasPrefix(raw, "/") {
+		return base + raw
+	}
+	return base + "/" + raw
 }

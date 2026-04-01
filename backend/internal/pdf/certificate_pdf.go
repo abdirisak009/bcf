@@ -29,13 +29,15 @@ type CertificateData struct {
 	VerifyPublicBaseURL string
 	// HeaderLogoURL optional PNG/JPEG (same source as website wordmark). Fetched at render; fallback text if empty or fetch fails.
 	HeaderLogoURL string
+	// SignatorySignatureImageURL optional PNG/JPEG (absolute URL or resolved from site /uploads/...). Drawn on the signatory block when fetch succeeds.
+	SignatorySignatureImageURL string
 }
 
 // RenderCertificate builds a landscape A4 PDF.
-// - If templateURL points to a PDF (e.g. /certificate-template.pdf), the file is imported with gofpdi
-//   and dynamic fields are overlaid (use an Acrobat template with blank areas for these fields).
-// - If templateURL points to PNG/JPEG, the image is drawn full-bleed and the full text layout is drawn on top.
-// - If the URL is empty or fetch fails, a vector bordered layout with full text is used.
+//   - If templateURL points to a PDF (e.g. /certificate-template.pdf), the file is imported with gofpdi
+//     and dynamic fields are overlaid (use an Acrobat template with blank areas for these fields).
+//   - If templateURL points to PNG/JPEG, the image is drawn full-bleed and the full text layout is drawn on top.
+//   - If the URL is empty or fetch fails, a vector bordered layout with full text is used.
 func RenderCertificate(d CertificateData, templateURL string) ([]byte, error) {
 	templateURL = strings.TrimSpace(templateURL)
 	if templateURL == "" {
@@ -133,22 +135,22 @@ func renderCertificatePDFOverlay(d CertificateData, pdfBytes []byte) (out []byte
 
 // Layout tuning for Certificate-tem.pdf (landscape A4). Adjust if the template changes.
 const (
-	certOverlayStudentYMM       = 64.0
-	certOverlayStudentFontPt    = 26.0
-	certOverlayStudentLineMM    = 11.0
-	certOverlayCourseGapMM      = 7.0
-	certOverlayCourseFontPt     = 16.0
-	certOverlayCourseLineMM     = 8.0
-	certOverlayPeriodGapMM      = 5.0
-	certOverlayPeriodFontPt     = 11.0
-	certOverlayFooterCertXMM    = 68.0
-	certOverlayFooterCertYMM    = 178.0
-	certOverlayFooterDateYMM    = 186.5
+	certOverlayStudentYMM        = 64.0
+	certOverlayStudentFontPt     = 26.0
+	certOverlayStudentLineMM     = 11.0
+	certOverlayCourseGapMM       = 7.0
+	certOverlayCourseFontPt      = 16.0
+	certOverlayCourseLineMM      = 8.0
+	certOverlayPeriodGapMM       = 5.0
+	certOverlayPeriodFontPt      = 11.0
+	certOverlayFooterCertXMM     = 68.0
+	certOverlayFooterCertYMM     = 178.0
+	certOverlayFooterDateYMM     = 186.5
 	certOverlayFooterValueFontPt = 11.0
-	certOverlaySigYMM           = 166.0
-	certOverlaySigBlockWMM      = 92.0
-	certOverlaySigNameFontPt    = 11.0
-	certOverlaySigTitleFontPt   = 10.0
+	certOverlaySigYMM            = 166.0
+	certOverlaySigBlockWMM       = 92.0
+	certOverlaySigNameFontPt     = 11.0
+	certOverlaySigTitleFontPt    = 10.0
 )
 
 func drawCertificateDynamicOverlayGofpdf(pdf *gofpdf.Fpdf, d CertificateData, pageW float64) {
@@ -193,9 +195,32 @@ func drawCertificateDynamicOverlayGofpdf(pdf *gofpdf.Fpdf, d CertificateData, pa
 	// Bottom-right signature block (above "BCF Chairperson" line on template).
 	sigX := pageW - 18 - certOverlaySigBlockWMM
 	lineY := certOverlaySigYMM
-	pdf.SetDrawColor(nR, nG, nB)
-	pdf.SetLineWidth(0.35)
-	pdf.Line(sigX, lineY, pageW-18, lineY)
+	sigURL := strings.TrimSpace(d.SignatorySignatureImageURL)
+	sigDrawn := false
+	if sigURL != "" {
+		if imgBytes, imgType, err := fetchImage(sigURL); err == nil && len(imgBytes) > 0 {
+			tp := strings.ToLower(imgType)
+			if tp != "png" && tp != "jpeg" && tp != "jpg" {
+				if len(imgBytes) >= 2 && imgBytes[0] == 0xFF && imgBytes[1] == 0xD8 {
+					tp = "jpeg"
+				} else {
+					tp = "png"
+				}
+			}
+			opt := gofpdf.ImageOptions{ImageType: tp, ReadDpi: false}
+			pdf.RegisterImageOptionsReader("certsigov", opt, bytes.NewReader(imgBytes))
+			maxH := 14.0
+			maxW := certOverlaySigBlockWMM
+			imgY := lineY - 1 - maxH
+			pdf.ImageOptions("certsigov", sigX, imgY, maxW, maxH, false, opt, 0, "")
+			sigDrawn = true
+		}
+	}
+	if !sigDrawn {
+		pdf.SetDrawColor(nR, nG, nB)
+		pdf.SetLineWidth(0.35)
+		pdf.Line(sigX, lineY, pageW-18, lineY)
+	}
 
 	pdf.SetFont("Helvetica", "B", certOverlaySigNameFontPt)
 	pdf.SetTextColor(nR, nG, nB)
@@ -220,7 +245,36 @@ func sanitizeCertText(s string) string {
 	s = strings.ReplaceAll(s, "\u2014", "-")
 	s = strings.ReplaceAll(s, "\u2012", "-")
 	s = strings.ReplaceAll(s, "\u2015", "-")
+	// Common typo in programme titles
+	s = strings.ReplaceAll(s, "Finanancial", "Financial")
 	return s
+}
+
+func absInt(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// balancedDescriptionTwoLines splits a sentence into two lines with similar length (avoids one word alone on line 2).
+func balancedDescriptionTwoLines(text string) string {
+	words := strings.Fields(strings.TrimSpace(text))
+	if len(words) <= 2 {
+		return text
+	}
+	bestSplit := 0
+	bestScore := int(^uint(0) >> 1)
+	for i := 0; i < len(words)-1; i++ {
+		a := strings.Join(words[:i+1], " ")
+		b := strings.Join(words[i+1:], " ")
+		score := absInt(len(a) - len(b))
+		if score < bestScore {
+			bestScore = score
+			bestSplit = i
+		}
+	}
+	return strings.Join(words[:bestSplit+1], " ") + "\n" + strings.Join(words[bestSplit+1:], " ")
 }
 
 func renderCertificateRasterBackground(d CertificateData, imgBytes []byte, contentType string) ([]byte, error) {
@@ -275,9 +329,9 @@ func renderCertificateVector(d CertificateData) ([]byte, error) {
 
 // Certificate brand colors — match frontend app/globals.css (brand-navy, brand-teal / brand-green).
 const (
-	certBrandNavyR, certBrandNavyG, certBrandNavyB  = 23, 94, 126  // #175e7e
-	certBrandTealR, certBrandTealG, certBrandTealB  = 85, 197, 147 // #55c593 — title + accents (site green)
-	certRuleGreyR, certRuleGreyG, certRuleGreyB     = 211, 211, 211 // #D3D3D3 separator
+	certBrandNavyR, certBrandNavyG, certBrandNavyB = 23, 94, 126   // #175e7e
+	certBrandTealR, certBrandTealG, certBrandTealB = 85, 197, 147  // #55c593 — title + accents (site green)
+	certRuleGreyR, certRuleGreyG, certRuleGreyB    = 211, 211, 211 // #D3D3D3 separator
 )
 
 // drawCertificateParticipationBararug — landscape layout inspired by professional participation certificates:
@@ -305,14 +359,14 @@ func drawCertificateParticipationBararug(pdf *fpdf.Fpdf, d CertificateData, page
 
 	// Header: centered block — logo | vertical rule | large green title (brand-teal)
 	const (
-		headerTopY     = 11.0
-		leftColW       = 76.0
-		titleFontPt    = 24.0
-		titleLineH     = 14.0
-		ruleTop        = 9.0
-		gapAfterLogo   = 3.5
-		gapAfterSep    = 5.0
-		titlePadMM     = 4.0
+		headerTopY   = 11.0
+		leftColW     = 76.0
+		titleFontPt  = 24.0
+		titleLineH   = 14.0
+		ruleTop      = 9.0
+		gapAfterLogo = 3.5
+		gapAfterSep  = 5.0
+		titlePadMM   = 4.0
 	)
 	pdf.SetFont("Helvetica", "B", titleFontPt)
 	titleBlockW := pdf.GetStringWidth("CERTIFICATE OF")
@@ -436,39 +490,77 @@ func drawCertificateParticipationBararug(pdf *fpdf.Fpdf, d CertificateData, page
 	if training == "" {
 		training = "Professional training"
 	}
-	descY := rowBottom + 5.0
-	pdf.SetXY(margin, descY)
-	pdf.SetFont("Helvetica", "", 12)
+	// Extra space after name row; description block slightly inset for readability
+	descInset := 12.0
+	descW := bodyW - 2*descInset
+	descX := margin + descInset
+	descY := rowBottom + 9.0
+	pdf.SetXY(descX, descY)
+	pdf.SetFont("Helvetica", "", 13.5)
 	pdf.SetTextColor(bodyTextR, bodyTextG, bodyTextB)
-	pdf.MultiCell(bodyW, 6.5, "For attending the training on", "", "C", false)
-	pdf.SetFont("Helvetica", "B", 14)
+	pdf.MultiCell(descW, 7, "For attending the training on", "", "C", false)
+	pdf.SetX(descX)
+	pdf.SetFont("Helvetica", "B", 16)
 	pdf.SetTextColor(bodyTextR, bodyTextG, bodyTextB)
-	pdf.MultiCell(bodyW, 7.8, training, "", "C", false)
-	pdf.SetFont("Helvetica", "", 11.5)
+	// Single line when it fits — keeps title visually centered
+	trainingW := pdf.GetStringWidth(training)
+	if trainingW <= descW-1 {
+		pdf.CellFormat(descW, 9.5, training, "", 1, "C", false, 0, "")
+	} else {
+		pdf.MultiCell(descW, 8.4, training, "", "C", false)
+	}
+	// Clear gap before workshop description (two balanced lines)
+	pdf.SetY(pdf.GetY() + 5.5)
+	pdf.SetX(descX)
+	pdf.SetFont("Helvetica", "", 12.5)
+	pdf.SetTextColor(bodyTextR, bodyTextG, bodyTextB)
 	suffix := "A focused workshop on understanding, shaping, and strengthening organizational culture to enhance performance, collaboration, and employee engagement."
-	pdf.MultiCell(bodyW, 6.5, sanitizeCertText(suffix), "", "C", false)
+	descText := balancedDescriptionTwoLines(sanitizeCertText(suffix))
+	pdf.MultiCell(descW, 6.8, descText, "", "C", false)
 
-	pdf.SetFont("Helvetica", "", 9.5)
+	pdf.SetFont("Helvetica", "", 10.5)
 	pdf.SetTextColor(100, 108, 120)
 	pdf.SetXY(0, pdf.GetY()+3)
-	pdf.CellFormat(pageW, 5.5, "Certificate no. "+strings.TrimSpace(d.CertificateNo), "", 0, "C", false, 0, "")
+	pdf.CellFormat(pageW, 6, "Certificate no. "+strings.TrimSpace(d.CertificateNo), "", 0, "C", false, 0, "")
 
 	// Footer: signature (left), verification box (centre), dates (right)
 	footY := splitY + 10
 	sigX := margin
 	sigW := 72.0
+	lineYFoot := footY + 18
+	sigURL := strings.TrimSpace(d.SignatorySignatureImageURL)
+	sigDrawn := false
+	if sigURL != "" {
+		if imgBytes, imgType, err := fetchImage(sigURL); err == nil && len(imgBytes) > 0 {
+			tp := strings.ToLower(imgType)
+			if tp != "png" && tp != "jpeg" && tp != "jpg" {
+				if len(imgBytes) >= 2 && imgBytes[0] == 0xFF && imgBytes[1] == 0xD8 {
+					tp = "jpeg"
+				} else {
+					tp = "png"
+				}
+			}
+			opt := fpdf.ImageOptions{ImageType: tp, ReadDpi: false}
+			pdf.RegisterImageOptionsReader("certsigvec", opt, bytes.NewReader(imgBytes))
+			maxH := 14.0
+			pdf.ImageOptions("certsigvec", sigX, lineYFoot-1-maxH, sigW, maxH, false, opt, 0, "")
+			sigDrawn = true
+		}
+	}
 	pdf.SetDrawColor(60, 65, 75)
 	pdf.SetLineWidth(0.3)
-	pdf.Line(sigX, footY+18, sigX+sigW, footY+18)
+	if !sigDrawn {
+		pdf.Line(sigX, lineYFoot, sigX+sigW, lineYFoot)
+	}
 
 	pdf.SetFont("Helvetica", "B", 10)
 	pdf.SetTextColor(certBrandNavyR, certBrandNavyG, certBrandNavyB)
-	pdf.SetXY(sigX, footY + 19)
+	pdf.SetXY(sigX, footY+19)
 	pdf.CellFormat(sigW, 5, strings.TrimSpace(d.SignatoryName), "", 0, "L", false, 0, "")
 
 	pdf.SetFont("Helvetica", "", 8)
 	pdf.SetTextColor(110, 118, 130)
-	pdf.SetXY(sigX, footY + 24.5)
+	pdf.SetXY(sigX, footY+24.5)
 	title := sanitizeCertText(strings.TrimSpace(d.SignatoryTitle))
 	if title == "" {
 		title = "Authorised signatory - Baraarug Consulting Firm"
@@ -493,11 +585,11 @@ func drawCertificateParticipationBararug(pdf *fpdf.Fpdf, d CertificateData, page
 	rightX := pageW - margin - 68
 	pdf.SetFont("Helvetica", "B", 10)
 	pdf.SetTextColor(certBrandNavyR, certBrandNavyG, certBrandNavyB)
-	pdf.SetXY(rightX, footY + 6)
+	pdf.SetXY(rightX, footY+6)
 	pdf.CellFormat(68, 5, formatCertDateSlashed(d.IssueDate), "", 0, "R", false, 0, "")
 	pdf.SetFont("Helvetica", "", 8)
 	pdf.SetTextColor(110, 118, 130)
-	pdf.SetXY(rightX, footY + 12)
+	pdf.SetXY(rightX, footY+12)
 	pdf.CellFormat(68, 4, "Training date", "", 0, "R", false, 0, "")
 
 	if strings.TrimSpace(d.FromDate) != "" || strings.TrimSpace(d.ToDate) != "" {
@@ -511,11 +603,11 @@ func drawCertificateParticipationBararug(pdf *fpdf.Fpdf, d CertificateData, page
 		}
 		pdf.SetFont("Helvetica", "B", 9)
 		pdf.SetTextColor(certBrandNavyR, certBrandNavyG, certBrandNavyB)
-		pdf.SetXY(rightX, footY + 22)
+		pdf.SetXY(rightX, footY+22)
 		pdf.CellFormat(68, 5, period, "", 0, "R", false, 0, "")
 		pdf.SetFont("Helvetica", "", 8)
 		pdf.SetTextColor(110, 118, 130)
-		pdf.SetXY(rightX, footY + 28)
+		pdf.SetXY(rightX, footY+28)
 		pdf.CellFormat(68, 4, "Training period", "", 0, "R", false, 0, "")
 	}
 }
@@ -611,13 +703,33 @@ func drawCertificateLegacyTextOverlay(pdf *fpdf.Fpdf, d CertificateData, pageW f
 	pdf.CellFormat(pageW/2+20, 6, strings.TrimSpace(d.IssueDate), "", 1, "L", false, 0, "")
 
 	sigY := 168.0
-	pdf.SetY(sigY)
 	sigW := 78.0
-	pdf.SetX((pageW - sigW) / 2)
-	pdf.SetFont("Helvetica", "I", 9)
-	pdf.SetTextColor(80, 90, 105)
+	centerX := (pageW - sigW) / 2
 	lineY := sigY + 5
-	pdf.Line((pageW-sigW)/2, lineY, (pageW+sigW)/2, lineY)
+	sigURL := strings.TrimSpace(d.SignatorySignatureImageURL)
+	sigDrawn := false
+	if sigURL != "" {
+		if imgBytes, imgType, err := fetchImage(sigURL); err == nil && len(imgBytes) > 0 {
+			tp := strings.ToLower(imgType)
+			if tp != "png" && tp != "jpeg" && tp != "jpg" {
+				if len(imgBytes) >= 2 && imgBytes[0] == 0xFF && imgBytes[1] == 0xD8 {
+					tp = "jpeg"
+				} else {
+					tp = "png"
+				}
+			}
+			opt := fpdf.ImageOptions{ImageType: tp, ReadDpi: false}
+			pdf.RegisterImageOptionsReader("certsigleg", opt, bytes.NewReader(imgBytes))
+			maxH := 14.0
+			pdf.ImageOptions("certsigleg", centerX, lineY-1-maxH, sigW, maxH, false, opt, 0, "")
+			sigDrawn = true
+		}
+	}
+	if !sigDrawn {
+		pdf.SetDrawColor(80, 90, 105)
+		pdf.SetLineWidth(0.3)
+		pdf.Line(centerX, lineY, centerX+sigW, lineY)
+	}
 	pdf.SetY(sigY + 8)
 	pdf.SetFont("Helvetica", "B", 10)
 	pdf.SetTextColor(nR, nG, nB)

@@ -55,18 +55,20 @@ func FillRegistryTemplate(templateURL string, overlay CertificateData) ([]byte, 
 // CertificateDataFromRegistry maps DB certificate + config signatory into overlay data.
 // verifyPublicBase is optional (PUBLIC_WEB_URL); embedded in QR JSON as verify_url when set.
 // headerLogoURL is optional (CERTIFICATE_LOGO_URL / INVOICE_LOGO_URL) for vector certificate header branding.
-func CertificateDataFromRegistry(studentName, trainingName, fromDisp, toDisp, certNo, issueDisp, signName, signTitle, verifyPublicBase, headerLogoURL string) CertificateData {
+// signatorySignatureImageURL is optional; registry-issued PDFs usually leave it empty (global signatory only).
+func CertificateDataFromRegistry(studentName, trainingName, fromDisp, toDisp, certNo, issueDisp, signName, signTitle, verifyPublicBase, headerLogoURL, signatorySignatureImageURL string) CertificateData {
 	return CertificateData{
-		StudentName:         studentName,
-		TrainingName:        trainingName,
-		FromDate:            fromDisp,
-		ToDate:              toDisp,
-		CertificateNo:       certNo,
-		IssueDate:           issueDisp,
-		SignatoryName:       signName,
-		SignatoryTitle:      signTitle,
-		VerifyPublicBaseURL: strings.TrimSpace(verifyPublicBase),
-		HeaderLogoURL:       strings.TrimSpace(headerLogoURL),
+		StudentName:                studentName,
+		TrainingName:               trainingName,
+		FromDate:                   fromDisp,
+		ToDate:                     toDisp,
+		CertificateNo:              certNo,
+		IssueDate:                  issueDisp,
+		SignatoryName:              signName,
+		SignatoryTitle:             signTitle,
+		VerifyPublicBaseURL:        strings.TrimSpace(verifyPublicBase),
+		HeaderLogoURL:              strings.TrimSpace(headerLogoURL),
+		SignatorySignatureImageURL: strings.TrimSpace(signatorySignatureImageURL),
 	}
 }
 

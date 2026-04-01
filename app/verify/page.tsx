@@ -6,9 +6,13 @@ import { CertificateVerifyView } from '@/components/certificate-verify'
 import { Loader2 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Verify certificate | Baraarug Consulting Firm',
+  title: 'Verify | Certificate check | Baraarug Consulting Firm',
   description:
-    'Confirm that a training certificate was issued by Baraarug Consulting Firm. Enter the certificate number or scan the QR code on your PDF.',
+    'Official verify page: scan the QR code on your Baraarug certificate PDF to see participant name, training programme, and certificate number.',
+  openGraph: {
+    title: 'Verify — Baraarug certificate',
+    description: 'Check a training certificate issued by Baraarug Consulting Firm.',
+  },
 }
 
 function VerifyFallback() {

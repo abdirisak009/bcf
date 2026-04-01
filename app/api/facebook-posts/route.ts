@@ -66,7 +66,7 @@ export async function GET() {
       if (posts.length >= 3) break;
     }
 
-    return NextResponse.json({ success: true, posts, reason: null as const });
+    return NextResponse.json({ success: true, posts, reason: null });
   } catch {
     return NextResponse.json({
       success: false,

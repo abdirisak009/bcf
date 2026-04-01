@@ -24,6 +24,8 @@ public/uploads/news/*
 !public/uploads/news/.gitkeep
 public/uploads/publications/*
 !public/uploads/publications/.gitkeep
+public/uploads/certificates/*
+!public/uploads/certificates/.gitkeep
 
 # Local PDF extraction tooling (pip --target)
 .pdf-tools/

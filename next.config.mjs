@@ -1,7 +1,10 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-/** Load NEXT_PUBLIC_* from deployment.config.json when present. Existing process.env values win (e.g. .env.local). */
+/**
+ * Load NEXT_PUBLIC_* from deployment.config.json when present.
+ * Existing process.env values win (e.g. .env.local).
+ */
 function loadDeploymentFrontendEnv() {
   const p = join(process.cwd(), 'deployment.config.json')
   if (!existsSync(p)) {
@@ -29,7 +32,7 @@ const deploymentEnv = loadDeploymentFrontendEnv()
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   images: {
     unoptimized: true,

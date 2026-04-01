@@ -1,5 +1,5 @@
 {
-  "$comment": "Copy to deployment.config.json (gitignored). Prefer omitting NEXT_PUBLIC_API_URL: the app uses same-origin /api/* (Next proxies to Go). Set API_INTERNAL_URL on the Next container to your Go service (e.g. http://api:8080). Only set NEXT_PUBLIC_API_URL to a PUBLIC API URL (never 127.0.0.1) if you need the browser to call Go directly. Add Next origin to CORS_ALLOW_ORIGINS.",
+  "$comment": "Copy to deployment.config.json (gitignored). Prefer omitting NEXT_PUBLIC_API_URL: the app uses same-origin /api/* (Next proxies to Go). Set API_INTERNAL_URL on the Next container to your Go service (e.g. http://api:8080). Only set NEXT_PUBLIC_API_URL to a PUBLIC API URL (never 127.0.0.1) if you need the browser to call Go directly. Add Next origin to CORS_ALLOW_ORIGINS. Optional backend CERTIFICATE_QR_SITE_URL: HTTPS origin for certificate PDF QR /verify links when PUBLIC_SITE_URL must stay localhost for templates.",
   "frontend": {
     "NEXT_PUBLIC_API_URL": ""
   },
@@ -20,6 +20,7 @@
     "CERTIFICATE_LOGO_URL": "",
     "PUBLIC_DASHBOARD_URL": "",
     "PUBLIC_WEB_URL": "",
-    "PUBLIC_SITE_URL": ""
+    "PUBLIC_SITE_URL": "https://domainkaaga.so",
+    "CERTIFICATE_QR_SITE_URL": ""
   }
 }

@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Calendar, Download } from 'lucide-react'
+import { ArrowLeft, Calendar } from 'lucide-react'
 
 import Footer from '@/components/footer'
 import Navigation from '@/components/navigation'
+import { PublicationPdfActions } from '@/components/publication-pdf-actions'
 import { getApiInternalBase } from '@/lib/api'
 
 type PublicationRow = {
@@ -14,6 +15,7 @@ type PublicationRow = {
   category?: string | null
   cover_image_url?: string | null
   file_url?: string | null
+  file_display_mode?: string | null
   created_at: string
 }
 
@@ -97,17 +99,15 @@ export default async function PublicationDetailPage({ params }: { params: Promis
           ) : null}
 
           {pub.file_url ? (
-            <div className="mt-10">
-              <a
-                href={pub.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-brand-navy px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-navy-muted"
-              >
-                <Download className="h-4 w-4" />
-                Download PDF
-              </a>
-            </div>
+            <PublicationPdfActions
+              fileUrl={pub.file_url}
+              title={pub.title}
+              mode={
+                String(pub.file_display_mode ?? '').toLowerCase().trim() === 'read'
+                  ? 'read'
+                  : 'download'
+              }
+            />
           ) : (
             <p className="mt-10 text-sm text-slate-500">No file attached for this entry.</p>
           )}
