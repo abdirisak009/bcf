@@ -36,6 +36,7 @@ export type DashboardNavId =
   | 'news'
   | 'publications'
   | 'trainings'
+  | 'free-training'
   | 'applications'
   | 'finance-overview'
   | 'invoices'
@@ -52,6 +53,7 @@ const NAV_PERM: Partial<Record<DashboardNavId, PermissionKey | PermissionKey[]>>
   news: PERM.news,
   publications: PERM.publications,
   trainings: PERM.trainings,
+  'free-training': PERM.trainings,
   applications: PERM.applications,
   projects: PERM.projects,
   invoices: PERM.invoices,

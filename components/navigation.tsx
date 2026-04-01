@@ -20,6 +20,7 @@ import {
   BookOpen,
   Home,
   GraduationCap,
+  Gift,
   CalendarDays,
   Newspaper,
   Library,
@@ -76,7 +77,16 @@ const navItems: NavEntry[] = [
       { label: 'Environmental & Climate Change Consulting', icon: Briefcase, href: '/services/environmental-climate' },
     ],
   },
-  { name: 'Training', href: '/training', icon: GraduationCap },
+  {
+    name: 'Training',
+    href: '/training',
+    icon: GraduationCap,
+    hasDropdown: true,
+    dropdownItems: [
+      { label: 'Training catalogue', icon: GraduationCap, href: '/training' },
+      { label: 'Free training', icon: Gift, href: '/training/free' },
+    ],
+  },
   {
     name: 'Events',
     href: '/publications',
@@ -96,7 +106,9 @@ function isItemActive(pathname: string, hash: string, item: NavEntry): boolean {
     return ['/about', '/our-team', '/careers'].some((p) => pathname === p || pathname.startsWith(`${p}/`));
   }
   if (item.name === 'Services') return pathname.startsWith('/services');
-  if (item.name === 'Training') return pathname.startsWith('/training');
+  if (item.name === 'Training') {
+    return pathname.startsWith('/training')
+  }
   if (item.name === 'Events') {
     return pathname === '/publications' || pathname === '/news';
   }

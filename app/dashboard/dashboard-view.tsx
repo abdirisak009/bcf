@@ -22,6 +22,7 @@ import {
   FileDown,
   FileSpreadsheet,
   FolderKanban,
+  Gift,
   TrendingUp,
   User,
   Users,
@@ -45,6 +46,7 @@ import { ProjectsTable } from '@/components/dashboard/projects-table'
 import { PublicationForm } from '@/components/dashboard/publication-form'
 import { PublicationsTable } from '@/components/dashboard/publications-table'
 import { ApplicationsTable } from '@/components/dashboard/applications-table'
+import { FreeTrainingPanel } from '@/components/dashboard/free-training-panel'
 import { TrainingsManage } from '@/components/dashboard/trainings-manage'
 import { UsersManagementPanel } from '@/components/dashboard/users-management-panel'
 import { getApiBase, type ApiEnvelope } from '@/lib/api'
@@ -96,6 +98,7 @@ type NavId =
   | 'news'
   | 'publications'
   | 'trainings'
+  | 'free-training'
   | 'applications'
   | 'finance-overview'
   | 'invoices'
@@ -113,6 +116,7 @@ const NAV_TITLE: Record<NavId, string> = {
   news: 'News',
   publications: 'Publications',
   trainings: 'Trainings',
+  'free-training': 'Free training',
   applications: 'Applications',
   'finance-overview': 'Financial overview',
   invoices: 'Invoices',
@@ -227,6 +231,7 @@ const NAV_ORDER: NavId[] = [
   'news',
   'publications',
   'trainings',
+  'free-training',
   'applications',
   'finance-overview',
   'invoices',
@@ -476,6 +481,9 @@ export function DashboardView() {
             {canAccessNav(sessionUser, 'trainings') && (
               <NavButton id="trainings" icon={GraduationCap} label="Trainings" />
             )}
+            {canAccessNav(sessionUser, 'free-training') && (
+              <NavButton id="free-training" icon={Gift} label="Free training" />
+            )}
             <p className="mt-4 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-white/45">
               Operations
             </p>
@@ -720,6 +728,7 @@ export function DashboardView() {
                 onRefresh={refetchTrainingsAndAcademies}
               />
             )}
+            {activeNav === 'free-training' && <FreeTrainingPanel />}
             {activeNav === 'applications' && (
               <ApplicationsTable
                 rows={applications}

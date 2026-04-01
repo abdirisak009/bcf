@@ -14,6 +14,7 @@ import {
 
 import { DashboardFormField } from '@/components/dashboard/dashboard-form-field'
 import { dashboardAuthHeaders } from '@/lib/dashboard-client'
+import { uploadDashboardFile } from '@/lib/dashboard-upload'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,6 +86,8 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
   const [tLevel, setTLevel] = useState('')
   const [tCurriculum, setTCurriculum] = useState<{ title: string; detail: string }[]>([{ title: '', detail: '' }])
   const [tOutcomes, setTOutcomes] = useState('')
+  const [tCertSigUrl, setTCertSigUrl] = useState('')
+  const [certSigUploading, setCertSigUploading] = useState(false)
 
   const [editAcademyId, setEditAcademyId] = useState<string | null>(null)
   const [editTrainId, setEditTrainId] = useState<string | null>(null)
@@ -251,6 +254,11 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
       if (tDuration.trim()) payload.duration = tDuration.trim()
       if (tFormat.trim()) payload.format = tFormat.trim()
       if (tLevel.trim()) payload.level = tLevel.trim()
+      if (editTrainId) {
+        payload.certificate_signature_image_url = tCertSigUrl.trim() || null
+      } else if (tCertSigUrl.trim()) {
+        payload.certificate_signature_image_url = tCertSigUrl.trim()
+      }
 
       const url = editTrainId ? `/api/dashboard/trainings/${editTrainId}` : '/api/dashboard/trainings'
       const res = await fetch(url, {
@@ -273,6 +281,7 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
       setTLevel('')
       setTCurriculum([{ title: '', detail: '' }])
       setTOutcomes('')
+      setTCertSigUrl('')
       setEditTrainId(null)
       onRefresh()
     } finally {
@@ -328,6 +337,8 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
     } else {
       setTOutcomes('')
     }
+    const csu = row.certificate_signature_image_url
+    setTCertSigUrl(typeof csu === 'string' ? csu : '')
     setTrainErr(null)
     setTrainOpen(true)
   }
@@ -342,6 +353,7 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
     setTLevel('')
     setTCurriculum([{ title: '', detail: '' }])
     setTOutcomes('')
+    setTCertSigUrl('')
     setTAcademy(academyOptions[0]?.id ?? '')
     setTrainErr(null)
     setTrainOpen(true)
@@ -753,6 +765,42 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
                 </div>
                 <DashboardFormField label="Slug (optional)" htmlFor="tr-s" icon={GraduationCap}>
                   <Input id="tr-s" value={tSlug} onChange={(e) => setTSlug(e.target.value)} className={dashboardFormInputClass} />
+                </DashboardFormField>
+
+                <DashboardFormField
+                  label="Certificate signature image"
+                  htmlFor="tr-certsig"
+                  icon={GraduationCap}
+                  hint="PNG or JPG, shown on PDF certificates for this course (optional)."
+                >
+                  <Input
+                    id="tr-certsig"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    disabled={certSigUploading}
+                    className={dashboardFormInputClass}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      e.target.value = ''
+                      if (!f) return
+                      setCertSigUploading(true)
+                      void uploadDashboardFile(f, 'certificates')
+                        .then((url) => setTCertSigUrl(url))
+                        .catch((err: unknown) =>
+                          setTrainErr(err instanceof Error ? err.message : 'Signature upload failed'),
+                        )
+                        .finally(() => setCertSigUploading(false))
+                    }}
+                  />
+                  {tCertSigUrl ? (
+                    <div className="mt-2 flex flex-wrap items-end gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={tCertSigUrl} alt="" className="max-h-16 max-w-[200px] rounded border border-brand-navy/15 object-contain" />
+                      <Button type="button" variant="outline" size="sm" onClick={() => setTCertSigUrl('')}>
+                        Remove signature
+                      </Button>
+                    </div>
+                  ) : null}
                 </DashboardFormField>
 
                 <div className="space-y-2 rounded-lg border border-brand-navy/10 bg-brand-mint/20 p-3">

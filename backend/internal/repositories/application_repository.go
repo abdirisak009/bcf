@@ -103,3 +103,21 @@ func (r *ApplicationRepository) FindForCertificateByPhone(phone string) (*models
 	}
 	return &a, nil
 }
+
+// FindByCertificateEphemeralPrefix finds an application whose UUID string starts with the given 8 hex characters
+// (matches BCF-{year}-{prefix} certificates from issue-by-phone).
+func (r *ApplicationRepository) FindByCertificateEphemeralPrefix(prefix8 string) (*models.Application, error) {
+	prefix8 = strings.ToLower(strings.TrimSpace(prefix8))
+	if len(prefix8) != 8 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	var a models.Application
+	err := r.db.Preload("Training").
+		Where("SUBSTRING(training_applications.id::text, 1, 8) = ?", prefix8).
+		Where("status = ?", "approved").
+		First(&a).Error
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}

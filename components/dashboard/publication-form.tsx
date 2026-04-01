@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState, type FormEvent } from 'react'
-import { AlignLeft, FileText, ImageIcon, Loader2, Plus, Tag, Type } from 'lucide-react'
+import { AlignLeft, BookOpen, Download, FileText, ImageIcon, Loader2, Plus, Tag, Type } from 'lucide-react'
 
 import { DashboardFormField } from '@/components/dashboard/dashboard-form-field'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Sheet,
   SheetContent,
@@ -42,6 +43,8 @@ export function PublicationForm({ onCreated }: Props) {
   const [excerpt, setExcerpt] = useState('')
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [pdfFile, setPdfFile] = useState<File | null>(null)
+  /** When true, public page opens PDF in a reader dialog; when false, primary action is open/download in a new tab. */
+  const [pdfReadInBrowser, setPdfReadInBrowser] = useState(false)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
 
   useEffect(() => {
@@ -78,6 +81,7 @@ export function PublicationForm({ onCreated }: Props) {
       if (excerpt.trim()) payload.excerpt = excerpt.trim()
       if (coverUrl) payload.cover_image_url = coverUrl
       if (fileUrl) payload.file_url = fileUrl
+      payload.file_display_mode = pdfReadInBrowser ? 'read' : 'download'
 
       const res = await fetch('/api/dashboard/publications', {
         method: 'POST',
@@ -95,6 +99,7 @@ export function PublicationForm({ onCreated }: Props) {
       setExcerpt('')
       setCoverFile(null)
       setPdfFile(null)
+      setPdfReadInBrowser(false)
       onCreated()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error — is the API running?')
@@ -122,7 +127,7 @@ export function PublicationForm({ onCreated }: Props) {
             <span className="rounded bg-brand-mint/50 px-1 font-mono text-xs text-brand-navy">
               public/uploads/publications/
             </span>{' '}
-            in this project. Cover is optional; add a PDF for download from the public page.
+            in this project. Cover is optional; add a PDF and choose whether visitors read it in the browser or use download-first.
           </SheetDescription>
         </div>
 
@@ -189,6 +194,79 @@ export function PublicationForm({ onCreated }: Props) {
                   </p>
                 ) : null}
               </DashboardFormField>
+
+              <div className="flex flex-col gap-3 rounded-xl border border-brand-navy/10 bg-brand-mint/15 px-4 py-3.5">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-brand-navy">
+                    <BookOpen className="size-4 shrink-0 text-brand-teal" aria-hidden />
+                    PDF on the public site
+                  </div>
+                  <p className="text-muted-foreground text-xs leading-snug">
+                    Dooro hal: <strong className="font-medium text-brand-navy/90">Download</strong> ama{' '}
+                    <strong className="font-medium text-brand-navy/90">Read</strong> (checkbox midba midka kale wuu beddelayaa).
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  <label
+                    htmlFor="pub-mode-download"
+                    className={cn(
+                      'flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors',
+                      !pdfReadInBrowser
+                        ? 'border-brand-teal/50 bg-white/80 shadow-sm'
+                        : 'border-transparent hover:bg-brand-mint/40',
+                    )}
+                  >
+                    <Checkbox
+                      id="pub-mode-download"
+                      checked={!pdfReadInBrowser}
+                      onCheckedChange={(v) => {
+                        if (v === true) setPdfReadInBrowser(false)
+                        else setPdfReadInBrowser(true)
+                      }}
+                      className="mt-0.5 border-brand-navy/30 data-[state=checked]:border-brand-teal data-[state=checked]:bg-brand-teal"
+                      aria-label="Download first (new tab)"
+                    />
+                    <span className="font-normal leading-snug">
+                      <span className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
+                        <Download className="size-3.5 shrink-0 text-brand-teal" aria-hidden />
+                        Download
+                      </span>
+                      <span className="text-muted-foreground mt-0.5 block text-xs">
+                        Badhanka ugu weyn: fur / soo deji PDF (tab cusub).
+                      </span>
+                    </span>
+                  </label>
+                  <label
+                    htmlFor="pub-mode-read"
+                    className={cn(
+                      'flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors',
+                      pdfReadInBrowser
+                        ? 'border-brand-teal/50 bg-white/80 shadow-sm'
+                        : 'border-transparent hover:bg-brand-mint/40',
+                    )}
+                  >
+                    <Checkbox
+                      id="pub-mode-read"
+                      checked={pdfReadInBrowser}
+                      onCheckedChange={(v) => {
+                        if (v === true) setPdfReadInBrowser(true)
+                        else setPdfReadInBrowser(false)
+                      }}
+                      className="mt-0.5 border-brand-navy/30 data-[state=checked]:border-brand-teal data-[state=checked]:bg-brand-teal"
+                      aria-label="Read in browser (popup)"
+                    />
+                    <span className="font-normal leading-snug">
+                      <span className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
+                        <BookOpen className="size-3.5 shrink-0 text-brand-teal" aria-hidden />
+                        Read
+                      </span>
+                      <span className="text-muted-foreground mt-0.5 block text-xs">
+                        Akhris popup-ka ku jirta (akhristaha PDF).
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
 
               <DashboardFormField
                 label="Short description (optional)"

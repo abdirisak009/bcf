@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Accept: 'application/pdf',
+      Accept: 'application/pdf, application/json',
     },
     body: JSON.stringify(body),
   })
@@ -24,14 +24,16 @@ export async function POST(request: Request) {
 
   if (!res.ok) {
     if (ct.includes('application/json')) {
-      const data = (await res.json()) as { error?: string; message?: string }
-      return NextResponse.json(
-        { success: false, error: data.error ?? data.message ?? `Error ${res.status}` },
-        { status: res.status },
-      )
+      const data = (await res.json()) as Record<string, unknown>
+      return NextResponse.json(data, { status: res.status })
     }
     const t = await res.text()
     return NextResponse.json({ success: false, error: t || `Backend ${res.status}` }, { status: res.status })
+  }
+
+  if (ct.includes('application/json')) {
+    const data = (await res.json()) as Record<string, unknown>
+    return NextResponse.json(data, { status: 200 })
   }
 
   if (!ct.includes('application/pdf')) {

@@ -20,6 +20,183 @@ import (
 // If WHATSAPP_SENDTEXT_URL + WHATSAPP_SENDTEXT_API_KEY are set, sends a thank-you WhatsApp to the applicant
 // (when phone is present) and optionally notifies the admin number (WHATSAPP_NOTIFY_TO).
 // Otherwise falls back to legacy providers (webhook / callmebot / ultramsg) for admin only.
+// FreeTrainingRegistrationSubmitted runs after a successful public free-training signup.
+// When WHATSAPP_SENDTEXT_* is set: sends WhatsApp to the applicant (if phone present) and optional admin copy.
+// Otherwise legacy providers notify admin only (same pattern as TrainingApplicationSubmitted).
+func FreeTrainingRegistrationSubmitted(cfg *config.Config, reg *models.FreeTrainingRegistration, prog *models.FreeTrainingProgram) {
+	if cfg == nil || reg == nil {
+		return
+	}
+	title, venue := freeTrainingProgramLabels(prog)
+
+	if sendTextConfigured(cfg) {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 22*time.Second)
+			defer cancel()
+			applicantPhone := digitsOnly(reg.Phone)
+			if applicantPhone != "" {
+				msg := buildFreeTrainingThankYouMessage(reg, title, venue)
+				if err := sendTextAPI(ctx, cfg, applicantPhone, msg); err != nil {
+					log.Printf("whatsapp sendText (free training applicant register): %v", err)
+				}
+			}
+			adminPhone := digitsOnly(cfg.WhatsAppNotifyTo)
+			if adminPhone != "" {
+				msg := buildAdminFreeTrainingNewRegistrationMessage(cfg, reg, title, venue)
+				if err := sendTextAPI(ctx, cfg, adminPhone, msg); err != nil {
+					log.Printf("whatsapp sendText (free training admin register): %v", err)
+				}
+			}
+		}()
+		return
+	}
+
+	p := strings.ToLower(strings.TrimSpace(cfg.WhatsAppProvider))
+	if p == "" {
+		return
+	}
+	msg := buildAdminFreeTrainingNewRegistrationMessage(cfg, reg, title, venue)
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 18*time.Second)
+		defer cancel()
+		var err error
+		switch p {
+		case "callmebot":
+			err = sendCallMeBot(ctx, cfg, msg)
+		case "ultramsg":
+			err = sendUltramsg(ctx, cfg, msg)
+		default:
+			return
+		}
+		if err != nil {
+			log.Printf("whatsapp notify free training register (%s): %v", p, err)
+		}
+	}()
+}
+
+// FreeTrainingPreceptsNotice sends a WhatsApp to the applicant when status becomes *precepts* (sendText API only).
+func FreeTrainingPreceptsNotice(cfg *config.Config, reg *models.FreeTrainingRegistration, prog *models.FreeTrainingProgram) {
+	if cfg == nil || reg == nil || !sendTextConfigured(cfg) {
+		return
+	}
+	phone := digitsOnly(reg.Phone)
+	if phone == "" {
+		return
+	}
+	title, _ := freeTrainingProgramLabels(prog)
+	msg := buildFreeTrainingPreceptsMessage(reg, title)
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 22*time.Second)
+		defer cancel()
+		if err := sendTextAPI(ctx, cfg, phone, msg); err != nil {
+			log.Printf("whatsapp sendText (free training precepts): %v", err)
+		}
+	}()
+}
+
+func freeTrainingProgramLabels(prog *models.FreeTrainingProgram) (title, venue string) {
+	if prog == nil {
+		return "Free training", ""
+	}
+	title = strings.TrimSpace(prog.Title)
+	if title == "" {
+		title = "Free training"
+	}
+	venue = strings.TrimSpace(prog.VenueLocation)
+	return title, venue
+}
+
+func buildFreeTrainingThankYouMessage(reg *models.FreeTrainingRegistration, programTitle, venue string) string {
+	name := strings.TrimSpace(reg.FullName)
+	if name == "" {
+		name = "there"
+	}
+	venueLine := ""
+	if venue != "" {
+		venueLine = fmt.Sprintf("\n• *Venue / area:* %s", venue)
+	}
+	return fmt.Sprintf(`🌟 *Thank you — registration received*
+
+Hello *%s*,
+
+We've received your interest in *%s*.%s
+
+*What happens next?*
+• Our team will review your details.
+• If you're shortlisted or moved forward, we'll contact you on *WhatsApp* or by *email*.
+
+Questions? Reply to this chat.
+
+— *Baraarug* ✨`, name, programTitle, venueLine)
+}
+
+func buildAdminFreeTrainingNewRegistrationMessage(cfg *config.Config, reg *models.FreeTrainingRegistration, programTitle, venue string) string {
+	phone := strings.TrimSpace(reg.Phone)
+	if phone == "" {
+		phone = "—"
+	}
+	loc := strings.TrimSpace(reg.Location)
+	if loc == "" {
+		loc = "—"
+	}
+	if venue == "" {
+		venue = "—"
+	}
+	msg := ""
+	if reg.Message != nil {
+		msg = strings.TrimSpace(*reg.Message)
+	}
+	if msg == "" {
+		msg = "—"
+	}
+	dash := strings.TrimRight(strings.TrimSpace(cfg.PublicDashboardURL), "/")
+	dashLine := ""
+	if dash != "" {
+		dashLine = fmt.Sprintf("\n📂 *Dashboard:* %s", dash)
+	}
+	return fmt.Sprintf(`━━━━━━━━━━━━━━━━━━
+📋 *NEW FREE TRAINING SIGNUP*
+━━━━━━━━━━━━━━━━━━
+
+*Programme:* _%s_
+*Venue (public):* %s
+
+*Contact*
+• *Name:* %s
+• *Email:* %s
+• *WhatsApp:* %s
+• *Location:* %s
+
+*Note from applicant*
+_%s_
+
+🆔 *Registration ID:* %s%s`,
+		programTitle,
+		venue,
+		strings.TrimSpace(reg.FullName),
+		reg.Email,
+		phone,
+		loc,
+		msg,
+		reg.ID.String(),
+		dashLine,
+	)
+}
+
+func buildFreeTrainingPreceptsMessage(reg *models.FreeTrainingRegistration, programTitle string) string {
+	name := strings.TrimSpace(reg.FullName)
+	if name == "" {
+		name = "there"
+	}
+	return fmt.Sprintf(`Hello *%s*,
+
+Good news: you've been added to the *Precepts* step for *%s*.
+
+Our team will follow up with you on *WhatsApp* with the next details.
+
+— *Baraarug*`, name, programTitle)
+}
+
 func TrainingApplicationSubmitted(cfg *config.Config, app *models.Application, training *models.Training) {
 	if cfg == nil || app == nil {
 		return

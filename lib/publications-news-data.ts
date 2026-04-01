@@ -9,6 +9,8 @@ export type ContentCard = {
   featuredImageUrl?: string;
   /** Link to full article (CMS posts with UUID ids). */
   href?: string;
+  /** Publication PDF: read in browser vs download-first (from dashboard). */
+  pdfDisplayMode?: 'read' | 'download';
 };
 
 export const publications: ContentCard[] = [

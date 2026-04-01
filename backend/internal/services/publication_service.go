@@ -31,11 +31,20 @@ func (s *PublicationService) GetByID(id uuid.UUID) (*models.Publication, error) 
 	return s.repo.GetByID(id)
 }
 
+func normalizePublicationFileDisplayMode(s string) string {
+	s = strings.TrimSpace(strings.ToLower(s))
+	if s == "read" {
+		return "read"
+	}
+	return "download"
+}
+
 func (s *PublicationService) Create(p *models.Publication) error {
 	p.Title = strings.TrimSpace(p.Title)
 	if p.Title == "" {
 		return ErrPublicationTitleRequired
 	}
+	p.FileDisplayMode = normalizePublicationFileDisplayMode(p.FileDisplayMode)
 	return s.repo.Create(p)
 }
 
@@ -44,6 +53,7 @@ func (s *PublicationService) Update(p *models.Publication) error {
 	if p.Title == "" {
 		return ErrPublicationTitleRequired
 	}
+	p.FileDisplayMode = normalizePublicationFileDisplayMode(p.FileDisplayMode)
 	return s.repo.Update(p)
 }
 

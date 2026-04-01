@@ -36,6 +36,7 @@ func (s *TrainingService) Create(t *models.Training) error {
 	if t.Title == "" {
 		return ErrTrainingTitleRequired
 	}
+	t.CertificateSignatureImageURL = normalizeCertSigURLPtr(t.CertificateSignatureImageURL)
 	return s.repo.Create(t)
 }
 
@@ -44,7 +45,20 @@ func (s *TrainingService) Update(t *models.Training) error {
 	if t.Title == "" {
 		return ErrTrainingTitleRequired
 	}
+	t.CertificateSignatureImageURL = normalizeCertSigURLPtr(t.CertificateSignatureImageURL)
 	return s.repo.Update(t)
+}
+
+func normalizeCertSigURLPtr(p *string) *string {
+	if p == nil {
+		return nil
+	}
+	st := strings.TrimSpace(*p)
+	if st == "" {
+		return nil
+	}
+	v := st
+	return &v
 }
 
 func (s *TrainingService) Delete(id uuid.UUID) error {

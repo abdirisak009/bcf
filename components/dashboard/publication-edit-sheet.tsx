@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState, type FormEvent } from 'react'
-import { AlignLeft, FileText, ImageIcon, Loader2, Tag, Type } from 'lucide-react'
+import { AlignLeft, BookOpen, Download, FileText, ImageIcon, Loader2, Tag, Type } from 'lucide-react'
 
 import { DashboardFormField } from '@/components/dashboard/dashboard-form-field'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { getApiBase } from '@/lib/api'
@@ -43,6 +44,7 @@ export function PublicationEditSheet({ publicationId, open, onOpenChange, onSave
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [existingCover, setExistingCover] = useState<string | null>(null)
   const [existingPdf, setExistingPdf] = useState<string | null>(null)
+  const [pdfReadInBrowser, setPdfReadInBrowser] = useState(false)
 
   useEffect(() => {
     if (!coverFile) {
@@ -79,6 +81,10 @@ export function PublicationEditSheet({ publicationId, open, onOpenChange, onSave
         const f = d.file_url
         setExistingCover(typeof c === 'string' && c.trim() ? c.trim() : null)
         setExistingPdf(typeof f === 'string' && f.trim() ? f.trim() : null)
+        const mode = d.file_display_mode
+        setPdfReadInBrowser(
+          typeof mode === 'string' && mode.trim().toLowerCase() === 'read',
+        )
         setCoverFile(null)
         setPdfFile(null)
       } finally {
@@ -119,6 +125,7 @@ export function PublicationEditSheet({ publicationId, open, onOpenChange, onSave
       else if (existingCover) payload.cover_image_url = existingCover
       if (fileUrl) payload.file_url = fileUrl
       else if (existingPdf) payload.file_url = existingPdf
+      payload.file_display_mode = pdfReadInBrowser ? 'read' : 'download'
 
       const res = await fetch(`/api/dashboard/publications/${publicationId}`, {
         method: 'PATCH',
@@ -212,6 +219,79 @@ export function PublicationEditSheet({ publicationId, open, onOpenChange, onSave
                     <p className="text-muted-foreground mt-1 font-mono text-xs">{existingPdf}</p>
                   ) : null}
                 </DashboardFormField>
+
+                <div className="flex flex-col gap-3 rounded-xl border border-brand-navy/10 bg-brand-mint/15 px-4 py-3.5">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-brand-navy">
+                      <BookOpen className="size-4 shrink-0 text-brand-teal" aria-hidden />
+                      PDF on the public site
+                    </div>
+                    <p className="text-muted-foreground text-xs leading-snug">
+                      Choose one: <span className="font-medium text-brand-navy/90">Download</span> or{' '}
+                      <span className="font-medium text-brand-navy/90">Read</span> — checking one unchecks the other.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2.5">
+                    <label
+                      htmlFor="epub-mode-download"
+                      className={cn(
+                        'flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors',
+                        !pdfReadInBrowser
+                          ? 'border-brand-teal/50 bg-white/80 shadow-sm'
+                          : 'border-transparent hover:bg-brand-mint/40',
+                      )}
+                    >
+                      <Checkbox
+                        id="epub-mode-download"
+                        checked={!pdfReadInBrowser}
+                        onCheckedChange={(v) => {
+                          if (v === true) setPdfReadInBrowser(false)
+                          else setPdfReadInBrowser(true)
+                        }}
+                        className="mt-0.5 border-brand-navy/30 data-[state=checked]:border-brand-teal data-[state=checked]:bg-brand-teal"
+                        aria-label="Download first (new tab)"
+                      />
+                      <span className="font-normal leading-snug">
+                        <span className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
+                          <Download className="size-3.5 shrink-0 text-brand-teal" aria-hidden />
+                          Download
+                        </span>
+                        <span className="text-muted-foreground mt-0.5 block text-xs">
+                          Primary action: open PDF in a new tab.
+                        </span>
+                      </span>
+                    </label>
+                    <label
+                      htmlFor="epub-mode-read"
+                      className={cn(
+                        'flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors',
+                        pdfReadInBrowser
+                          ? 'border-brand-teal/50 bg-white/80 shadow-sm'
+                          : 'border-transparent hover:bg-brand-mint/40',
+                      )}
+                    >
+                      <Checkbox
+                        id="epub-mode-read"
+                        checked={pdfReadInBrowser}
+                        onCheckedChange={(v) => {
+                          if (v === true) setPdfReadInBrowser(true)
+                          else setPdfReadInBrowser(false)
+                        }}
+                        className="mt-0.5 border-brand-navy/30 data-[state=checked]:border-brand-teal data-[state=checked]:bg-brand-teal"
+                        aria-label="Read in browser (popup)"
+                      />
+                      <span className="font-normal leading-snug">
+                        <span className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
+                          <BookOpen className="size-3.5 shrink-0 text-brand-teal" aria-hidden />
+                          Read
+                        </span>
+                        <span className="text-muted-foreground mt-0.5 block text-xs">
+                          In-app reader popup (read-focused).
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
 
                 <DashboardFormField label="Description" htmlFor="epub-ex" icon={AlignLeft}>
                   <Textarea

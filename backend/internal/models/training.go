@@ -20,6 +20,8 @@ type Training struct {
 	Level        *string         `gorm:"size:255" json:"level,omitempty"`
 	Curriculum   json.RawMessage `gorm:"type:jsonb" json:"curriculum,omitempty"`
 	Outcomes     json.RawMessage `gorm:"type:jsonb" json:"outcomes,omitempty"`
+	// CertificateSignatureImageURL optional PNG/JPEG (HTTPS or /uploads/...); drawn on PDF certificates for this training.
+	CertificateSignatureImageURL *string `gorm:"type:text" json:"certificate_signature_image_url,omitempty"`
 	CreatedAt    time.Time       `json:"created_at"`
 	Applications []Application   `gorm:"foreignKey:TrainingID;constraint:OnDelete:CASCADE" json:"-"`
 }

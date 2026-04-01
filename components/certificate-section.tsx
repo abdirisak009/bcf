@@ -17,8 +17,6 @@ export function CertificateSection() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
   const [pending, setPending] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -82,8 +80,6 @@ export function CertificateSection() {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           email: email.trim(),
-          from_date: fromDate.trim() || undefined,
-          to_date: toDate.trim() || undefined,
         }),
       })
       if (!res.ok) {
@@ -114,7 +110,7 @@ export function CertificateSection() {
           <h2 className="text-2xl font-bold text-brand-navy md:text-3xl">Get your certificate</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
             Enter the <strong>same first name, last name, and email</strong> you used on your training application. Your
-            application must be <strong>approved</strong> in our system. Optional dates appear on the certificate.
+            application must be <strong>approved</strong> in our system.
           </p>
         </div>
 
@@ -172,16 +168,6 @@ export function CertificateSection() {
               onChange={(e) => setEmail(e.target.value)}
               className="border-brand-navy/10"
             />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="cert-from">Program from (optional)</Label>
-              <Input id="cert-from" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="border-brand-navy/10" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cert-to">Program to (optional)</Label>
-              <Input id="cert-to" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="border-brand-navy/10" />
-            </div>
           </div>
           {err ? <p className="text-sm text-destructive">{err}</p> : null}
           <Button type="submit" disabled={pending || loadingList} className="w-full bg-brand-navy hover:brightness-110">

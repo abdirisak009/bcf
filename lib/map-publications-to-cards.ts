@@ -7,6 +7,7 @@ export type ApiPublicationRow = {
   category?: string | null
   cover_image_url?: string | null
   file_url?: string | null
+  file_display_mode?: string | null
   created_at: string
 }
 
@@ -20,14 +21,18 @@ export function mapPublicationRowToCard(p: ApiPublicationRow): ContentCard {
     (p.excerpt && p.excerpt.trim()) ||
     (p.file_url ? 'Download the full brief from this publication page.' : '')
   const cover = p.cover_image_url && p.cover_image_url.trim() ? p.cover_image_url.trim() : undefined
+  const hasFile = Boolean(p.file_url && p.file_url.trim())
+  const displayMode =
+    hasFile && String(p.file_display_mode ?? '').toLowerCase().trim() === 'read' ? 'read' : 'download'
   return {
     id: p.id,
     title: p.title,
     excerpt,
     category: (p.category && p.category.trim()) || 'Publication',
     date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    readTime: p.file_url ? 'PDF / brief' : undefined,
+    readTime: hasFile ? (displayMode === 'read' ? 'Read in browser' : 'PDF / brief') : undefined,
     featuredImageUrl: cover,
     href: looksLikePublicationDetailId(p.id) ? `/publications/${p.id}` : undefined,
+    pdfDisplayMode: hasFile ? displayMode : undefined,
   }
 }

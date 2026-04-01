@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -70,8 +71,18 @@ func (h *TrainingHandler) Update(c *gin.Context) {
 		pkgutils.Fail(c, http.StatusBadRequest, "invalid id")
 		return
 	}
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		pkgutils.Fail(c, http.StatusBadRequest, "invalid body")
+		return
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(body, &raw); err != nil {
+		pkgutils.FailValidation(c, err)
+		return
+	}
 	var req models.Training
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := json.Unmarshal(body, &req); err != nil {
 		pkgutils.FailValidation(c, err)
 		return
 	}
@@ -104,6 +115,9 @@ func (h *TrainingHandler) Update(c *gin.Context) {
 		existing.Outcomes = append(json.RawMessage(nil), req.Outcomes...)
 	} else {
 		existing.Outcomes = nil
+	}
+	if _, has := raw["certificate_signature_image_url"]; has {
+		existing.CertificateSignatureImageURL = req.CertificateSignatureImageURL
 	}
 	if err := h.svc.Update(existing); err != nil {
 		pkgutils.Fail(c, http.StatusBadRequest, err.Error())
