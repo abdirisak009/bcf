@@ -52,6 +52,8 @@ type Props = {
   duration: string;
   format: string;
   levelOrTarget: string;
+  /** Label for the level/target field (e.g. "Level", "Audience"). */
+  levelLabel?: string;
   summary: string;
   /** For API + analytics */
   payloadMeta: Record<string, string>;
