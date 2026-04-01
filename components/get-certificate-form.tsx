@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Award, Loader2, Phone } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -109,23 +110,36 @@ export function GetCertificateForm() {
     }
   }
 
+  const inputClass =
+    'h-11 rounded-xl border-slate-200/90 bg-white pl-10 shadow-sm transition-all duration-300 placeholder:text-slate-400 hover:border-brand-teal/35 hover:shadow-md focus-visible:border-brand-teal focus-visible:ring-2 focus-visible:ring-brand-teal/25 sm:h-12'
+
   return (
-    <section className="border-b border-slate-200 bg-gradient-to-b from-brand-mint/20 to-white py-14 px-6 md:py-20">
-      <div className="mx-auto max-w-xl">
-        <div className="mb-8 text-center">
-          <Award className="mx-auto mb-3 size-11 text-brand-teal" strokeWidth={1.25} />
-          <h2 className="text-2xl font-bold text-brand-navy md:text-3xl">Get your certificate</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            Enter the <strong>phone number</strong> you used when registering. For <strong>paid trainings</strong>, your
-            application must be <strong>approved</strong>. For <strong>free trainings</strong>, you must be on the
-            Participants list (Shortlisted or Precepts) and certificate download must be turned on for that program. If
-            you joined more than one free training, choose which certificate to download.
+    <section className="flex min-h-0 flex-1 flex-col justify-start border-0 px-4 pb-6 pt-1 sm:px-6 sm:pb-8 sm:pt-3">
+      <div className="mx-auto w-full max-w-lg">
+        <div className="mb-4 text-center sm:mb-5">
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-brand-teal/25 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-teal shadow-sm backdrop-blur-sm sm:mb-2.5 sm:text-[11px]">
+            <Award className="size-3 shrink-0" strokeWidth={2} aria-hidden />
+            Certificate
+          </div>
+          <h2 className="font-serif text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
+            Get your certificate
+          </h2>
+          <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-slate-600 sm:mt-2 sm:text-[0.9375rem]">
+            Enter the phone you used when you registered. We verify your approved or eligible training, then you download
+            your PDF.
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-brand-navy/10 bg-white p-6 shadow-sm">
+        <form
+          onSubmit={onSubmit}
+          className={cn(
+            'space-y-4 rounded-2xl border border-brand-navy/[0.08] bg-gradient-to-b from-white to-brand-mint/[0.14] p-5 shadow-[0_8px_40px_-12px_rgba(23,94,126,0.12)] ring-1 ring-brand-navy/[0.04] backdrop-blur-[2px] transition-shadow duration-500 hover:shadow-[0_12px_48px_-12px_rgba(23,94,126,0.14)] sm:p-6 md:p-8',
+          )}
+        >
           <div className="space-y-2">
-            <Label htmlFor="cert-phone">Phone number</Label>
+            <Label htmlFor="cert-phone" className="text-sm font-medium text-brand-navy/85">
+              Phone number
+            </Label>
             <div className="relative">
               <Phone
                 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-brand-navy/40"
@@ -139,12 +153,27 @@ export function GetCertificateForm() {
                 placeholder="+252 61 …"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="border-brand-navy/10 pl-10"
+                className={inputClass}
               />
             </div>
           </div>
-          {err ? <p className="text-sm text-destructive">{err}</p> : null}
-          <Button type="submit" disabled={pending} className="w-full bg-brand-navy hover:brightness-110">
+          {err ? (
+            <p
+              className="animate-in fade-in slide-in-from-top-1 rounded-xl border border-red-200/90 bg-red-50/95 px-3 py-2.5 text-sm text-red-800 duration-200"
+              role="alert"
+            >
+              {err}
+            </p>
+          ) : null}
+          <Button
+            type="submit"
+            disabled={pending}
+            className={cn(
+              'h-11 w-full min-w-0 rounded-full text-base font-semibold shadow-lg transition-all duration-300 ease-out sm:h-12',
+              'bg-brand-teal text-white shadow-brand-teal/30 hover:bg-brand-teal-hover hover:shadow-xl hover:shadow-brand-teal/35 motion-safe:hover:scale-[1.01] motion-safe:active:scale-[0.99]',
+              'disabled:opacity-70',
+            )}
+          >
             {pending ? (
               <>
                 <Loader2 className="mr-2 size-4 animate-spin" />

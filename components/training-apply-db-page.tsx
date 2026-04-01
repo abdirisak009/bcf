@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, type FormEvent } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -17,8 +18,6 @@ import {
 } from 'lucide-react'
 
 import { DashboardFormField } from '@/components/dashboard/dashboard-form-field'
-import Footer from '@/components/footer'
-import Navigation from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -33,6 +32,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { getApiBase } from '@/lib/api'
+import { SITE_LOGO_SRC } from '@/lib/site-config'
 import {
   dashboardFormInputClass,
   dashboardFormSelectTriggerClass,
@@ -243,104 +243,137 @@ export function TrainingApplyDbPageClient({ trainingId }: Props) {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-slate-50 font-sans antialiased text-slate-800">
-      <Navigation />
+  const shellMainClass =
+    'flex min-h-0 flex-col overflow-hidden overscroll-none bg-gradient-to-b from-slate-50 via-white to-brand-mint/[0.18] font-sans text-slate-800 antialiased h-[100svh] max-h-[100svh] supports-[height:100dvh]:h-[100dvh] supports-[height:100dvh]:max-h-[100dvh]'
 
-      <section className="border-b border-white/20 bg-brand-navy pt-24 pb-8 sm:pt-28">
-        <div className="mx-auto max-w-3xl px-6">
+  const cardShellClass =
+    'rounded-2xl border border-brand-navy/[0.08] bg-gradient-to-b from-white to-brand-mint/[0.14] shadow-[0_8px_40px_-12px_rgba(23,94,126,0.12)] ring-1 ring-brand-navy/[0.04] backdrop-blur-[2px]'
+
+  return (
+    <main className={shellMainClass}>
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
+        <header className="flex shrink-0 flex-col items-center px-4 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))]">
+          <Link
+            href="/"
+            className="group relative mb-1 inline-flex rounded-2xl p-1 outline-none ring-brand-teal/20 transition-all duration-300 ease-out hover:ring-2 focus-visible:ring-2 motion-safe:hover:scale-[1.03] motion-safe:active:scale-[0.98]"
+          >
+            <Image
+              src={SITE_LOGO_SRC}
+              alt="Baraarug Consulting Firm"
+              width={360}
+              height={96}
+              className="h-[3.25rem] w-auto max-w-[min(100%,17rem)] object-contain object-center sm:h-[4rem] sm:max-w-[18rem]"
+              priority
+            />
+            <span className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-brand-teal/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          </Link>
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-brand-teal sm:text-[0.7rem]">
+            Policy · Governance · Growth
+          </p>
           <Link
             href="/training"
-            className="inline-flex items-center gap-2 text-sm font-medium text-white/85 transition hover:text-white"
+            className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-brand-navy/70 transition-colors hover:text-brand-teal"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="size-4 shrink-0" aria-hidden />
             Training catalogue
           </Link>
-          <p className="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-[#b8f0d0]">Training application</p>
-          <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl">Apply for this programme</h1>
-          <p className="mt-3 max-w-xl text-white/80">
-            Share this page link with anyone who should enroll. Submit the form and our team will follow up by email.
-          </p>
-        </div>
-      </section>
+        </header>
 
-      <section className="mx-auto max-w-2xl px-6 py-10 md:py-14">
-        {loadMeta === 'loading' ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white py-16 shadow-sm">
-            <Loader2 className="size-10 animate-spin text-brand-teal" aria-hidden />
-            <p className="text-sm text-slate-600">Loading programme details…</p>
-          </div>
-        ) : loadMeta === 'error' ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50/90 px-6 py-10 text-center shadow-sm">
-            <p className="font-medium text-red-900">{metaErr}</p>
-            <Button asChild className="mt-6 bg-brand-navy" variant="default">
-              <Link href="/training">Back to training</Link>
-            </Button>
-          </div>
-        ) : done ? (
-          <div className="overflow-hidden rounded-2xl border border-brand-teal/25 bg-white shadow-[0_12px_40px_-16px_rgba(23,94,126,0.18)] md:p-0">
-            <div className="bg-gradient-to-br from-brand-mint/50 via-white to-brand-teal/10 px-6 py-8 md:px-10 md:py-10">
-              <div className="mx-auto max-w-md text-center">
-                <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-white shadow-md ring-1 ring-brand-teal/20">
-                  <Sparkles className="size-8 text-brand-teal" strokeWidth={1.75} aria-hidden />
-                </div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-teal">Success</p>
-                <h2 className="mt-2 text-2xl font-bold tracking-tight text-brand-navy md:text-3xl">
-                  Your application is in safe hands
-                </h2>
-                <p className="mt-3 text-base leading-relaxed text-slate-600">
-                  Thank you for choosing Baraarug. We&apos;ve saved your details and our team will review everything
-                  carefully.
-                </p>
+        <section className="flex min-h-0 flex-1 flex-col justify-start border-0 px-4 pb-6 pt-1 sm:px-6 sm:pb-8 sm:pt-2">
+          <div className="mx-auto w-full max-w-lg">
+            <div className="mb-4 text-center sm:mb-5">
+              <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-brand-teal/25 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-teal shadow-sm backdrop-blur-sm sm:text-[11px]">
+                Training application
               </div>
+              <h1 className="font-serif text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
+                Apply for this programme
+              </h1>
+              <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-slate-600 sm:mt-2">
+                Submit the form — we&apos;ll email you with next steps.
+              </p>
             </div>
-            <div className="space-y-6 border-t border-slate-100 px-6 py-8 md:px-10 md:py-9">
-              <div className="rounded-xl border border-brand-navy/10 bg-slate-50/80 p-5 md:p-6">
-                <div className="flex gap-3 text-left">
-                  <div className="mt-0.5 shrink-0 rounded-lg bg-brand-navy/10 p-2">
-                    <Mail className="size-5 text-brand-navy" aria-hidden />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wide text-brand-teal">What happens next</p>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-700">
-                      We&apos;ll reach out to you at{' '}
-                      <span className="font-semibold text-brand-navy">{email}</span>
-                      {phone.trim() ? (
-                        <>
-                          {' '}
-                          and on your WhatsApp (
-                          <span className="font-semibold text-brand-navy">{phone.trim()}</span>) when we have an update.
-                        </>
-                      ) : (
-                        <> when we have an update.</>
-                      )}
+
+            {loadMeta === 'loading' ? (
+              <div
+                className={cn(
+                  'flex flex-col items-center justify-center gap-3 px-6 py-14 sm:py-16',
+                  cardShellClass,
+                )}
+              >
+                <Loader2 className="size-10 animate-spin text-brand-teal" aria-hidden />
+                <p className="text-sm text-slate-600">Loading programme details…</p>
+              </div>
+            ) : loadMeta === 'error' ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50/90 px-5 py-6 text-center shadow-sm sm:px-6 sm:py-8">
+                <p className="text-sm font-medium text-red-900 sm:text-base">{metaErr}</p>
+                <Button asChild className="mt-5 bg-brand-navy" variant="default">
+                  <Link href="/training">Back to training</Link>
+                </Button>
+              </div>
+            ) : done ? (
+              <div className={cn('overflow-hidden', cardShellClass)}>
+                <div className="bg-gradient-to-br from-brand-mint/50 via-white to-brand-teal/10 px-5 py-7 sm:px-8 sm:py-9">
+                  <div className="mx-auto max-w-md text-center">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-white shadow-md ring-1 ring-brand-teal/20 sm:mb-5 sm:size-16">
+                      <Sparkles className="size-7 text-brand-teal sm:size-8" strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-teal">Success</p>
+                    <h2 className="mt-2 text-xl font-bold tracking-tight text-brand-navy sm:text-2xl md:text-3xl">
+                      Your application is in safe hands
+                    </h2>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600 sm:text-base">
+                      Thank you — we&apos;ve received your details and our team will review them.
                     </p>
                   </div>
                 </div>
+                <div className="space-y-5 border-t border-slate-100/90 px-5 py-6 sm:px-8 sm:py-9">
+                  <div className="rounded-xl border border-brand-navy/10 bg-slate-50/80 p-4 sm:p-5">
+                    <div className="flex gap-3 text-left">
+                      <div className="mt-0.5 shrink-0 rounded-lg bg-brand-navy/10 p-2">
+                        <Mail className="size-5 text-brand-navy" aria-hidden />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-brand-teal">What happens next</p>
+                        <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                          We&apos;ll reach out to you at{' '}
+                          <span className="font-semibold text-brand-navy">{email}</span>
+                          {phone.trim() ? (
+                            <>
+                              {' '}
+                              and on WhatsApp (
+                              <span className="font-semibold text-brand-navy">{phone.trim()}</span>) when we have an
+                              update.
+                            </>
+                          ) : (
+                            <> when we have an update.</>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 rounded-xl border border-dashed border-brand-teal/35 bg-brand-mint/20 px-3 py-2.5 text-left text-sm text-slate-700 sm:px-4 sm:py-3">
+                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-brand-teal" aria-hidden />
+                    <p>
+                      <span className="font-semibold text-brand-navy">Tip:</span> Save our number so you don&apos;t miss
+                      our message.
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <Button asChild className="w-full bg-brand-navy font-semibold shadow-md sm:w-auto sm:min-w-[200px]" size="lg">
+                      <Link href="/training">Back to training catalogue</Link>
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-start gap-3 rounded-xl border border-dashed border-brand-teal/35 bg-brand-mint/20 px-4 py-3 text-left text-sm text-slate-700">
-                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-brand-teal" aria-hidden />
-                <p>
-                  <span className="font-semibold text-brand-navy">Tip:</span> Add our number to your contacts so you
-                  don&apos;t miss our message.
-                </p>
-              </div>
-              <div className="text-center">
-                <Button asChild className="bg-brand-navy font-semibold shadow-md" size="lg">
-                  <Link href="/training">Back to training catalogue</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-[0_8px_30px_-12px_rgba(23,94,126,0.12)] md:p-8">
-            <div className="mb-8 border-b border-slate-100 pb-6">
-              <p className="text-xs font-bold uppercase tracking-wide text-brand-teal">Selected programme</p>
-              <p className="mt-2 text-sm font-medium text-slate-500">{academyName}</p>
-              <h2 className="mt-1 text-xl font-bold leading-snug text-brand-navy md:text-2xl">{trainingTitle}</h2>
-            </div>
+            ) : (
+              <div className={cn('p-5 sm:p-6 md:p-8', cardShellClass)}>
+                <div className="mb-6 border-b border-slate-100/90 pb-5 sm:mb-7 sm:pb-6">
+                  <p className="text-xs font-bold uppercase tracking-wide text-brand-teal">Selected programme</p>
+                  <p className="mt-2 text-sm font-medium text-slate-500">{academyName}</p>
+                  <h2 className="mt-1 text-lg font-bold leading-snug text-brand-navy sm:text-xl md:text-2xl">{trainingTitle}</h2>
+                </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
               <DashboardFormField label="Applying as" htmlFor="tap-applicant" icon={Users} hint="Choose whether you are enrolling yourself or a team.">
                 <RadioGroup
                   id="tap-applicant"
@@ -574,12 +607,21 @@ export function TrainingApplyDbPageClient({ trainingId }: Props) {
                   )}
                 </Button>
               </div>
-            </form>
+                </form>
+              </div>
+            )}
           </div>
-        )}
-      </section>
+        </section>
 
-      <Footer />
+        <p className="shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 text-center text-sm">
+          <Link
+            href="/"
+            className="text-slate-500 underline-offset-4 transition-colors duration-200 hover:text-brand-navy hover:underline"
+          >
+            Back to home
+          </Link>
+        </p>
+      </div>
     </main>
   )
 }
