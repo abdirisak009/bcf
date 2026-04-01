@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: bcf
+      POSTGRES_PASSWORD: Abdi@909090@@
+      POSTGRES_DB: BcfDb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: go_backend
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: bcf
+      DB_PASSWORD: Abdi@909090@@
+      DB_NAME: BcfDb
+
+  frontend:
+    build: .
+    container_name: next_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    command: npm run start -- -H 0.0.0.0
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
