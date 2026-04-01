@@ -21,17 +21,34 @@ function isLoopbackHostname(hostname: string): boolean {
   return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.localhost')
 }
 
+/** Docker Compose / K8s service names (e.g. go_backend) — not resolvable in the visitor's browser. */
+function isDockerInternalHostname(hostname: string): boolean {
+  const h = hostname.toLowerCase()
+  if (isLoopbackHostname(h)) return false
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(h)) return false
+  if (h.includes(':')) return false
+  if (h.includes('.')) return false
+  return true
+}
+
 /**
  * Browsers block a **public** page (e.g. `http://62.x:3000`) from fetching **loopback**
  * (`http://127.0.0.1:8080`) — "more-private address space" / Private Network Access.
  * Builds that bake `NEXT_PUBLIC_API_URL=http://127.0.0.1:8080` therefore break in production.
  * On localhost we still allow loopback API URLs for normal dev.
+ *
+ * Also rejects:
+ * - Docker internal hostnames (`go_backend`, etc.) — use `API_INTERNAL_URL` for server-side proxy only.
+ * - Mixed content: HTTPS page + `http://` API (use same-origin `/api` or `https://` API URL).
  */
 function browserResolvedPublicApiBase(pubRaw: string): string {
   const pub = stripTrailingSlash(pubRaw)
   let apiHost: string
+  let apiProtocol: string
   try {
-    apiHost = new URL(pub).hostname
+    const u = new URL(pub)
+    apiHost = u.hostname
+    apiProtocol = u.protocol
   } catch {
     return ''
   }
@@ -41,10 +58,32 @@ function browserResolvedPublicApiBase(pubRaw: string): string {
     pageHost === '127.0.0.1' ||
     pageHost === '[::1]' ||
     pageHost.endsWith('.localhost')
+  const pageIsHttps = typeof window !== 'undefined' && window.location.protocol === 'https:'
+
+  if (isDockerInternalHostname(apiHost)) {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn(
+        '[api] NEXT_PUBLIC_API_URL uses a Docker/internal hostname (not reachable from the browser). ' +
+          'Falling back to same-origin /api. Set API_INTERNAL_URL=http://go_backend:8080 on the Next server only; unset NEXT_PUBLIC_API_URL.',
+      )
+    }
+    return ''
+  }
 
   if (isLoopbackHostname(apiHost) && !pageIsLocal) {
     return ''
   }
+
+  if (pageIsHttps && apiProtocol === 'http:' && !isLoopbackHostname(apiHost)) {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn(
+        '[api] Mixed content: HTTPS page cannot call HTTP API. Falling back to same-origin /api. ' +
+          'Unset NEXT_PUBLIC_API_URL or use an https:// API URL.',
+      )
+    }
+    return ''
+  }
+
   return pub
 }
 
