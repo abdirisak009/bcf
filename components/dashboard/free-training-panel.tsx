@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { getBrowserApiUrl } from '@/lib/api'
+import { copyTextToClipboard } from '@/lib/copy-to-clipboard'
 import { dashboardAuthHeaders } from '@/lib/dashboard-client'
 import { uploadDashboardFile } from '@/lib/dashboard-upload'
 import { cn } from '@/lib/utils'
@@ -639,8 +640,13 @@ export function FreeTrainingPanel() {
     await load()
   }
 
-  function copyLink(slug: string) {
-    void navigator.clipboard.writeText(`${shareBase}${slug}`)
+  async function copyLink(slug: string) {
+    const url = `${shareBase}${slug}`
+    setError(null)
+    const ok = await copyTextToClipboard(url)
+    if (!ok) {
+      setError(`Could not copy to clipboard. Copy this link manually: ${url}`)
+    }
   }
 
   function openReview(r: FreeReg) {
