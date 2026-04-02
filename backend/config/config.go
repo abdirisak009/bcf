@@ -77,14 +77,10 @@ type Config struct {
 	// BootstrapAdmins: optional; on startup, each pair is created as role=admin if that email is missing (password min 8 chars).
 	BootstrapAdmins []BootstrapAdmin
 
-	// MinIO (same env vars as Next.js dashboard uploads). Optional until POST /api/upload is used.
-	MinioEndpoint  string
-	MinioPort      string
-	MinioAccessKey string
-	MinioSecretKey string
-	MinioBucket    string
-	MinioUseSSL    bool
-	MinioRegion    string
+	// Cloudinary — dashboard uploads (POST /api/upload). Optional until uploads are used.
+	CloudinaryCloudName string
+	CloudinaryAPIKey    string
+	CloudinaryAPISecret string
 }
 
 func Load() (*Config, error) {
@@ -170,13 +166,9 @@ func Load() (*Config, error) {
 		WhatsAppSendFileURL:      getenvWithJSON(j, "WHATSAPP_SENDFILE_URL", ""),
 		CORSAllowOrigins:         splitCommaList(getenvWithJSON(j, "CORS_ALLOW_ORIGINS", "")),
 		BootstrapAdmins:          loadBootstrapAdmins(j),
-		MinioEndpoint:            getenvWithJSON(j, "MINIO_ENDPOINT", ""),
-		MinioPort:                getenvWithJSON(j, "MINIO_PORT", ""),
-		MinioAccessKey:           getenvWithJSON(j, "MINIO_ACCESS_KEY", ""),
-		MinioSecretKey:           getenvWithJSON(j, "MINIO_SECRET_KEY", ""),
-		MinioBucket:              getenvWithJSON(j, "MINIO_BUCKET", ""),
-		MinioUseSSL:              parseBoolEnv(getenvWithJSON(j, "MINIO_USE_SSL", "")),
-		MinioRegion:              getenvWithJSON(j, "MINIO_REGION", ""),
+		CloudinaryCloudName: getenvWithJSON(j, "CLOUDINARY_CLOUD_NAME", ""),
+		CloudinaryAPIKey:    getenvWithJSON(j, "CLOUDINARY_API_KEY", ""),
+		CloudinaryAPISecret: getenvWithJSON(j, "CLOUDINARY_API_SECRET", ""),
 	}, nil
 }
 
@@ -232,16 +224,14 @@ func parseBoolEnv(s string) bool {
 	return s == "1" || s == "true" || s == "yes"
 }
 
-// MinIOConfigured is true when all required MinIO env vars are set (matches Next.js MinIO usage).
-func (c *Config) MinIOConfigured() bool {
+// CloudinaryConfigured is true when all required Cloudinary env vars are set.
+func (c *Config) CloudinaryConfigured() bool {
 	if c == nil {
 		return false
 	}
-	return strings.TrimSpace(c.MinioEndpoint) != "" &&
-		strings.TrimSpace(c.MinioPort) != "" &&
-		strings.TrimSpace(c.MinioAccessKey) != "" &&
-		strings.TrimSpace(c.MinioSecretKey) != "" &&
-		strings.TrimSpace(c.MinioBucket) != ""
+	return strings.TrimSpace(c.CloudinaryCloudName) != "" &&
+		strings.TrimSpace(c.CloudinaryAPIKey) != "" &&
+		strings.TrimSpace(c.CloudinaryAPISecret) != ""
 }
 
 func splitCommaList(s string) []string {

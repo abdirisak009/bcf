@@ -8,7 +8,7 @@ import {
 type RouteCtx = { params: Promise<{ path: string[] }> }
 
 /**
- * GET /api/files/news/xxx.jpg — legacy same-origin path; new uploads use /files/...
+ * GET /api/files/... — legacy; new uploads use Cloudinary URLs stored in content.
  */
 export async function GET(_req: Request, ctx: RouteCtx) {
   const { path: segments } = await ctx.params

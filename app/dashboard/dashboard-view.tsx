@@ -707,9 +707,9 @@ export function DashboardView() {
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="max-w-xl text-sm text-slate-600">
-                    Uploads go to MinIO; URLs look like{' '}
-                    <span className="font-mono text-xs">/files/publications/…</span>{' '}
-                    in this repo.
+                    Uploads go to Cloudinary; stored URLs are HTTPS (for example{' '}
+                    <span className="font-mono text-xs">https://res.cloudinary.com/…</span>
+                    ).
                   </p>
                   <PublicationForm onCreated={refetchPublications} />
                 </div>

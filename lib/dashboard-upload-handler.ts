@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server'
 
 import type { DashboardFolder } from '@/lib/upload'
 import {
-  buildObjectKey,
   contentTypeForExt,
-  uploadBufferToMinio,
+  uploadBufferToCloudinary,
   validateDashboardBlob,
 } from '@/lib/upload'
 
@@ -63,19 +62,18 @@ export async function dashboardUploadPost(req: Request): Promise<NextResponse> {
                 ? 'certificates'
                 : 'news'
 
-    const objectKey = buildObjectKey(subdir, validated.ext)
     const contentType = contentTypeForExt(validated.ext)
-    const { url } = await uploadBufferToMinio({
-      objectKey,
+    const { url } = await uploadBufferToCloudinary({
+      subdir,
       buffer: buf,
       contentType,
     })
-    return NextResponse.json({ success: true, data: { url } })
+    return NextResponse.json({ success: true, url })
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Upload failed'
     console.error('[upload]', e)
     return NextResponse.json(
-      { success: false, error: message.includes('MinIO') ? message : 'Upload failed. Check MinIO configuration.' },
+      { success: false, error: message.includes('Cloudinary') ? message : 'Upload failed. Check Cloudinary configuration.' },
       { status: 502 },
     )
   }

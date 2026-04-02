@@ -6,11 +6,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	gormlogger "gorm.io/gorm/logger"
 
 	"github.com/bararug/website-backend/config"
+	"github.com/bararug/website-backend/internal/cloudinaryupload"
 	"github.com/bararug/website-backend/internal/database"
 	"github.com/bararug/website-backend/internal/handlers"
 	"github.com/bararug/website-backend/internal/middleware"
@@ -27,6 +29,19 @@ func main() {
 	}
 	if err := cfg.Validate(); err != nil {
 		log.Fatal(err)
+	}
+
+	if cfg.CloudinaryConfigured() {
+		cld, err := cloudinary.NewFromParams(
+			strings.TrimSpace(cfg.CloudinaryCloudName),
+			strings.TrimSpace(cfg.CloudinaryAPIKey),
+			strings.TrimSpace(cfg.CloudinaryAPISecret),
+		)
+		if err != nil {
+			log.Fatal("cloudinary: ", err)
+		}
+		cloudinaryupload.SetClient(cld)
+		log.Printf("cloudinary: upload client ready (cloud_name=%s)", strings.TrimSpace(cfg.CloudinaryCloudName))
 	}
 
 	gin.SetMode(cfg.GinMode)
@@ -156,7 +171,7 @@ func main() {
 		api.POST("/auth/register", authH.Register)
 		api.POST("/auth/login", authH.Login)
 
-		// Multipart uploads to MinIO (same env as Next.js). Used when /api is proxied to Go.
+		// Multipart uploads to Cloudinary. Used when /api is proxied to Go.
 		api.POST("/upload", middleware.AuthDashboardIdentity(cfg), uploadH.Post)
 
 		api.GET("/admin/users", adminOnly, adminUsersH.List)

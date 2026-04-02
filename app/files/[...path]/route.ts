@@ -8,8 +8,7 @@ import {
 type RouteCtx = { params: Promise<{ path: string[] }> }
 
 /**
- * GET /files/news/... — stream from MinIO. Path is **not** under `/api` so reverse proxies can send
- * `/api/*` to Go while Next still serves uploaded assets.
+ * GET /files/news/... — legacy path; new uploads use Cloudinary HTTPS URLs (see lib/upload.ts).
  */
 export async function GET(_req: Request, ctx: RouteCtx) {
   const { path: segments } = await ctx.params
