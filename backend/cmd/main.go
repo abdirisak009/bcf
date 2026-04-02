@@ -130,6 +130,7 @@ func main() {
 	certRegH := handlers.NewCertificateRegistryHandler(certRegSvc)
 	adminUsersH := handlers.NewAdminUsersHandler(adminUsersSvc)
 	freeTrainH := handlers.NewFreeTrainingHandler(freeTrainSvc, cfg)
+	uploadH := handlers.NewUploadHandler(cfg, authRepo)
 
 	dash := func(p string) gin.HandlerFunc {
 		return middleware.AuthDashboard(cfg.JWTSecret, cfg.DashboardWriteKey, authRepo, p)
@@ -154,6 +155,9 @@ func main() {
 	{
 		api.POST("/auth/register", authH.Register)
 		api.POST("/auth/login", authH.Login)
+
+		// Multipart uploads to MinIO (same env as Next.js). Used when /api is proxied to Go.
+		api.POST("/upload", middleware.AuthDashboardIdentity(cfg.JWTSecret, cfg.DashboardWriteKey, authRepo), uploadH.Post)
 
 		api.GET("/admin/users", adminOnly, adminUsersH.List)
 		api.POST("/admin/users", adminOnly, adminUsersH.Create)

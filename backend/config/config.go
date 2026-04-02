@@ -74,6 +74,15 @@ type Config struct {
 
 	// BootstrapAdmins: optional; on startup, each pair is created as role=admin if that email is missing (password min 8 chars).
 	BootstrapAdmins []BootstrapAdmin
+
+	// MinIO (same env vars as Next.js dashboard uploads). Optional until POST /api/upload is used.
+	MinioEndpoint  string
+	MinioPort      string
+	MinioAccessKey string
+	MinioSecretKey string
+	MinioBucket    string
+	MinioUseSSL    bool
+	MinioRegion    string
 }
 
 func Load() (*Config, error) {
@@ -158,6 +167,13 @@ func Load() (*Config, error) {
 		WhatsAppSendFileURL:      getenvWithJSON(j, "WHATSAPP_SENDFILE_URL", ""),
 		CORSAllowOrigins:         splitCommaList(getenvWithJSON(j, "CORS_ALLOW_ORIGINS", "")),
 		BootstrapAdmins:          loadBootstrapAdmins(j),
+		MinioEndpoint:            getenvWithJSON(j, "MINIO_ENDPOINT", ""),
+		MinioPort:                getenvWithJSON(j, "MINIO_PORT", ""),
+		MinioAccessKey:           getenvWithJSON(j, "MINIO_ACCESS_KEY", ""),
+		MinioSecretKey:           getenvWithJSON(j, "MINIO_SECRET_KEY", ""),
+		MinioBucket:              getenvWithJSON(j, "MINIO_BUCKET", ""),
+		MinioUseSSL:              parseBoolEnv(getenvWithJSON(j, "MINIO_USE_SSL", "")),
+		MinioRegion:              getenvWithJSON(j, "MINIO_REGION", ""),
 	}, nil
 }
 
@@ -206,6 +222,23 @@ func loadDeploymentJSON() map[string]string {
 		return root.Backend
 	}
 	return nil
+}
+
+func parseBoolEnv(s string) bool {
+	s = strings.TrimSpace(strings.ToLower(s))
+	return s == "1" || s == "true" || s == "yes"
+}
+
+// MinIOConfigured is true when all required MinIO env vars are set (matches Next.js MinIO usage).
+func (c *Config) MinIOConfigured() bool {
+	if c == nil {
+		return false
+	}
+	return strings.TrimSpace(c.MinioEndpoint) != "" &&
+		strings.TrimSpace(c.MinioPort) != "" &&
+		strings.TrimSpace(c.MinioAccessKey) != "" &&
+		strings.TrimSpace(c.MinioSecretKey) != "" &&
+		strings.TrimSpace(c.MinioBucket) != ""
 }
 
 func splitCommaList(s string) []string {

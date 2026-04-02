@@ -77,6 +77,43 @@ func userHasDashboardPerm(role models.Role, perms []string, required string) boo
 	return false
 }
 
+// UserHasDashboardPermission is the same rule as AuthDashboard for a single permission key.
+func UserHasDashboardPermission(role models.Role, perms []string, required string) bool {
+	return userHasDashboardPerm(role, perms, required)
+}
+
+// AuthDashboardIdentity validates Bearer JWT or X-Dashboard-Key (admin) and sets auth context.
+// It does not check a specific permission — use for handlers that enforce permission after parsing the body (e.g. multipart upload by folder).
+func AuthDashboardIdentity(jwtSecret string, dashboardKey string, authRepo *repositories.AuthRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if len(dashboardKey) > 0 {
+			got := strings.TrimSpace(c.GetHeader("X-Dashboard-Key"))
+			if len(got) > 0 && subtle.ConstantTimeCompare([]byte(got), []byte(dashboardKey)) == 1 {
+				c.Set(CtxRoleKey, models.RoleAdmin)
+				c.Next()
+				return
+			}
+		}
+		h := c.GetHeader("Authorization")
+		if h == "" || !strings.HasPrefix(strings.ToLower(h), "bearer ") {
+			pkgutils.Fail(c, http.StatusUnauthorized, "missing or invalid authorization header")
+			c.Abort()
+			return
+		}
+		raw := strings.TrimSpace(h[7:])
+		claims, err := pkgutils.ParseJWT(jwtSecret, raw)
+		if err != nil {
+			pkgutils.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+			c.Abort()
+			return
+		}
+		c.Set(CtxUserIDKey, claims.UserID)
+		c.Set(CtxRoleKey, claims.Role)
+		c.Set(CtxEmailKey, claims.Email)
+		c.Next()
+	}
+}
+
 // AuthAdminOrKey allows X-Dashboard-Key or JWT with admin role only (user management, etc.).
 func AuthAdminOrKey(jwtSecret string, dashboardKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
