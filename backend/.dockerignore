@@ -1,0 +1,16 @@
+# Local build artifacts (were ~27MB+ context — fill Docker disk during go mod / COPY)
+app
+bcf-api
+seed-admin
+bin/
+
+.git
+.gitignore
+.env
+.env.*
+*.md
+
+# Not needed to compile main API
+Makefile
+docker-compose.yml
+scripts/
