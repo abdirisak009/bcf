@@ -18,7 +18,7 @@ import (
 
 func main() {
 	email := strings.ToLower(strings.TrimSpace(os.Getenv("ADMIN_EMAIL")))
-	pass := os.Getenv("ADMIN_PASSWORD")
+	pass := strings.TrimSpace(os.Getenv("ADMIN_PASSWORD"))
 
 	if email == "" || pass == "" {
 		fmt.Fprintln(os.Stderr, "Usage: set ADMIN_EMAIL and ADMIN_PASSWORD (min 8 chars), then:")

@@ -255,7 +255,8 @@ func loadBootstrapAdmins(j map[string]string) []BootstrapAdmin {
 		ek := fmt.Sprintf("BOOTSTRAP_ADMIN_%d_EMAIL", i)
 		pk := fmt.Sprintf("BOOTSTRAP_ADMIN_%d_PASSWORD", i)
 		email := strings.ToLower(strings.TrimSpace(getenvWithJSON(j, ek, "")))
-		pass := getenvWithJSON(j, pk, "")
+		// Trim so hashes match login/register (env files often have trailing newlines).
+		pass := strings.TrimSpace(getenvWithJSON(j, pk, ""))
 		if email == "" || pass == "" {
 			continue
 		}

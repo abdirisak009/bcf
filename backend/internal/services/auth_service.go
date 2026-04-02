@@ -96,7 +96,6 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 		return nil, ErrInvalidCredentials
 	}
 
-	// bcrypt.CompareHashAndPassword(hashedPassword, password) — hash first, plaintext second (never swap).
 	storedHash := strings.TrimSpace(u.PasswordHash)
 	slog.Debug("auth login verify",
 		"email_len", len(email),
@@ -109,7 +108,7 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 		return nil, ErrInvalidCredentials
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password))
+	err = pkgutils.ComparePasswordWithHash(storedHash, password)
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			slog.Debug("auth login: password mismatch", "user_id", u.ID.String())
