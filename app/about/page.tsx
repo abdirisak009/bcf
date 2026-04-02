@@ -6,10 +6,8 @@ import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { PageHeroShell, pageHeroSubtitleClass, pageHeroTitleClass } from '@/components/page-hero';
 import { AboutKeyClientsSection } from '@/components/about-key-clients';
-import ChairpersonMessage from '@/components/chairperson-message';
 import WhoWeAre from '@/components/who-we-are';
-import Leadership from '@/components/leadership';
-import { Heart, BookOpen, Lightbulb, Eye, Calendar, Users, Handshake, Flag, Users2, Download, Crown, Briefcase, Settings, TrendingUp, ClipboardList, BarChart3, Award, UserCheck, Globe, Shield, Layers, UserCog } from 'lucide-react';
+import { Heart, BookOpen, Lightbulb, Calendar, Users, Handshake, Flag, Users2, Download, Crown, Briefcase, Settings, TrendingUp, ClipboardList, BarChart3, Award, UserCheck, Globe, Shield, Layers, UserCog } from 'lucide-react';
 
 export default function AboutPage() {
   const [hoveredMetric, setHoveredMetric] = useState<number | null>(null);
@@ -26,8 +24,6 @@ export default function AboutPage() {
   ];
 
   const principles = [
-    { title: 'Our Vision', icon: Eye, description: 'To be a globally recognized consulting firm leading impactful change, strengthening institutions, and driving sustainable development across Somalia and beyond.' },
-    { title: 'Our Mission', icon: BookOpen, description: 'To deliver expert, innovative consulting solutions that empower clients to overcome challenges, drive excellence, and foster sustainable socio-economic growth.' },
     { title: 'Core Values', icon: Heart, description: 'Excellence • Integrity • Innovation • Collaboration • Accountability • Transparency' },
     { title: 'Our Philosophy', icon: Lightbulb, description: 'We believe in the transformative power of strategic thinking, evidence-based solutions, and collaborative partnerships to create lasting positive impact.' },
   ];
@@ -48,9 +44,7 @@ export default function AboutPage() {
         </p>
       </PageHeroShell>
 
-      <ChairpersonMessage />
       <WhoWeAre surface="light" />
-      <Leadership />
 
       {/* Guiding Principles - Full Width Section */}
       <section className="relative overflow-hidden bg-slate-100 py-28">
@@ -75,8 +69,6 @@ export default function AboutPage() {
             {principles.map((principle, idx) => {
               const IconComponent = principle.icon;
               const cardStyles = [
-                { bg: 'bg-white', border: 'border-brand-navy/20 hover:border-brand-navy', iconBg: 'bg-brand-navy', iconText: 'text-white', titleColor: 'text-brand-navy', descColor: 'text-slate-700', accentColor: 'bg-brand-navy', shadowHover: 'hover:shadow-brand-navy/20', topAccent: 'bg-brand-navy' },
-                { bg: 'bg-white', border: 'border-brand-teal/20 hover:border-brand-teal', iconBg: 'bg-brand-teal', iconText: 'text-white', titleColor: 'text-brand-teal', descColor: 'text-slate-700', accentColor: 'bg-brand-teal', shadowHover: 'hover:shadow-brand-teal/20', topAccent: 'bg-brand-teal' },
                 { bg: 'bg-white', border: 'border-brand-teal/20 hover:border-brand-teal', iconBg: 'bg-brand-teal', iconText: 'text-white', titleColor: 'text-brand-teal', descColor: 'text-slate-700', accentColor: 'bg-brand-teal', shadowHover: 'hover:shadow-brand-teal/20', topAccent: 'bg-brand-teal' },
                 { bg: 'bg-white', border: 'border-brand-navy/20 hover:border-brand-navy', iconBg: 'bg-brand-navy', iconText: 'text-white', titleColor: 'text-brand-navy', descColor: 'text-slate-700', accentColor: 'bg-brand-navy', shadowHover: 'hover:shadow-brand-navy/20', topAccent: 'bg-brand-navy' },
               ];

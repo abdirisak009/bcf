@@ -25,6 +25,7 @@ import {
   Newspaper,
   Library,
   MessageCircle,
+  MessageSquare,
   type LucideIcon,
 } from 'lucide-react';
 import { OFFICE_ADDRESS, SITE_LOGO_SRC } from '@/lib/site-config';
@@ -56,6 +57,7 @@ const navItems: NavEntry[] = [
     hasDropdown: true,
     dropdownItems: [
       { label: 'About Us', icon: Info, href: '/about' },
+      { label: 'CEO Message', icon: MessageSquare, href: '/ceo-message' },
       { label: 'Our Team', icon: Users, href: '/our-team' },
       { label: 'Career', icon: BookOpen, href: '/careers' },
     ],
@@ -103,7 +105,7 @@ const navItems: NavEntry[] = [
 function isItemActive(pathname: string, hash: string, item: NavEntry): boolean {
   if (item.name === 'Home') return pathname === '/';
   if (item.name === 'About') {
-    return ['/about', '/our-team', '/careers'].some((p) => pathname === p || pathname.startsWith(`${p}/`));
+    return ['/about', '/ceo-message', '/our-team', '/careers'].some((p) => pathname === p || pathname.startsWith(`${p}/`));
   }
   if (item.name === 'Services') return pathname.startsWith('/services');
   if (item.name === 'Training') {

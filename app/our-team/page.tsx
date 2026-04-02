@@ -51,11 +51,89 @@ function useScrollReveal() {
   return { ref, visible };
 }
 
+type TeamCardThemeKey = 'ceo' | 'chairman' | 'coo';
+
+/** Visual identity per card — kala duwanaansho leh, oo dhammaan midabada ka yimaada brand tokens */
+const TEAM_CARD_THEME: Record<
+  TeamCardThemeKey,
+  {
+    glow: string;
+    articleBorder: string;
+    hoverShadow: string;
+    portraitBg: string;
+    halo: string;
+    tagline: string;
+    name: string;
+    underline: string;
+    role: string;
+    stats: string;
+    statValue: string;
+    statLabel: string;
+    tags: string;
+    linkedin: string;
+    footerBar: string;
+  }
+> = {
+  ceo: {
+    glow: 'bg-brand-navy',
+    articleBorder: 'border-brand-navy/25 group-hover:border-brand-navy/45',
+    hoverShadow: 'group-hover:shadow-[0_24px_52px_-26px_rgba(23,94,126,0.26)]',
+    portraitBg: 'bg-gradient-to-b from-brand-mint/35 via-white to-white',
+    halo: 'from-brand-navy/25 via-brand-teal/30 to-transparent',
+    tagline: 'text-brand-teal',
+    name: 'text-brand-navy drop-shadow-[0_1px_0_rgba(255,255,255,0.8)]',
+    underline: 'from-brand-teal to-brand-navy',
+    role: 'text-brand-navy/80',
+    stats: 'bg-gradient-to-br from-white to-brand-mint/45 ring-1 ring-brand-teal/25',
+    statValue: 'text-brand-navy',
+    statLabel: 'text-brand-navy/55',
+    tags: 'border-brand-teal/35 bg-brand-mint/50 text-brand-navy',
+    linkedin:
+      'border-brand-navy/15 hover:border-brand-teal/45 hover:bg-brand-mint/40 hover:text-brand-navy',
+    footerBar: 'bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy',
+  },
+  chairman: {
+    glow: 'bg-brand-teal',
+    articleBorder: 'border-brand-teal/35 group-hover:border-brand-teal/60',
+    hoverShadow: 'group-hover:shadow-[0_24px_52px_-26px_rgba(85,197,147,0.32)]',
+    portraitBg: 'bg-gradient-to-b from-brand-mint/40 via-white to-white',
+    halo: 'from-brand-teal/45 via-brand-green/35 to-transparent',
+    tagline: 'text-brand-teal',
+    name: 'bg-gradient-to-br from-brand-navy via-brand-navy to-brand-teal bg-clip-text text-transparent [text-shadow:none]',
+    underline: 'from-brand-green to-brand-teal',
+    role: 'text-brand-navy/82',
+    stats: 'bg-gradient-to-br from-brand-mint/50 to-white ring-1 ring-brand-green/30',
+    statValue: 'text-brand-navy',
+    statLabel: 'text-brand-navy/58',
+    tags: 'border-brand-teal/40 bg-brand-mint/55 text-brand-navy',
+    linkedin: 'border-brand-teal/35 hover:border-brand-teal/70 hover:bg-brand-mint/50 hover:text-brand-navy',
+    footerBar: 'bg-gradient-to-r from-brand-teal via-brand-green to-brand-teal',
+  },
+  coo: {
+    glow: 'bg-brand-navy-mid',
+    articleBorder: 'border-brand-navy/28 group-hover:border-brand-teal/45',
+    hoverShadow: 'group-hover:shadow-[0_24px_52px_-26px_rgba(23,94,126,0.22)]',
+    portraitBg: 'bg-gradient-to-b from-brand-mint/30 via-white to-white',
+    halo: 'from-brand-navy-mid/40 via-brand-teal/25 to-transparent',
+    tagline: 'text-brand-navy',
+    name: 'bg-gradient-to-br from-brand-navy via-brand-navy-mid to-brand-navy bg-clip-text text-transparent [text-shadow:none]',
+    underline: 'from-brand-teal to-brand-navy-mid',
+    role: 'text-brand-navy/85',
+    stats: 'bg-gradient-to-br from-white to-brand-mint/40 ring-1 ring-brand-navy/18',
+    statValue: 'text-brand-navy',
+    statLabel: 'text-brand-navy/55',
+    tags: 'border-brand-navy/22 bg-brand-mint/45 text-brand-navy',
+    linkedin: 'border-brand-navy/20 hover:border-brand-teal/50 hover:bg-brand-mint/40 hover:text-brand-navy',
+    footerBar: 'bg-gradient-to-r from-brand-navy-mid via-brand-teal to-brand-navy',
+  },
+};
+
 type TeamMember = {
   name: string;
   role: string;
   gender: 'female' | 'male';
   surface: string;
+  cardTheme: TeamCardThemeKey;
   tagline: string;
   bio: string;
   expertise: string[];
@@ -66,7 +144,7 @@ type TeamMember = {
   photoAccent?: boolean;
   /** Optional classes for portrait `Image` (face framing / zoom), e.g. Ayan close-up */
   photoImageClassName?: string;
-  /** Optional taller portrait strip (e.g. CEO headshot) */
+  /** Optional size override for circular portrait, e.g. `h-40 w-40 sm:h-44 sm:w-44` */
   photoPortraitClassName?: string;
   /** If primary `photo` 404s, try these in order (e.g. `/images/if.jpeg` vs `/if.jpeg`) */
   photoSrcFallbacks?: string[];
@@ -77,20 +155,24 @@ const teamMembers: TeamMember[] = [
     name: 'Mss. Ayan Ali Aden',
     role: 'CEO',
     gender: 'female',
+    cardTheme: 'ceo',
     surface: 'bg-brand-navy',
     tagline: '14 Years of Visionary Leadership',
     bio: 'CEO with 14 years in public financial management, procurement, and institutional reform — partnering with World Bank, AfDB, UNDP, and UN-Habitat.',
     expertise: ['Public Financial Management', 'Fiscal Governance', 'Institutional Capacity Building', 'Public Procurement'],
     stats: [{ label: 'Years Exp.', value: '14+' }, { label: 'Organizations', value: '10+' }, { label: 'Countries', value: '5+' }],
-    photo: '/ayan.jpeg',
-    photoPortraitClassName: 'h-[270px] sm:h-[295px]',
+    /** Primary portrait: `public/ayan.jpg` (fallback: `public/ayan.jpeg`) */
+    photo: '/ayan.jpg',
+    photoSrcFallbacks: ['/ayan.jpeg'],
+    photoPortraitClassName: 'h-36 w-36 sm:h-40 sm:w-40',
     photoImageClassName:
-      'object-cover object-[40%_38%] scale-[1.28] origin-[48%_42%] transition-transform duration-500 ease-out group-hover:scale-[1.34]',
+      'object-cover object-[40%_42%] transition-transform duration-500 ease-out group-hover:scale-105',
   },
   {
     name: 'Dr. Abdinur Ahmed',
     role: 'Chairman',
     gender: 'male',
+    cardTheme: 'chairman',
     surface: 'bg-brand-teal',
     tagline: 'Economic Theory & Climate Expert',
     bio: 'Former Dean at SIMAD University; research on climate economics, financial inclusion, and policy across East Africa.',
@@ -103,6 +185,7 @@ const teamMembers: TeamMember[] = [
     name: 'Mss. Ifrah Abdirahman',
     role: 'Chief Operating Officer (COO)',
     gender: 'female',
+    cardTheme: 'coo',
     surface: 'bg-brand-navy-mid',
     tagline: '10+ Years Driving Strategic Excellence',
     bio: 'COO focused on public-sector consulting, audit, strategic policy, and transformation across the Horn of Africa.',
@@ -110,9 +193,9 @@ const teamMembers: TeamMember[] = [
     stats: [{ label: 'Years Exp.', value: '10+' }, { label: 'Projects Led', value: '50+' }, { label: 'Sectors', value: '8+' }],
     photo: '/ifrah.png',
     photoSrcFallbacks: ['/images/if.jpeg', '/if.jpeg', '/ifrah.jpeg'],
-    photoPortraitClassName: 'h-[250px] sm:h-[275px]',
+    photoPortraitClassName: 'h-32 w-32 sm:h-36 sm:w-36',
     photoImageClassName:
-      '!object-cover object-[50%_30%] -translate-y-2.5 sm:-translate-y-3 transition-transform duration-500 ease-out group-hover:scale-[1.02]',
+      'object-cover object-[50%_35%] transition-transform duration-500 ease-out group-hover:scale-105',
   },
 ];
 
@@ -146,7 +229,7 @@ function TeamPortraitImage({
       src={src}
       alt={member.name}
       fill
-      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 360px"
+      sizes="(max-width: 640px) 40vw, 180px"
       className={className}
       priority={priority}
       onError={onError}
@@ -156,6 +239,7 @@ function TeamPortraitImage({
 
 function TeamCard({ member, idx }: { member: TeamMember; idx: number }) {
   const { ref, visible } = useScrollReveal();
+  const t = TEAM_CARD_THEME[member.cardTheme];
   const Avatar = member.gender === 'female' ? FemaleAvatar : MaleAvatar;
   const tagPreview = member.expertise.slice(0, 2);
   const tagExtra = member.expertise.length - tagPreview.length;
@@ -172,97 +256,133 @@ function TeamCard({ member, idx }: { member: TeamMember; idx: number }) {
       }}
     >
       <div
-        className={`absolute -inset-[1px] ${member.surface} rounded-2xl opacity-0 blur-xl transition-all duration-500 group-hover:opacity-[0.14]`}
+        className={cn('absolute -inset-[1px] rounded-3xl opacity-0 blur-xl transition-all duration-500 group-hover:opacity-[0.14]', t.glow)}
       />
 
-      <article className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-16px_rgba(23,94,126,0.12)] transition-all duration-300 group-hover:-translate-y-1 group-hover:border-slate-300/90 group-hover:shadow-[0_20px_50px_-24px_rgba(23,94,126,0.18)]">
-        {/* Portrait — clear photo, no dark color wash */}
-        <div
-          className={cn(
-            'relative h-[200px] w-full shrink-0 overflow-hidden bg-slate-100 sm:h-[220px]',
-            member.photoPortraitClassName,
-          )}
-        >
-          {hasPhoto ? (
-            <TeamPortraitImage
-              member={member}
-              priority={idx < 2}
-              className={cn(
-                'object-cover object-[center_20%] transition-transform duration-500 ease-out group-hover:scale-[1.02]',
-                member.photoImageClassName,
-              )}
-            />
-          ) : (
+      <article
+        className={cn(
+          'relative flex h-full flex-col overflow-hidden rounded-3xl border bg-white shadow-[0_2px_8px_rgba(15,23,42,0.04),0_16px_40px_-24px_rgba(23,94,126,0.12)] ring-1 ring-slate-900/[0.03] transition-all duration-500 group-hover:-translate-y-1',
+          t.articleBorder,
+          t.hoverShadow,
+        )}
+      >
+        {/* Portrait — compact halo */}
+        <div className={cn('relative shrink-0 overflow-hidden px-5 pb-1 pt-6 sm:px-6 sm:pt-7', t.portraitBg)}>
+          <div
+            className={cn(
+              'pointer-events-none absolute inset-x-10 top-4 h-24 rounded-full bg-gradient-to-b blur-2xl',
+              t.halo,
+            )}
+          />
+          <div className="relative mx-auto flex justify-center">
             <div
-              className={`flex h-full w-full items-center justify-center ${member.surface} bg-gradient-to-br from-white/10 to-black/20`}
+              className={cn(
+                'relative shrink-0 overflow-hidden rounded-full border-[3px] border-white bg-slate-100 shadow-[0_12px_32px_-16px_rgba(23,94,126,0.38)]',
+                member.photoAccent
+                  ? 'ring-2 ring-amber-400/55 ring-offset-[3px] ring-offset-white shadow-[0_16px_40px_-14px_rgba(217,119,6,0.28)]'
+                  : 'ring-1 ring-slate-200/80',
+                member.photoPortraitClassName ?? 'h-32 w-32 sm:h-36 sm:w-36',
+              )}
             >
-              <div className="rounded-full border-[3px] border-white/25 bg-white/10 p-0.5 shadow-lg ring-2 ring-white/10">
-                <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-white/10 sm:h-32 sm:w-32">
-                  <Avatar className="h-24 w-24 sm:h-28 sm:w-28" />
+              {hasPhoto ? (
+                <TeamPortraitImage
+                  member={member}
+                  priority={idx === 0}
+                  className={cn(
+                    'object-cover object-[center_22%] transition-transform duration-500 ease-out group-hover:scale-[1.03]',
+                    member.photoImageClassName,
+                  )}
+                />
+              ) : (
+                <div
+                  className={cn('flex h-full w-full items-center justify-center bg-gradient-to-br from-white/20 to-black/10', member.surface)}
+                >
+                  <div className="rounded-full border-2 border-white/40 bg-white/15 p-1 shadow-inner">
+                    <div className="flex h-[calc(100%-0.5rem)] w-[calc(100%-0.5rem)] items-center justify-center overflow-hidden rounded-full">
+                      <Avatar className="h-[72%] w-[72%]" />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Identity — on white, readable (professional) */}
-        <div className="border-b border-slate-100 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3.5 sm:px-5 sm:py-4">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-teal sm:text-[11px]">{member.tagline}</p>
-          <h3 className="mt-1.5 text-balance text-lg font-bold leading-snug tracking-tight text-brand-navy sm:text-xl">
+        {/* Name-first hierarchy: tagline muted → title hero → role */}
+        <div className="border-b border-slate-100/80 bg-white px-4 pb-3 pt-1 text-center sm:px-5">
+          <p className={cn('text-[8px] font-semibold uppercase tracking-[0.2em] sm:text-[9px]', t.tagline)}>{member.tagline}</p>
+          <h3
+            className={cn(
+              'mt-1.5 text-balance font-[family-name:var(--font-merriweather)] text-2xl font-bold leading-[1.1] tracking-tight sm:text-[1.65rem] md:text-[1.85rem] md:leading-[1.06]',
+              t.name,
+            )}
+          >
             {member.name}
           </h3>
-          <p className="mt-1 text-sm font-semibold text-slate-600">{member.role}</p>
+          <div className={cn('mx-auto mt-2 h-0.5 w-10 rounded-full bg-gradient-to-r sm:w-12', t.underline)} />
+          <p className={cn('mt-2 text-[11px] font-semibold uppercase tracking-[0.08em] sm:text-xs', t.role)}>{member.role}</p>
         </div>
 
-        <div className="flex flex-1 flex-col gap-2.5 px-3 pb-3 pt-3 sm:px-4 sm:pb-4">
-          <div className="grid grid-cols-3 gap-0.5 rounded-xl bg-white px-1.5 py-2.5 ring-1 ring-slate-200/80">
+        <div className="flex flex-1 flex-col gap-2.5 px-4 pb-3.5 pt-3 sm:gap-3 sm:px-5 sm:pb-4">
+          <div className={cn('flex gap-0.5 rounded-xl p-1', t.stats)}>
             {member.stats.map((stat, sIdx) => (
-              <div key={sIdx} className="min-w-0 border-r border-slate-200/70 text-center last:border-r-0">
-                <p className="text-sm font-black tabular-nums leading-none text-brand-navy sm:text-base">{stat.value}</p>
-                <p className="mt-0.5 text-[8px] font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-[9px]">
+              <div
+                key={sIdx}
+                className="min-w-0 flex-1 rounded-lg px-0.5 py-1.5 text-center transition-colors group-hover:bg-white/55 sm:py-2"
+              >
+                <p className={cn('text-xs font-black tabular-nums leading-none sm:text-sm', t.statValue)}>{stat.value}</p>
+                <p
+                  className={cn(
+                    'mt-0.5 text-[6px] font-bold uppercase leading-tight tracking-[0.12em] sm:text-[7px]',
+                    t.statLabel,
+                  )}
+                >
                   {stat.label}
                 </p>
               </div>
             ))}
           </div>
 
-          <p className="line-clamp-2 text-xs leading-snug text-slate-600 sm:text-[13px]">{member.bio}</p>
+          <p className="line-clamp-2 text-center text-[11px] leading-snug text-slate-600 sm:text-xs">{member.bio}</p>
 
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap justify-center gap-1">
             {tagPreview.map((tag, tIdx) => (
               <span
                 key={tIdx}
-                className="rounded-md border border-brand-navy/10 bg-brand-mint/35 px-1.5 py-0.5 text-[9px] font-semibold text-brand-navy sm:text-[10px]"
+                className={cn('rounded-full border px-2 py-0.5 text-[8px] font-semibold sm:text-[9px]', t.tags)}
               >
                 {tag}
               </span>
             ))}
             {tagExtra > 0 && (
-              <span className="self-center rounded border border-dashed border-slate-300/80 px-1.5 py-0.5 text-[9px] font-medium text-slate-500">
+              <span className="self-center rounded-full border border-dashed border-slate-300/80 px-1.5 py-0.5 text-[8px] font-medium text-slate-500">
                 +{tagExtra}
               </span>
             )}
           </div>
 
-          <div className="mt-auto flex gap-1.5 border-t border-slate-100 pt-2.5">
+          <div className="mt-auto flex gap-1.5 border-t border-slate-100/90 pt-2.5">
             <button
               type="button"
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg ${member.surface} py-2 text-[11px] font-bold text-white shadow-sm transition hover:brightness-110 sm:gap-2 sm:text-xs`}
+              className={`flex flex-1 items-center justify-center gap-1 rounded-lg ${member.surface} py-2 text-[10px] font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[0.98] sm:text-[11px]`}
             >
-              <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+              <Mail className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" strokeWidth={2.25} />
               Contact
             </button>
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 text-[11px] font-bold text-slate-700 shadow-sm transition hover:border-brand-teal hover:text-brand-teal sm:text-xs"
+              className={cn(
+                'flex flex-1 items-center justify-center gap-1 rounded-lg border bg-white py-2 text-[10px] font-bold text-slate-700 shadow-sm transition active:scale-[0.98] sm:text-[11px]',
+                t.linkedin,
+              )}
             >
-              <Linkedin className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+              <Linkedin className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" strokeWidth={2.25} />
               LinkedIn
             </button>
           </div>
         </div>
 
-        <div className={`h-0.5 w-full ${member.surface} opacity-80`} />
+        <div className={cn('h-0.5 w-full', t.footerBar)} />
       </article>
     </div>
   );

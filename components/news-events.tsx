@@ -1,16 +1,35 @@
 'use client'
 
+import { useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, CalendarDays, Library, Newspaper } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FacebookFeedColumn } from '@/components/home-facebook-news'
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel'
 import type { ContentCard } from '@/lib/publications-news-data'
 import { cn } from '@/lib/utils'
 
-const SIDEBAR_LIMIT = 5
+/** Interleave news and publications so the feed mixes both types */
+function mergeNewsAndPublications(
+  news: ContentCard[],
+  pubs: ContentCard[],
+): { item: ContentCard; kind: 'publication' | 'news' }[] {
+  const out: { item: ContentCard; kind: 'publication' | 'news' }[] = []
+  const n = Math.max(news.length, pubs.length)
+  for (let i = 0; i < n; i++) {
+    if (i < news.length) out.push({ item: news[i], kind: 'news' })
+    if (i < pubs.length) out.push({ item: pubs[i], kind: 'publication' })
+  }
+  return out
+}
 
-function CompactSidebarCard({
+function SpotlightCard({
   item,
   accent,
   fallbackHref,
@@ -24,12 +43,14 @@ function CompactSidebarCard({
   const shell =
     accent === 'publication'
       ? {
-          tag: 'bg-brand-navy/10 text-brand-navy ring-1 ring-brand-navy/15',
+          tag: 'bg-brand-navy/12 text-brand-navy ring-1 ring-brand-navy/20',
           gradient: 'from-brand-navy via-[#1a6d8a] to-brand-navy-mid',
+          hoverRing: 'group-hover:ring-brand-navy/25',
         }
       : {
-          tag: 'bg-brand-teal/12 text-brand-teal ring-1 ring-brand-teal/20',
+          tag: 'bg-brand-teal/12 text-brand-teal ring-1 ring-brand-teal/25',
           gradient: 'from-brand-teal via-brand-navy/90 to-brand-navy',
+          hoverRing: 'group-hover:ring-brand-teal/30',
         }
   const FallbackIcon = accent === 'publication' ? Library : Newspaper
 
@@ -37,117 +58,55 @@ function CompactSidebarCard({
     <Link
       href={href}
       className={cn(
-        'group flex gap-3 rounded-xl border border-slate-200/85 bg-white p-3 shadow-[0_8px_24px_-16px_rgba(15,23,42,0.12)] transition-all duration-300',
-        'hover:-translate-y-0.5 hover:border-brand-teal/45 hover:shadow-[0_16px_36px_-20px_rgba(23,94,126,0.22)]',
+        'group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_40px_-20px_rgba(23,94,126,0.12)] ring-1 ring-transparent transition-all duration-500',
+        'hover:-translate-y-1 hover:border-brand-teal/35 hover:shadow-[0_24px_48px_-20px_rgba(23,94,126,0.22)]',
+        shell.hoverRing,
       )}
     >
-      <div className="relative h-[4.5rem] w-[5.25rem] shrink-0 overflow-hidden rounded-lg bg-slate-100">
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
         {hasImage ? (
           <Image
             src={item.featuredImageUrl!}
             alt={item.title}
             fill
-            className="object-cover transition duration-500 group-hover:scale-105"
-            sizes="84px"
+            className="object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
           <div
             className={cn('absolute inset-0 flex items-center justify-center bg-gradient-to-br', shell.gradient)}
             aria-hidden
           >
-            <FallbackIcon className="h-7 w-7 text-white/95" strokeWidth={1.75} />
+            <FallbackIcon className="h-14 w-14 text-white/95" strokeWidth={1.5} />
           </div>
         )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-navy/20 via-transparent to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
       </div>
-      <div className="min-w-0 flex-1 py-0.5">
+
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         <span
           className={cn(
-            'mb-1 inline-block max-w-full truncate rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider',
+            'mb-2 inline-block w-fit max-w-full truncate rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider',
             shell.tag,
           )}
         >
           {item.category}
         </span>
-        <h4 className="line-clamp-2 text-[13px] font-bold leading-snug text-brand-navy transition-colors group-hover:text-brand-teal">
+        <h4 className="line-clamp-2 min-h-[2.5rem] text-base font-bold leading-snug text-brand-navy transition-colors group-hover:text-brand-teal sm:text-[17px]">
           {item.title}
         </h4>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[11px] text-slate-400">
-          <span className="inline-flex items-center gap-1">
-            <CalendarDays className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0 text-brand-teal/70" aria-hidden />
             {item.date}
           </span>
         </div>
-        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-brand-teal transition group-hover:gap-1.5">
+        <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-brand-teal transition group-hover:gap-2">
           Read more
-          <ArrowRight className="h-3 w-3" />
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>
     </Link>
-  )
-}
-
-function SidebarColumn({
-  title,
-  subtitle,
-  icon: Icon,
-  items,
-  accent,
-  fallbackHref,
-  emptyMessage,
-  viewAllHref,
-  iconClass,
-}: {
-  title: string
-  subtitle: string
-  icon: typeof Library
-  items: ContentCard[]
-  accent: 'publication' | 'news'
-  fallbackHref: string
-  emptyMessage: string
-  viewAllHref: string
-  iconClass: string
-}) {
-  const slice = items.slice(0, SIDEBAR_LIMIT)
-
-  return (
-    <aside
-      className={cn(
-        'flex h-full flex-col rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 shadow-[0_12px_40px_-28px_rgba(15,23,42,0.12)] ring-1 ring-slate-900/[0.03] sm:p-5',
-      )}
-    >
-      <div className="mb-4 flex items-start gap-3 border-b border-slate-100 pb-4">
-        <span
-          className={cn(
-            'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-sm ring-1',
-            iconClass,
-          )}
-        >
-          <Icon className="h-5 w-5" strokeWidth={2} />
-        </span>
-        <div className="min-w-0">
-          <h3 className="text-base font-bold leading-tight text-brand-navy md:text-lg">{title}</h3>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
-        </div>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-3">
-        {slice.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground">{emptyMessage}</p>
-        ) : (
-          slice.map((item) => (
-            <CompactSidebarCard key={item.id} item={item} accent={accent} fallbackHref={fallbackHref} />
-          ))
-        )}
-      </div>
-
-      <Link
-        href={viewAllHref}
-        className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200/90 bg-white py-2.5 text-sm font-semibold text-brand-navy shadow-sm transition hover:border-brand-teal/40 hover:bg-brand-teal/5 hover:text-brand-teal"
-      >
-        View all
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-    </aside>
   )
 }
 
@@ -157,53 +116,82 @@ type NewsEventsProps = {
 }
 
 export default function NewsEvents({ publications: previewPubs, news: previewNews }: NewsEventsProps) {
+  const slides = useMemo(
+    () => mergeNewsAndPublications(previewNews, previewPubs),
+    [previewNews, previewPubs],
+  )
+
   return (
-    <section id="events" className="scroll-mt-28 bg-gradient-to-b from-slate-50/70 via-white to-white py-16 md:py-24">
+    <section id="events" className="scroll-mt-28 bg-gradient-to-b from-slate-50/80 via-white to-brand-mint/[0.08] py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 text-center md:mb-14">
+        <div className="mb-10 text-center md:mb-12">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-brand-teal">Events &amp; insights</p>
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-            News, social &amp; publications
+            News &amp; publications
           </h2>
           <p className="mx-auto max-w-2xl text-base text-muted-foreground md:text-lg">
-            Stories and research on the sides — our Facebook feed at the centre so you never miss an update.
+            Latest announcements, stories, and research from Baraarug — stay informed on our work and impact.
           </p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded-full bg-gradient-to-r from-brand-teal to-brand-navy/80" />
+          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-gradient-to-r from-brand-teal via-brand-green/90 to-brand-navy" />
         </div>
 
-        <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-12 lg:gap-6 xl:gap-8">
-          <div className="lg:col-span-3">
-            <SidebarColumn
-              title="News & activities"
-              subtitle="Updates & announcements"
-              icon={Newspaper}
-              items={previewNews}
-              accent="news"
-              fallbackHref="/news"
-              emptyMessage="No news yet. Check back soon."
-              viewAllHref="/news"
-              iconClass="bg-brand-teal/15 text-brand-teal ring-brand-teal/20"
-            />
-          </div>
+        {slides.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-slate-200 bg-white/80 py-16 text-center text-muted-foreground">
+            No news or publications yet. Check back soon.
+          </p>
+        ) : (
+          <div className="relative">
+            <Carousel
+              opts={{
+                align: 'start',
+                loop: false,
+                dragFree: false,
+                containScroll: 'trimSnaps',
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-3 md:-ml-4">
+                {slides.map(({ item, kind }) => (
+                  <CarouselItem
+                    key={`${kind}-${item.id}`}
+                    className="pl-3 md:pl-4 basis-full min-[520px]:basis-1/2 lg:basis-1/3"
+                  >
+                    <div className="h-full pt-1">
+                      <SpotlightCard
+                        item={item}
+                        accent={kind}
+                        fallbackHref={kind === 'news' ? '/news' : '/publications'}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
 
-          <div className="flex min-h-[480px] flex-col lg:col-span-6">
-            <FacebookFeedColumn className="h-full min-h-[520px] flex-1" />
+              {slides.length > 3 && (
+                <>
+                  <CarouselPrevious
+                    variant="outline"
+                    className={cn(
+                      'z-20 h-11 w-11 border-2 border-brand-teal/35 bg-white/95 text-brand-navy shadow-lg',
+                      'hover:border-brand-teal hover:bg-brand-mint/40 hover:text-brand-navy',
+                      'disabled:pointer-events-none disabled:opacity-0',
+                      'left-0 top-[42%] -translate-y-1/2 sm:left-1 md:left-0 lg:-left-2',
+                    )}
+                  />
+                  <CarouselNext
+                    variant="outline"
+                    className={cn(
+                      'z-20 h-11 w-11 border-2 border-brand-teal/35 bg-white/95 text-brand-navy shadow-lg',
+                      'hover:border-brand-teal hover:bg-brand-mint/40 hover:text-brand-navy',
+                      'disabled:pointer-events-none disabled:opacity-0',
+                      'right-0 top-[42%] -translate-y-1/2 sm:right-1 md:right-0 lg:-right-2',
+                    )}
+                  />
+                </>
+              )}
+            </Carousel>
           </div>
-
-          <div className="lg:col-span-3">
-            <SidebarColumn
-              title="Publications"
-              subtitle="Reports & briefs"
-              icon={Library}
-              items={previewPubs}
-              accent="publication"
-              fallbackHref="/publications"
-              emptyMessage="No publications yet."
-              viewAllHref="/publications"
-              iconClass="bg-brand-navy/10 text-brand-navy ring-brand-navy/12"
-            />
-          </div>
-        </div>
+        )}
 
         <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap">
           <Button
