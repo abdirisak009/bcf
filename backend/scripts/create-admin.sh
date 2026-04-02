@@ -88,3 +88,6 @@ run_seed() {
 }
 
 run_seed
+
+# Run the script to create the admin user
+# ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD='your-password-8+chars' ./scripts/create-admin.sh
