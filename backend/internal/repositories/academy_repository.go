@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"database/sql"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -31,6 +33,19 @@ func (r *AcademyRepository) ListWithTrainings() ([]models.Academy, error) {
 		return db.Order("created_at DESC")
 	}).Order("sort_order ASC, name ASC").Find(&rows).Error
 	return rows, err
+}
+
+// NextSortOrder returns max(sort_order)+1 so new academies append to the end of the list.
+func (r *AcademyRepository) NextSortOrder() (int, error) {
+	var max sql.NullInt64
+	err := r.db.Raw("SELECT COALESCE(MAX(sort_order), -1) FROM academies").Scan(&max).Error
+	if err != nil {
+		return 0, err
+	}
+	if !max.Valid {
+		return 0, nil
+	}
+	return int(max.Int64) + 1, nil
 }
 
 func (r *AcademyRepository) Create(a *models.Academy) error {

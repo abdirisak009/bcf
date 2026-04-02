@@ -58,6 +58,7 @@ import {
 } from '@/lib/dashboard-ui'
 import { cn } from '@/lib/utils'
 import { DashboardTablePaginationBar } from '@/components/dashboard/dashboard-table-pagination'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 type Props = {
   academies: Record<string, unknown>[]
@@ -72,7 +73,6 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
   const [academyErr, setAcademyErr] = useState<string | null>(null)
   const [aName, setAName] = useState('')
   const [aDesc, setADesc] = useState('')
-  const [aSort, setASort] = useState('0')
 
   const [trainOpen, setTrainOpen] = useState(false)
   const [trainPending, setTrainPending] = useState(false)
@@ -189,11 +189,12 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
     setAcademyErr(null)
     setAcademyPending(true)
     try {
-      const payload: Record<string, unknown> = {
-        name,
-        sort_order: Number.parseInt(aSort, 10) || 0,
-      }
+      const payload: Record<string, unknown> = { name }
       if (aDesc.trim()) payload.description = aDesc.trim()
+      if (editAcademyId) {
+        const row = academies.find((a) => String(a.id) === editAcademyId)
+        payload.sort_order = Number(row?.sort_order ?? 0)
+      }
 
       const url = editAcademyId ? `/api/academies/${editAcademyId}` : '/api/academies'
       const res = await fetch(url, {
@@ -209,7 +210,6 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
       setAcademyOpen(false)
       setAName('')
       setADesc('')
-      setASort('0')
       setEditAcademyId(null)
       onRefresh()
     } finally {
@@ -293,7 +293,6 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
     setEditAcademyId(String(row.id ?? ''))
     setAName(String(row.name ?? ''))
     setADesc(String(row.description ?? ''))
-    setASort(String(row.sort_order ?? '0'))
     setAcademyErr(null)
     setAcademyOpen(true)
   }
@@ -302,7 +301,6 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
     setEditAcademyId(null)
     setAName('')
     setADesc('')
-    setASort('0')
     setAcademyErr(null)
     setAcademyOpen(true)
   }
@@ -401,13 +399,32 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border-brand-navy/12 bg-white shadow-sm">
+      <Tabs defaultValue="academies" className="flex w-full flex-col gap-6">
+        <TabsList className="inline-flex h-11 w-full max-w-lg items-center justify-start gap-1 rounded-xl border border-brand-navy/12 bg-brand-mint/25 p-1 sm:w-fit">
+          <TabsTrigger
+            value="academies"
+            className="flex-1 gap-2 rounded-lg px-4 py-2 text-brand-navy data-[state=active]:bg-white data-[state=active]:shadow-md sm:flex-initial"
+          >
+            <Layers className="size-4 shrink-0" />
+            Academies
+          </TabsTrigger>
+          <TabsTrigger
+            value="trainings"
+            className="flex-1 gap-2 rounded-lg px-4 py-2 text-brand-navy data-[state=active]:bg-white data-[state=active]:shadow-md sm:flex-initial"
+          >
+            <GraduationCap className="size-4 shrink-0" />
+            Trainings
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="academies" className="mt-0 outline-none focus-visible:ring-0">
+          <Card className="overflow-hidden border-brand-navy/12 bg-white shadow-sm">
         <div className="h-1 bg-brand-teal" />
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-brand-navy/8 bg-brand-mint/25 py-4">
           <div>
             <CardTitle className="text-lg text-brand-navy">Academies</CardTitle>
             <CardDescription className="text-slate-600">
-              Create an academy first, then add trainings under it. Order uses sort (lower first).
+              Create an academy first, then add trainings under it. New academies are ordered automatically.
             </CardDescription>
           </div>
           <Button
@@ -502,8 +519,10 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
           )}
         </CardContent>
       </Card>
+        </TabsContent>
 
-      <Card className="overflow-hidden border-brand-navy/12 bg-white shadow-sm">
+        <TabsContent value="trainings" className="mt-0 outline-none focus-visible:ring-0">
+          <Card className="overflow-hidden border-brand-navy/12 bg-white shadow-sm">
         <div className="h-1 bg-brand-teal" />
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-brand-navy/8 bg-brand-mint/25 py-4">
           <div>
@@ -622,6 +641,8 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
 
       <Sheet
         open={academyOpen}
@@ -655,15 +676,6 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
                   onChange={(e) => setADesc(e.target.value)}
                   rows={3}
                   className={cn(dashboardFormTextareaClass, 'resize-y')}
-                />
-              </DashboardFormField>
-              <DashboardFormField label="Sort order" htmlFor="ac-sort" icon={Layers}>
-                <Input
-                  id="ac-sort"
-                  type="number"
-                  value={aSort}
-                  onChange={(e) => setASort(e.target.value)}
-                  className={dashboardFormInputClass}
                 />
               </DashboardFormField>
               {academyErr ? <p className="text-destructive text-sm">{academyErr}</p> : null}

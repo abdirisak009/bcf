@@ -40,6 +40,11 @@ func (s *AcademyService) Create(a *models.Academy) error {
 	if a.Name == "" {
 		return ErrAcademyNameRequired
 	}
+	next, err := s.repo.NextSortOrder()
+	if err != nil {
+		return err
+	}
+	a.SortOrder = next
 	return s.repo.Create(a)
 }
 
