@@ -4,7 +4,7 @@ import { getToken } from '@/lib/auth-client'
 export async function openDashboardInvoicePdf(id: string, mode: 'preview' | 'download'): Promise<void> {
   const q = mode === 'preview' ? '?preview=1' : ''
   const token = getToken()
-  const res = await fetch(`/api/dashboard/invoices/${id}/pdf${q}`, {
+  const res = await fetch(`/api/invoices/${id}/pdf${q}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
   if (!res.ok) {

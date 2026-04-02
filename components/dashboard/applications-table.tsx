@@ -471,7 +471,7 @@ export function ApplicationsTable({ rows, trainings, loading, empty, onRefresh }
         message: message,
       }
 
-      const res = await fetch(`/api/dashboard/applications/${editId}`, {
+      const res = await fetch(`/api/applications/${editId}`, {
         method: 'PATCH',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -528,7 +528,7 @@ We will share the next steps with you shortly.
         ...bodyForPatch(reviewRow, 'approved'),
         approval_whatsapp_message: reviewWaMsg.trim(),
       }
-      const res = await fetch(`/api/dashboard/applications/${id}`, {
+      const res = await fetch(`/api/applications/${id}`, {
         method: 'PATCH',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -554,7 +554,7 @@ We will share the next steps with you shortly.
     if (!id || !em) return
     setActionId(id)
     try {
-      const res = await fetch(`/api/dashboard/applications/${id}`, {
+      const res = await fetch(`/api/applications/${id}`, {
         method: 'PATCH',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyForPatch(row, next)),
@@ -609,7 +609,7 @@ We will share the next steps with you shortly.
       if (newCompany.trim()) payload.company = newCompany.trim()
       if (newMessage.trim()) payload.message = newMessage.trim()
 
-      const res = await fetch('/api/dashboard/applications', {
+      const res = await fetch('/api/applications', {
         method: 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -632,7 +632,7 @@ We will share the next steps with you shortly.
     if (!deleteId) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/applications/${deleteId}`, {
+      const res = await fetch(`/api/applications/${deleteId}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })

@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getApiBase, type ApiEnvelope } from '@/lib/api'
+import { getBrowserApiUrl, type ApiEnvelope } from '@/lib/api'
 import { downloadExcelFile, formatMoneyCell, type ExcelSheet } from '@/lib/excel-export'
 import { getAuthHeaders } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
@@ -222,7 +222,7 @@ export function ReportsHub({ loading, projects, expenses, clients }: Props) {
     setFinErr(null)
     try {
       const q = new URLSearchParams({ from, to })
-      const res = await fetch(`${getApiBase()}/api/financial/reports/summary?${q}`, {
+      const res = await fetch(`${getBrowserApiUrl('/api/financial/reports/summary')}?${q}`, {
         headers: getAuthHeaders(),
         cache: 'no-store',
       })

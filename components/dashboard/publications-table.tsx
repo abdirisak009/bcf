@@ -64,13 +64,18 @@ export function PublicationsTable({ rows, loading, empty, onRefresh }: Props) {
     if (!deleteId) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/publications/${deleteId}`, {
+      const res = await fetch(`/api/publications/${deleteId}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string }
-        alert(data.error ?? 'Delete failed')
+        const raw = await res.text()
+        try {
+          const data = JSON.parse(raw) as { error?: string }
+          alert(data.error ?? 'Delete failed')
+        } catch {
+          alert(raw.trimStart().startsWith('<') ? 'Delete failed (invalid API response)' : 'Delete failed')
+        }
         return
       }
       setDeleteId(null)

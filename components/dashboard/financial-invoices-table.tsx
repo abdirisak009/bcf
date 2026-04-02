@@ -205,7 +205,7 @@ export function InvoicesTable({ rows, clients, trainings, projects, loading, emp
       if (trainingId) payload.training_id = trainingId
       else payload.training_id = null
 
-      const url = editId ? `/api/dashboard/invoices/${editId}` : '/api/dashboard/invoices'
+      const url = editId ? `/api/invoices/${editId}` : '/api/invoices'
       const res = await fetch(url, {
         method: editId ? 'PATCH' : 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
@@ -230,7 +230,7 @@ export function InvoicesTable({ rows, clients, trainings, projects, loading, emp
     if (!del) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/invoices/${del.id}`, {
+      const res = await fetch(`/api/invoices/${del.id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })

@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { getApiBase, type ApiEnvelope } from '@/lib/api'
+import { getBrowserApiUrl, type ApiEnvelope } from '@/lib/api'
 import { getAuthHeaders } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 
@@ -50,7 +50,7 @@ export function FinancialReportsPanel() {
     setErr(null)
     try {
       const q = new URLSearchParams({ from, to })
-      const res = await fetch(`${getApiBase()}/api/financial/reports/summary?${q}`, {
+      const res = await fetch(`${getBrowserApiUrl('/api/financial/reports/summary')}?${q}`, {
         headers: getAuthHeaders(),
         cache: 'no-store',
       })

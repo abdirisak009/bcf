@@ -83,13 +83,24 @@ export function PublicationForm({ onCreated }: Props) {
       if (fileUrl) payload.file_url = fileUrl
       payload.file_display_mode = pdfReadInBrowser ? 'read' : 'download'
 
-      const res = await fetch('/api/dashboard/publications', {
+      const res = await fetch('/api/publications', {
         method: 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      const data = (await res.json()) as { success?: boolean; error?: string }
-      if (!res.ok) {
+      const raw = await res.text()
+      let data: { success?: boolean; error?: string }
+      try {
+        data = JSON.parse(raw) as typeof data
+      } catch {
+        setError(
+          raw.trimStart().startsWith('<')
+            ? 'Server returned HTML instead of JSON. Ensure the API is reachable at /api/publications.'
+            : `Save failed (${res.status})`,
+        )
+        return
+      }
+      if (!res.ok || data.success === false) {
         setError(data.error ?? `Save failed (${res.status})`)
         return
       }

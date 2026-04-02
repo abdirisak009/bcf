@@ -178,7 +178,7 @@ export function PaymentsTable({ rows, clients, invoices, loading, empty, onRefre
       if (invoiceId) payload.invoice_id = invoiceId
       else payload.invoice_id = null
 
-      const url = editId ? `/api/dashboard/payments/${editId}` : '/api/dashboard/payments'
+      const url = editId ? `/api/payments/${editId}` : '/api/payments'
       const res = await fetch(url, {
         method: editId ? 'PATCH' : 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
@@ -200,7 +200,7 @@ export function PaymentsTable({ rows, clients, invoices, loading, empty, onRefre
     if (!del) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/payments/${del.id}`, {
+      const res = await fetch(`/api/payments/${del.id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })
@@ -723,7 +723,7 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
       else payload.receipt_url = null
       payload.paid_by = paidBy.trim() || null
 
-      const url = editId ? `/api/dashboard/expenses/${editId}` : '/api/dashboard/expenses'
+      const url = editId ? `/api/expenses/${editId}` : '/api/expenses'
       const res = await fetch(url, {
         method: editId ? 'PATCH' : 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
@@ -747,7 +747,7 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
     if (!del) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/expenses/${del.id}`, {
+      const res = await fetch(`/api/expenses/${del.id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })
@@ -1080,7 +1080,7 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
       if (logoUrl) payload.logo_url = logoUrl
       else if (existingLogo) payload.logo_url = existingLogo
 
-      const url = editId ? `/api/dashboard/clients/${editId}` : '/api/dashboard/clients'
+      const url = editId ? `/api/clients/${editId}` : '/api/clients'
       const res = await fetch(url, {
         method: editId ? 'PATCH' : 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
@@ -1104,7 +1104,7 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
     if (!del) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/clients/${del.id}`, {
+      const res = await fetch(`/api/clients/${del.id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })
@@ -1331,7 +1331,7 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
       if (logoUrl) payload.logo_url = logoUrl
       else if (existingLogo) payload.logo_url = existingLogo
 
-      const url = editId ? `/api/dashboard/partners/${editId}` : '/api/dashboard/partners'
+      const url = editId ? `/api/partners/${editId}` : '/api/partners'
       const res = await fetch(url, {
         method: editId ? 'PATCH' : 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
@@ -1355,7 +1355,7 @@ export function PartnersTable({ rows, loading, empty, onRefresh }: BaseProps) {
     if (!del) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/partners/${del.id}`, {
+      const res = await fetch(`/api/partners/${del.id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })

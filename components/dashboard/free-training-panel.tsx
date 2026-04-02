@@ -432,7 +432,7 @@ export function FreeTrainingPanel() {
     try {
       await Promise.all(
         ids.map(async (id) => {
-          const res = await fetch(`/api/dashboard/free-training-registrations/${id}`, {
+          const res = await fetch(`/api/free-training-registrations/${id}`, {
             method: 'PATCH',
             headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: bulkStatus }),
@@ -454,7 +454,7 @@ export function FreeTrainingPanel() {
     setDeleteBusy(true)
     setError(null)
     try {
-      const res = await fetch(`/api/dashboard/free-training-registrations/${id}`, {
+      const res = await fetch(`/api/free-training-registrations/${id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })
@@ -483,7 +483,7 @@ export function FreeTrainingPanel() {
     try {
       await Promise.all(
         ids.map(async (id) => {
-          const res = await fetch(`/api/dashboard/free-training-registrations/${id}`, {
+          const res = await fetch(`/api/free-training-registrations/${id}`, {
             method: 'DELETE',
             headers: dashboardAuthHeaders(),
           })
@@ -552,7 +552,7 @@ export function FreeTrainingPanel() {
         body.certificate_signature_image_url = ''
       }
       if (editId) {
-        const res = await fetch(`/api/dashboard/free-training-programs/${editId}`, {
+        const res = await fetch(`/api/free-training-programs/${editId}`, {
           method: 'PATCH',
           headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -560,7 +560,7 @@ export function FreeTrainingPanel() {
         const j = (await res.json()) as { success?: boolean; error?: string }
         if (!res.ok || !j.success) throw new Error(j.error ?? 'Save failed')
       } else {
-        const res = await fetch('/api/dashboard/free-training-programs', {
+        const res = await fetch('/api/free-training-programs', {
           method: 'POST',
           headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -599,7 +599,7 @@ export function FreeTrainingPanel() {
       if (p.certificate_signature_image_url) {
         body.certificate_signature_image_url = p.certificate_signature_image_url
       }
-      const res = await fetch(`/api/dashboard/free-training-programs/${p.id}`, {
+      const res = await fetch(`/api/free-training-programs/${p.id}`, {
         method: 'PATCH',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -628,7 +628,7 @@ export function FreeTrainingPanel() {
 
   async function deleteProgram(id: string) {
     if (!confirm('Delete this program and all its registrations?')) return
-    const res = await fetch(`/api/dashboard/free-training-programs/${id}`, {
+    const res = await fetch(`/api/free-training-programs/${id}`, {
       method: 'DELETE',
       headers: dashboardAuthHeaders(),
     })
@@ -661,7 +661,7 @@ export function FreeTrainingPanel() {
     setReviewSaving(true)
     setError(null)
     try {
-      const res = await fetch(`/api/dashboard/free-training-registrations/${review.id}`, {
+      const res = await fetch(`/api/free-training-registrations/${review.id}`, {
         method: 'PATCH',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({

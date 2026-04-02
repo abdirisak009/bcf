@@ -426,7 +426,7 @@ export function ProjectsTable({ rows, clients, expenses = [], loading, empty, on
         milestone_pct: milestoneNum,
       }
 
-      const url = editId ? `/api/dashboard/projects/${editId}` : '/api/dashboard/projects'
+      const url = editId ? `/api/projects/${editId}` : '/api/projects'
       const res = await fetch(url, {
         method: editId ? 'PATCH' : 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
@@ -461,7 +461,7 @@ export function ProjectsTable({ rows, clients, expenses = [], loading, empty, on
     setCommentPending(true)
     setCommentErr(null)
     try {
-      const res = await fetch(`/api/dashboard/projects/${id}`, {
+      const res = await fetch(`/api/projects/${id}`, {
         method: 'PATCH',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -482,7 +482,7 @@ export function ProjectsTable({ rows, clients, expenses = [], loading, empty, on
     if (!del) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/projects/${del.id}`, {
+      const res = await fetch(`/api/projects/${del.id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })

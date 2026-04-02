@@ -35,7 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getApiBase, type ApiEnvelope } from '@/lib/api'
+import { getBrowserApiUrl, type ApiEnvelope } from '@/lib/api'
 import { getAuthHeaders } from '@/lib/auth-client'
 import { PERMISSION_LABELS, PERM, type PermissionKey } from '@/lib/permissions'
 
@@ -79,7 +79,7 @@ export function UsersManagementPanel() {
     setLoading(true)
     setErr(null)
     try {
-      const res = await fetch(`${getApiBase()}/api/admin/users`, {
+      const res = await fetch(getBrowserApiUrl('/api/admin/users'), {
         headers: getAuthHeaders(),
         cache: 'no-store',
       })
@@ -113,7 +113,7 @@ export function UsersManagementPanel() {
     setCreatePending(true)
     setErr(null)
     try {
-      const res = await fetch(`${getApiBase()}/api/admin/users`, {
+      const res = await fetch(getBrowserApiUrl('/api/admin/users'), {
         method: 'POST',
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -157,7 +157,7 @@ export function UsersManagementPanel() {
       }
       if (editPassword.trim().length >= 8) body.password = editPassword.trim()
 
-      const res = await fetch(`${getApiBase()}/api/admin/users/${editRow.id}`, {
+      const res = await fetch(getBrowserApiUrl(`/api/admin/users/${editRow.id}`), {
         method: 'PATCH',
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -179,7 +179,7 @@ export function UsersManagementPanel() {
     setDeletePending(true)
     setErr(null)
     try {
-      const res = await fetch(`${getApiBase()}/api/admin/users/${deleteRow.id}`, {
+      const res = await fetch(getBrowserApiUrl(`/api/admin/users/${deleteRow.id}`), {
         method: 'DELETE',
         headers: getAuthHeaders(),
       })

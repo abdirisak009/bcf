@@ -49,7 +49,7 @@ import { ApplicationsTable } from '@/components/dashboard/applications-table'
 import { FreeTrainingPanel } from '@/components/dashboard/free-training-panel'
 import { TrainingsManage } from '@/components/dashboard/trainings-manage'
 import { UsersManagementPanel } from '@/components/dashboard/users-management-panel'
-import { getApiBase, type ApiEnvelope } from '@/lib/api'
+import { getBrowserApiUrl, type ApiEnvelope } from '@/lib/api'
 import { clearSession, getAuthHeaders, getStoredUser } from '@/lib/auth-client'
 import { canAccessNav, type DashboardNavId, isAdmin } from '@/lib/permissions'
 import { cn } from '@/lib/utils'
@@ -131,7 +131,7 @@ const NAV_TITLE: Record<NavId, string> = {
 }
 
 async function fetchJSON<T>(path: string): Promise<ApiEnvelope<T>> {
-  const res = await fetch(`${getApiBase()}${path}`, {
+  const res = await fetch(getBrowserApiUrl(path), {
     headers: getAuthHeaders(),
     cache: 'no-store',
   })

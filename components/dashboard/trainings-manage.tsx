@@ -195,7 +195,7 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
       }
       if (aDesc.trim()) payload.description = aDesc.trim()
 
-      const url = editAcademyId ? `/api/dashboard/academies/${editAcademyId}` : '/api/dashboard/academies'
+      const url = editAcademyId ? `/api/academies/${editAcademyId}` : '/api/academies'
       const res = await fetch(url, {
         method: editAcademyId ? 'PATCH' : 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
@@ -260,7 +260,7 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
         payload.certificate_signature_image_url = tCertSigUrl.trim()
       }
 
-      const url = editTrainId ? `/api/dashboard/trainings/${editTrainId}` : '/api/dashboard/trainings'
+      const url = editTrainId ? `/api/trainings/${editTrainId}` : '/api/trainings'
       const res = await fetch(url, {
         method: editTrainId ? 'PATCH' : 'POST',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
@@ -363,7 +363,7 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
     if (!delAcademy) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/academies/${delAcademy.id}`, {
+      const res = await fetch(`/api/academies/${delAcademy.id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })
@@ -383,7 +383,7 @@ export function TrainingsManage({ academies, trainings, loading, onRefresh }: Pr
     if (!delTrain) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/dashboard/trainings/${delTrain.id}`, {
+      const res = await fetch(`/api/trainings/${delTrain.id}`, {
         method: 'DELETE',
         headers: dashboardAuthHeaders(),
       })

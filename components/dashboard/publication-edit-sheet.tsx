@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { getApiBase } from '@/lib/api'
+import { getBrowserApiUrl } from '@/lib/api'
 import { dashboardAuthHeaders } from '@/lib/dashboard-client'
 import { uploadDashboardFile } from '@/lib/dashboard-upload'
 import {
@@ -63,7 +63,7 @@ export function PublicationEditSheet({ publicationId, open, onOpenChange, onSave
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch(`${getApiBase()}/api/publications/${publicationId}`, {
+        const res = await fetch(getBrowserApiUrl(`/api/publications/${publicationId}`), {
           headers: { Accept: 'application/json' },
           cache: 'no-store',
         })
@@ -127,13 +127,24 @@ export function PublicationEditSheet({ publicationId, open, onOpenChange, onSave
       else if (existingPdf) payload.file_url = existingPdf
       payload.file_display_mode = pdfReadInBrowser ? 'read' : 'download'
 
-      const res = await fetch(`/api/dashboard/publications/${publicationId}`, {
+      const res = await fetch(`/api/publications/${publicationId}`, {
         method: 'PATCH',
         headers: { ...dashboardAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      const data = (await res.json()) as { success?: boolean; error?: string }
-      if (!res.ok) {
+      const raw = await res.text()
+      let data: { success?: boolean; error?: string }
+      try {
+        data = JSON.parse(raw) as typeof data
+      } catch {
+        setError(
+          raw.trimStart().startsWith('<')
+            ? 'Server returned HTML instead of JSON. Check /api/publications on the API.'
+            : `Save failed (${res.status})`,
+        )
+        return
+      }
+      if (!res.ok || data.success === false) {
         setError(data.error ?? `Save failed (${res.status})`)
         return
       }
