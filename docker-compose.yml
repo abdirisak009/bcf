@@ -26,6 +26,14 @@ services:
       DB_USER: bcf
       DB_PASSWORD: Abdi@909090@@
       DB_NAME: BcfDb
+      # MinIO — if MinIO runs in another compose service, set MINIO_ENDPOINT to that service name (e.g. minio).
+      # Override all via root `.env` next to this file.
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-62.72.35.109}
+      MINIO_PORT: ${MINIO_PORT:-9000}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-uploads}
 
   frontend:
     build: .
@@ -36,6 +44,14 @@ services:
     command: npm run start -- -H 0.0.0.0
     depends_on:
       - backend
+    environment:
+      API_INTERNAL_URL: http://backend:8080
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-62.72.35.109}
+      MINIO_PORT: ${MINIO_PORT:-9000}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-uploads}
 
 volumes:
   pgdata:

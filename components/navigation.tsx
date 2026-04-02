@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -121,6 +121,7 @@ export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [hash, setHash] = useState('');
+  const desktopNavRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const sync = () => setHash(typeof window !== 'undefined' ? window.location.hash : '');
@@ -128,6 +129,31 @@ export default function Navigation() {
     window.addEventListener('hashchange', sync);
     return () => window.removeEventListener('hashchange', sync);
   }, []);
+
+  useEffect(() => {
+    setActiveDropdown(null);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (activeDropdown === null) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const el = desktopNavRef.current;
+      // Desktop nav uses `hidden lg:flex`; when not visible, do not steal clicks from the mobile menu.
+      if (!el || !el.offsetParent) return;
+      if (!el.contains(e.target as Node)) {
+        setActiveDropdown(null);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveDropdown(null);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [activeDropdown]);
 
   return (
     <header className="fixed top-0 z-[100] w-full pointer-events-auto">
@@ -226,13 +252,17 @@ export default function Navigation() {
               />
             </Link>
 
-            <div className="hidden lg:flex items-center gap-0.5">
+            <div ref={desktopNavRef} className="hidden lg:flex items-center gap-0.5">
               {navItems.map((item) => {
                 const active = isItemActive(pathname, hash, item);
                 const NavIcon = item.icon;
+                const dropdownOpen = item.hasDropdown && activeDropdown === item.name;
+                const navSlug = item.name.replace(/\s+/g, '-').toLowerCase();
+                const triggerId = `nav-trigger-${navSlug}`;
+                const menuId = `nav-menu-${navSlug}`;
 
                 return (
-                  <div key={item.name} className="relative group">
+                  <div key={item.name} className="relative">
                     {!item.hasDropdown ? (
                       <Link
                         href={item.href}
@@ -258,30 +288,49 @@ export default function Navigation() {
                       <>
                         <button
                           type="button"
+                          id={triggerId}
+                          aria-haspopup="menu"
+                          aria-expanded={dropdownOpen}
+                          aria-controls={menuId}
+                          onClick={() => setActiveDropdown((prev) => (prev === item.name ? null : item.name))}
                           className={`group/nav flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[0.9375rem] font-medium transition-all duration-300 relative ${
-                            active ? 'text-brand-teal' : 'text-brand-navy hover:text-brand-teal'
+                            active || dropdownOpen ? 'text-brand-teal' : 'text-brand-navy hover:text-brand-teal'
                           }`}
                         >
                           <NavIcon
                             className={`h-[1.125rem] w-[1.125rem] shrink-0 transition-colors ${
-                              active ? 'text-brand-teal' : 'text-brand-navy/85 group-hover/nav:text-brand-teal'
+                              active || dropdownOpen
+                                ? 'text-brand-teal'
+                                : 'text-brand-navy/85 group-hover/nav:text-brand-teal'
                             }`}
                             strokeWidth={2}
                             aria-hidden
                           />
                           <span>{item.name}</span>
-                          <ChevronDown size={14} className="opacity-80 group-hover/nav:rotate-180 transition-transform duration-300" />
+                          <ChevronDown
+                            size={14}
+                            className={`opacity-80 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : 'group-hover/nav:rotate-180'}`}
+                          />
                           <span
                             className={`absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-brand-teal transition-all duration-300 ${
-                              active ? 'w-[calc(100%-2.25rem)]' : 'w-0 group-hover/nav:w-[calc(100%-2.25rem)]'
+                              active || dropdownOpen
+                                ? 'w-[calc(100%-2.25rem)]'
+                                : 'w-0 group-hover/nav:w-[calc(100%-2.25rem)]'
                             }`}
                           />
                         </button>
 
                         {item.dropdownItems && (
                           <div
-                            className={`absolute left-0 top-full z-50 pt-1.5 rounded-xl border border-slate-100/80 bg-white py-2 shadow-xl shadow-slate-900/10 ring-1 ring-black/[0.03] transition-all duration-300 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 ${
+                            id={menuId}
+                            role="menu"
+                            aria-labelledby={triggerId}
+                            className={`absolute left-0 top-full z-50 pt-1.5 rounded-xl border border-slate-100/80 bg-white py-2 shadow-xl shadow-slate-900/10 ring-1 ring-black/[0.03] transition-all duration-300 ${
                               item.name === 'Services' ? 'w-80' : 'w-64'
+                            } ${
+                              dropdownOpen
+                                ? 'opacity-100 visible translate-y-0'
+                                : 'pointer-events-none opacity-0 invisible translate-y-1'
                             }`}
                           >
                             <div className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-xl bg-brand-teal" />
