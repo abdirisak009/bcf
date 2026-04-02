@@ -157,7 +157,7 @@ func main() {
 		api.POST("/auth/login", authH.Login)
 
 		// Multipart uploads to MinIO (same env as Next.js). Used when /api is proxied to Go.
-		api.POST("/upload", middleware.AuthDashboardIdentity(cfg.JWTSecret, cfg.DashboardWriteKey, authRepo), uploadH.Post)
+		api.POST("/upload", middleware.AuthDashboardIdentity(cfg), uploadH.Post)
 
 		api.GET("/admin/users", adminOnly, adminUsersH.List)
 		api.POST("/admin/users", adminOnly, adminUsersH.Create)

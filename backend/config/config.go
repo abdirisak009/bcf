@@ -33,6 +33,8 @@ type Config struct {
 	Environment string
 	// DashboardWriteKey optional: if set, POST /api/news accepts X-Dashboard-Key with this value (for server-side dashboard writes).
 	DashboardWriteKey string
+	// DevUploadBypassKey optional: only when APP_ENV=development. If set, POST /api/upload accepts X-Dev-Upload-Bypass with this value (no JWT). Never set in production.
+	DevUploadBypassKey string
 	// InvoiceLogoURL optional: PNG/JPEG URL embedded on generated invoice PDFs (default: Bararug light wordmark).
 	InvoiceLogoURL string
 	// CertificateLogoURL optional: PNG/JPEG URL for vector certificate header.
@@ -129,7 +131,8 @@ func Load() (*Config, error) {
 		HTTPPort:           getenvWithJSON(j, "HTTP_PORT", "8080"),
 		GinMode:            getenvWithJSON(j, "GIN_MODE", "release"),
 		Environment:        getenvWithJSON(j, "APP_ENV", "development"),
-		DashboardWriteKey:  getenvWithJSON(j, "DASHBOARD_WRITE_KEY", ""),
+		DashboardWriteKey:    getenvWithJSON(j, "DASHBOARD_WRITE_KEY", ""),
+		DevUploadBypassKey:   getenvWithJSON(j, "DEV_UPLOAD_BYPASS_KEY", ""),
 		InvoiceLogoURL:     invoiceLogo,
 		CertificateLogoURL: certLogo,
 		// Sender block under "From" (company name is already in the header left).
