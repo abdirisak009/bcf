@@ -17,12 +17,61 @@ export type ClientLogoRow = {
 export function ClientLogoCard({
   client,
   className,
+  appearance = "default",
 }: {
   client: ClientLogoRow;
   /** e.g. carousel: flex-1 basis-0; grid: w-full */
   className?: string;
+  /** Home carousel: pure white card + soft green ring + circular logo frame */
+  appearance?: "default" | "home";
 }) {
   const logo = client.logo_url?.trim();
+
+  if (appearance === "home") {
+    return (
+      <div className={cn("group min-w-0", className)}>
+        <div
+          className={cn(
+            "relative flex h-full min-h-[152px] flex-col items-stretch justify-between overflow-hidden rounded-2xl bg-[#ffffff] p-3 pb-6 sm:min-h-[168px] sm:p-4 sm:pb-7",
+            "border-2 border-brand-teal/45 shadow-[0_4px_20px_-8px_rgba(23,94,126,0.12)]",
+            "ring-1 ring-brand-teal/20 transition-[box-shadow,transform,border-color] duration-300",
+            "group-hover:border-brand-teal group-hover:shadow-[0_12px_32px_-12px_rgba(85,197,147,0.35)]",
+          )}
+        >
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center pt-1">
+            {logo ? (
+              <div
+                className={cn(
+                  "flex h-[5.25rem] w-[5.25rem] shrink-0 items-center justify-center rounded-full border-2 border-brand-teal/50 bg-[#ffffff] p-2.5 shadow-inner sm:h-[5.75rem] sm:w-[5.75rem] sm:p-3",
+                  "ring-2 ring-brand-teal/15 transition-transform duration-300 group-hover:scale-[1.04] group-hover:border-brand-teal/70 group-hover:ring-brand-teal/25",
+                )}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logo}
+                  alt={client.name}
+                  decoding="async"
+                  className="h-full w-full max-h-[4rem] max-w-[4rem] object-contain object-center sm:max-h-[4.25rem] sm:max-w-[4.25rem]"
+                />
+              </div>
+            ) : (
+              <div className="flex min-h-[5.25rem] items-center justify-center rounded-full border-2 border-dashed border-brand-teal/35 bg-white px-3">
+                <span className="text-center text-xs font-bold leading-snug tracking-tight text-brand-navy sm:text-sm">
+                  {client.name}
+                </span>
+              </div>
+            )}
+          </div>
+          {logo ? (
+            <span className="relative z-10 line-clamp-2 text-center text-[10px] font-semibold leading-tight text-slate-600 sm:text-xs">
+              {client.name}
+            </span>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("group min-w-0", className)}>
       <div
@@ -94,7 +143,7 @@ export function ClientLogoGrid({ items }: { items: ClientLogoRow[] }) {
 }
 
 const SLIDE_SIZE = 4;
-const AUTOPLAY_MS = 5000;
+const AUTOPLAY_MS = 2000;
 
 type ClientLogoCarouselProps = {
   items: ClientLogoRow[];
@@ -231,7 +280,7 @@ export function ClientLogoCarousel({
                     partialRow ? "w-full max-w-[15.5rem] shrink-0 sm:max-w-[17rem]" : "flex-1 basis-0",
                   )}
                 >
-                  <ClientLogoCard client={client} className="h-full w-full" />
+                  <ClientLogoCard client={client} className="h-full w-full" appearance="home" />
                 </motion.div>
               ))}
             </motion.div>
