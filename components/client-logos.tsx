@@ -3,16 +3,19 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
+import { ClientLogoCarousel } from '@/components/client-logo-carousel'
 import { getApiBase } from '@/lib/api'
 
-type ClientRow = { id: string; name: string; logo_url?: string | null }
+type ClientRow = { id: string; name: string; logo_url?: string | null; sort_order?: number }
 
 export default function ClientLogos() {
   const [items, setItems] = useState<ClientRow[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      setLoading(true)
       try {
         const res = await fetch(`${getApiBase()}/api/clients?limit=100`, {
           headers: { Accept: 'application/json' },
@@ -20,9 +23,15 @@ export default function ClientLogos() {
         })
         const json = (await res.json()) as { success?: boolean; data?: { items?: ClientRow[] } }
         if (cancelled) return
-        setItems(json.success && json.data?.items ? json.data.items : [])
+        const raw = json.success && json.data?.items ? json.data.items : []
+        const sorted = [...raw].sort(
+          (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || String(a.id).localeCompare(String(b.id)),
+        )
+        setItems(sorted)
       } catch {
         if (!cancelled) setItems([])
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     })()
     return () => {
@@ -30,7 +39,7 @@ export default function ClientLogos() {
     }
   }, [])
 
-  if (items.length === 0) return null
+  if (!loading && items.length === 0) return null
 
   return (
     <section className="relative overflow-hidden border-y border-slate-200/80 bg-white py-16">
@@ -42,34 +51,23 @@ export default function ClientLogos() {
           transition={{ duration: 0.5 }}
           className="mb-10 text-center"
         >
-          <span className="inline-block rounded-full border border-gray-200 bg-gray-50 px-4 py-1.5 text-sm font-medium text-brand-navy">
-            Clients
+          <span className="inline-block rounded-full border border-brand-teal/35 bg-brand-teal/15 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-navy">
+            Our network
           </span>
-          <h2 className="mt-3 text-3xl font-bold text-brand-navy md:text-4xl">Organizations we serve</h2>
-          <div className="mx-auto mt-4 h-1 w-16 bg-brand-teal" />
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-brand-navy md:text-4xl lg:text-5xl">
+            Our Clients
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-base font-bold leading-snug text-brand-navy md:text-lg">
+            Organizations we serve
+          </p>
+          <div className="mx-auto mt-5 h-1.5 w-20 rounded-full bg-brand-teal md:w-24" />
         </motion.div>
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-          {items.map((c, i) => {
-            const logo = c.logo_url?.trim()
-            return (
-              <motion.div
-                key={c.id}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-                className="flex h-24 w-36 items-center justify-center rounded-xl border border-slate-200/90 bg-slate-50/80 px-4 py-3 shadow-sm"
-              >
-                {logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={logo} alt={c.name} className="max-h-16 w-full max-w-[140px] object-contain" />
-                ) : (
-                  <span className="text-center text-sm font-semibold text-brand-navy">{c.name}</span>
-                )}
-              </motion.div>
-            )
-          })}
-        </div>
+        <ClientLogoCarousel
+          items={items}
+          loading={loading}
+          loadError={null}
+          emptyMessage="No clients to display."
+        />
       </div>
     </section>
   )

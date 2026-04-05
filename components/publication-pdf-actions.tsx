@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { normalizePublicationFileUrlForBrowser, publicationPdfIframeSrc } from '@/lib/publication-file-url'
 import { cn } from '@/lib/utils'
 
 export type PublicationPdfMode = 'read' | 'download'
@@ -29,12 +30,14 @@ type Props = {
 export function PublicationPdfActions({ fileUrl, title, mode, className }: Props) {
   const [open, setOpen] = useState(false)
   const readMode = mode === 'read'
+  const downloadHref = normalizePublicationFileUrlForBrowser(fileUrl)
+  const iframeSrc = publicationPdfIframeSrc(fileUrl)
 
   if (!readMode) {
     return (
       <div className={cn('mt-10', className)}>
         <a
-          href={fileUrl}
+          href={downloadHref}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-full bg-brand-navy px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-navy-muted"
@@ -98,7 +101,7 @@ export function PublicationPdfActions({ fileUrl, title, mode, className }: Props
               */}
               <iframe
                 title={title}
-                src={`${fileUrl}#toolbar=0&navpanes=0&view=FitH`}
+                src={`${iframeSrc}#toolbar=0&navpanes=0&view=FitH`}
                 className="absolute inset-0 h-full w-full border-0 bg-white"
               />
             </div>

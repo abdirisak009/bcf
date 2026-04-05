@@ -1,7 +1,18 @@
 'use client'
 
-import { useMemo, useState, type FormEvent } from 'react'
-import { Building2, CreditCard, FileDown, Handshake, Loader2, Pencil, Plus, Receipt, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import {
+  Building2,
+  CreditCard,
+  FileDown,
+  Handshake,
+  Loader2,
+  Pencil,
+  Plus,
+  Receipt,
+  Search,
+  Trash2,
+} from 'lucide-react'
 
 import { DashboardFormField } from '@/components/dashboard/dashboard-form-field'
 import {
@@ -1019,6 +1030,8 @@ export function ExpensesTable({ rows, projects, loading, empty, onRefresh }: Exp
   )
 }
 
+const CLIENTS_PAGE_SIZE = 10
+
 export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -1030,6 +1043,8 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
   const [existingLogo, setExistingLogo] = useState<string | null>(null)
   const [del, setDel] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
 
   const sortedRows = useMemo(
     () =>
@@ -1040,6 +1055,28 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
       ),
     [rows],
   )
+
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return sortedRows
+    return sortedRows.filter((r) => formatCell(r.name).toLowerCase().includes(q))
+  }, [sortedRows, search])
+
+  const totalFiltered = filteredRows.length
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / CLIENTS_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages - 1)
+  const pageRows = useMemo(() => {
+    const start = safePage * CLIENTS_PAGE_SIZE
+    return filteredRows.slice(start, start + CLIENTS_PAGE_SIZE)
+  }, [filteredRows, safePage])
+
+  useEffect(() => {
+    setPage(0)
+  }, [search])
+
+  useEffect(() => {
+    setPage((p) => Math.min(p, Math.max(0, totalPages - 1)))
+  }, [totalPages])
 
   function openNew() {
     setEditId(null)
@@ -1120,19 +1157,35 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
     }
   }
 
+  const rangeStart = totalFiltered === 0 ? 0 : safePage * CLIENTS_PAGE_SIZE + 1
+  const rangeEnd = totalFiltered === 0 ? 0 : safePage * CLIENTS_PAGE_SIZE + pageRows.length
+
   return (
     <>
       <Card className="overflow-hidden border-brand-navy/12 bg-white shadow-sm">
         <div className="h-1 bg-brand-teal" />
-        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-brand-navy/8 bg-brand-mint/25 py-4">
-          <div>
+        <CardHeader className="flex flex-col gap-4 border-b border-brand-navy/8 bg-brand-mint/25 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <CardTitle className="text-lg text-brand-navy">Clients</CardTitle>
             <CardDescription className="text-slate-600">Logos appear on the public site.</CardDescription>
           </div>
-          <Button type="button" className="bg-brand-navy text-white hover:brightness-110" onClick={openNew}>
-            <Plus className="mr-2 size-4" />
-            Add client
-          </Button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <div className="relative w-full sm:w-64">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+              <Input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name…"
+                className="h-10 rounded-lg border-slate-200 bg-white pl-9 pr-3 text-sm shadow-sm"
+                aria-label="Search clients by name"
+              />
+            </div>
+            <Button type="button" className="shrink-0 bg-brand-navy text-white hover:brightness-110" onClick={openNew}>
+              <Plus className="mr-2 size-4" />
+              Add client
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="px-0 pb-0">
           {loading ? (
@@ -1140,57 +1193,118 @@ export function ClientsTable({ rows, loading, empty, onRefresh }: BaseProps) {
           ) : rows.length === 0 ? (
             <p className="text-muted-foreground px-6 py-6 text-sm">{empty}</p>
           ) : (
-            <ScrollArea className="max-h-[min(480px,calc(100dvh-18rem))] w-full">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-brand-navy/10 bg-brand-navy hover:bg-brand-navy">
-                    <TableHead className="w-16 font-semibold text-white">Logo</TableHead>
-                    <TableHead className="w-14 font-semibold text-white">Order</TableHead>
-                    <TableHead className="font-semibold text-white">Name</TableHead>
-                    <TableHead className="w-[88px] pr-4 text-right font-semibold text-white">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedRows.map((row) => {
-                    const id = String(row.id ?? '')
-                    const logo = row.logo_url
-                    const logoUrl = typeof logo === 'string' && logo.trim() ? logo.trim() : null
-                    return (
-                      <TableRow key={id} className="odd:bg-white even:bg-brand-mint/15">
-                        <TableCell>
-                          <div className="relative size-12 overflow-hidden rounded-md border bg-white">
-                            {logoUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={logoUrl} alt="" className="size-full object-contain p-1" />
-                            ) : (
-                              <div className="flex size-full items-center justify-center text-[10px] text-slate-400">—</div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground tabular-nums">
-                          {Number(row.sort_order) || 0}
-                        </TableCell>
-                        <TableCell className="font-medium text-brand-navy">{formatCell(row.name)}</TableCell>
-                        <TableCell className="pr-2 text-right">
-                          <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => openEdit(row)}>
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive size-8"
-                            onClick={() => setDel({ id, name: String(row.name ?? '') })}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </TableCell>
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-brand-navy/8 bg-slate-50/90 px-4 py-2.5 text-xs text-slate-600 sm:px-6">
+                <span className="tabular-nums">
+                  {totalFiltered === 0
+                    ? 'No matches'
+                    : `Showing ${rangeStart}–${rangeEnd} of ${totalFiltered}`}
+                  {search.trim() ? ` · filtered from ${sortedRows.length} total` : null}
+                </span>
+                <span className="text-slate-500">
+                  {CLIENTS_PAGE_SIZE} per page · Page {safePage + 1} of {totalPages}
+                </span>
+              </div>
+              {totalFiltered === 0 ? (
+                <p className="text-muted-foreground px-6 py-8 text-center text-sm">
+                  No clients match &ldquo;{search.trim()}&rdquo;. Try another search.
+                </p>
+              ) : (
+                <div className="w-full overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-brand-navy/10 bg-brand-navy hover:bg-brand-navy [&>th]:h-10 [&>th]:py-2">
+                        <TableHead className="w-14 font-semibold text-white">Logo</TableHead>
+                        <TableHead className="w-12 font-semibold text-white">Order</TableHead>
+                        <TableHead className="font-semibold text-white">Name</TableHead>
+                        <TableHead className="w-[92px] pr-3 text-right font-semibold text-white">Actions</TableHead>
                       </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+                    </TableHeader>
+                    <TableBody>
+                      {pageRows.map((row) => {
+                        const id = String(row.id ?? '')
+                        const logo = row.logo_url
+                        const logoUrl = typeof logo === 'string' && logo.trim() ? logo.trim() : null
+                        return (
+                          <TableRow
+                            key={id}
+                            className="border-brand-navy/8 odd:bg-white even:bg-brand-mint/10 [&>td]:py-2"
+                          >
+                            <TableCell className="align-middle">
+                              <div className="relative size-10 overflow-hidden rounded-md border border-slate-200/90 bg-white shadow-sm">
+                                {logoUrl ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={logoUrl} alt="" className="size-full object-contain p-0.5" />
+                                ) : (
+                                  <div className="flex size-full items-center justify-center text-[10px] text-slate-400">—</div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="align-middle text-muted-foreground tabular-nums text-sm">
+                              {Number(row.sort_order) || 0}
+                            </TableCell>
+                            <TableCell className="align-middle text-sm font-medium text-brand-navy">
+                              {formatCell(row.name)}
+                            </TableCell>
+                            <TableCell className="align-middle pr-2 text-right">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                onClick={() => openEdit(row)}
+                                aria-label={`Edit ${formatCell(row.name)}`}
+                              >
+                                <Pencil className="size-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive size-8"
+                                onClick={() => setDel({ id, name: String(row.name ?? '') })}
+                                aria-label={`Delete ${formatCell(row.name)}`}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              {totalFiltered > 0 ? (
+                <div className="flex flex-col gap-3 border-t border-brand-navy/8 bg-slate-50/90 px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:px-6">
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="min-w-[5.5rem] border-slate-200"
+                      disabled={safePage <= 0}
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    >
+                      Previous
+                    </Button>
+                    <span className="min-w-[7rem] text-center text-sm tabular-nums text-slate-700">
+                      {safePage + 1} / {totalPages}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="min-w-[5.5rem] border-slate-200"
+                      disabled={safePage >= totalPages - 1}
+                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </>
           )}
         </CardContent>
       </Card>

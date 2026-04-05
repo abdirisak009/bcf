@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
@@ -196,9 +197,14 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Button className="bg-brand-teal hover:bg-brand-teal/90 text-white text-base sm:text-lg h-11 sm:h-12 px-6 sm:px-8 rounded-full group w-fit shadow-lg shadow-brand-teal/25">
-              Get Started
-              <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300 ease-out" />
+            <Button
+              asChild
+              className="bg-brand-teal hover:bg-brand-teal/90 text-white text-base sm:text-lg h-11 sm:h-12 px-6 sm:px-8 rounded-full group w-fit shadow-lg shadow-brand-teal/25"
+            >
+              <Link href="/training">
+                Get Started
+                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300 ease-out" />
+              </Link>
             </Button>
             <Button
               variant="outline"

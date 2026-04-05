@@ -3,7 +3,7 @@
 import { brand } from '@/lib/brand';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
-import { PageHeroShell } from '@/components/page-hero';
+import { PageHeroShell, pageHeroSubtitleClass, pageHeroTitleClass } from '@/components/page-hero';
 import { AboutKeyClientsSection } from '@/components/about-key-clients';
 import WhoWeAre from '@/components/who-we-are';
 import CoreValues from '@/components/core-values';
@@ -11,12 +11,11 @@ import { BookOpen, Calendar, Users, Handshake, Flag, Users2, Crown, Briefcase, S
 
 export default function AboutPage() {
   const metrics = [
-    { label: 'Founded', value: '2017', icon: Calendar, color: 'blue' },
-    { label: 'Clients', value: '9+', icon: BookOpen, color: 'green' },
-    { label: 'Team Members', value: '150+', icon: Users, color: 'blue' },
-    { label: 'Projects', value: '200+', icon: Handshake, color: 'green' },
+    { label: 'Founded', value: '2012', icon: Calendar, color: 'blue' },
+    { label: 'Projects', value: '100+', icon: BookOpen, color: 'green' },
+    { label: 'Projects Delivered', value: '200+', icon: Handshake, color: 'green' },
     { label: 'Consultants', value: '500+', icon: Users2, color: 'blue' },
-    { label: 'Global Partners', value: '10+', icon: Handshake, color: 'green' },
+    { label: 'International Partners', value: '5', icon: Handshake, color: 'green' },
     { label: 'Countries', value: '3+', icon: Flag, color: 'blue' },
     { label: 'Staff', value: '30', icon: Users, color: 'green' },
   ];
@@ -25,16 +24,14 @@ export default function AboutPage() {
     <main className="min-h-screen bg-white">
       <Navigation />
 
-      <PageHeroShell className="pt-14 sm:pt-16 md:pt-[4.25rem]" innerClassName="px-4 py-4 pb-6 text-center sm:px-6 sm:py-5 sm:pb-7 md:py-6 md:pb-8 lg:px-8">
-        <div className="mb-1.5 flex justify-center sm:mb-2">
-          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold tracking-wide text-white/95 backdrop-blur-sm sm:px-4 sm:text-xs">
+      <PageHeroShell innerClassName="max-w-4xl text-center">
+        <div className="mb-2 flex justify-center sm:mb-3">
+          <span className="inline-flex items-center rounded-full border border-white/25 bg-white/12 px-4 py-2 text-xs font-semibold tracking-wide text-white/95 backdrop-blur-sm sm:px-5 sm:text-sm">
             Welcome to Baraarug Consulting Firm
           </span>
         </div>
-        <h1 className="mx-auto mt-2 max-w-4xl text-balance text-2xl font-bold leading-[1.12] tracking-tight text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-[2.65rem]">
-          About Baraarug
-        </h1>
-        <p className="mx-auto mt-2 max-w-2xl text-xs leading-snug text-white/75 sm:mt-3 sm:text-sm md:max-w-3xl md:text-base">
+        <h1 className={pageHeroTitleClass}>About Baraarug</h1>
+        <p className={pageHeroSubtitleClass}>
           Discover our mission, vision, and the impact we create for organizations across Somalia
         </p>
       </PageHeroShell>
@@ -43,59 +40,78 @@ export default function AboutPage() {
 
       <CoreValues />
 
-      <section className="relative overflow-hidden bg-gradient-to-b from-[color-mix(in_srgb,var(--brand-navy)_92%,black)] via-brand-navy to-[color-mix(in_srgb,var(--brand-navy)_88%,black)] py-7 md:py-9 px-4 md:px-6">
+      <section className="relative overflow-hidden border-t border-slate-200/80 bg-white py-14 md:py-20 lg:py-24 px-4 sm:px-6">
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-10%,rgba(85,197,147,0.08),transparent_55%)]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.4]"
           style={{
-            backgroundImage: `radial-gradient(rgba(255,255,255,0.12) 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(color-mix(in srgb, var(--brand-navy) 10%, transparent) 1px, transparent 1px)`,
             backgroundSize: '24px 24px',
           }}
         />
-        <div className="pointer-events-none absolute -right-24 top-0 h-[280px] w-[280px] rounded-full bg-brand-teal/15 blur-3xl" />
-        <div className="pointer-events-none absolute -left-20 bottom-0 h-[220px] w-[220px] rounded-full bg-brand-green/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 top-0 h-[min(320px,55vw)] w-[min(320px,55vw)] rounded-full bg-brand-teal/[0.12] blur-[100px]" />
+        <div className="pointer-events-none absolute -left-20 bottom-0 h-[min(260px,45vw)] w-[min(260px,45vw)] rounded-full bg-brand-navy/[0.06] blur-[90px]" />
 
         <div className="relative z-10 mx-auto max-w-6xl">
-          <div className="mb-4 text-center md:mb-5">
-            <div className="mb-2 inline-flex rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-[10px] font-bold tracking-[0.2em] text-white/90 backdrop-blur-sm md:text-[11px]">
+          <div className="mb-10 text-center md:mb-14">
+            <div className="mb-4 inline-flex rounded-full border border-brand-teal/30 bg-brand-teal/[0.1] px-5 py-2.5 text-xs font-bold tracking-[0.22em] text-brand-teal shadow-sm backdrop-blur-sm md:text-sm">
               OUR IMPACT IN NUMBERS
             </div>
-            <h2 className="text-2xl font-bold tracking-tight text-white md:text-3xl">Baraarug Impact</h2>
-            <div className="mx-auto mt-2 mb-2 h-0.5 w-14 rounded-full bg-gradient-to-r from-brand-teal/60 via-brand-teal to-brand-green/70 md:w-20" />
-            <p className="mx-auto max-w-lg text-xs leading-relaxed text-white/75 [text-wrap:balance] md:text-sm">
+            <h2 className="text-3xl font-extrabold tracking-tight text-brand-navy md:text-4xl lg:text-[2.85rem] lg:leading-tight">
+              Baraarug Impact
+            </h2>
+            <div className="mx-auto mt-4 mb-4 h-1.5 w-20 rounded-full bg-gradient-to-r from-brand-teal/60 via-brand-teal to-brand-green/80 md:w-28" />
+            <p className="mx-auto max-w-2xl text-pretty text-lg leading-relaxed text-slate-600 [text-wrap:balance] md:text-xl md:leading-relaxed">
               Our growth and impact — built through trust, expertise, and commitment
             </p>
           </div>
 
-          {/* Compact stat matrix: 4×2 on md+, dense horizontal rows */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5 md:gap-3">
-            {metrics.map((metric, idx) => {
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 md:gap-5 lg:gap-6">
+            {metrics.map((metric) => {
               const IconComponent = metric.icon;
               const isBlue = metric.color === 'blue';
               return (
                 <div
-                  key={idx}
-                  className="group relative rounded-xl border border-white/10 bg-white/[0.06] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.1] md:p-3"
+                  key={metric.label}
+                  className="group relative rounded-2xl border border-slate-200/95 bg-gradient-to-b from-white to-slate-50/80 p-4 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.04),0_16px_40px_-20px_rgba(15,60,80,0.12)] ring-1 ring-slate-100/90 transition-all duration-500 hover:-translate-y-1 hover:border-brand-teal/25 hover:shadow-[0_20px_48px_-20px_rgba(23,94,126,0.18)] md:rounded-[1.25rem] md:p-5"
                 >
                   <div
-                    className={`absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${isBlue ? 'bg-white/[0.04]' : 'bg-brand-teal/[0.08]'}`}
+                    className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-[1.25rem] bg-gradient-to-r from-transparent via-white to-transparent opacity-90"
+                    aria-hidden
                   />
-                  <div className="relative flex items-center gap-2.5 md:gap-3">
+                  <div
+                    className={`absolute inset-0 rounded-2xl opacity-0 transition-all duration-500 group-hover:opacity-100 md:rounded-[1.25rem] ${
+                      isBlue
+                        ? 'bg-gradient-to-br from-slate-50/90 to-transparent'
+                        : 'bg-gradient-to-br from-brand-teal/[0.08] to-transparent'
+                    }`}
+                  />
+                  <div className="relative flex items-center gap-3.5 md:gap-4">
                     <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border md:h-10 md:w-10 ${
+                      className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-transform duration-500 group-hover:scale-105 group-hover:shadow-md md:h-14 md:w-14 ${
                         isBlue
-                          ? 'border-white/15 bg-white/10 text-white'
-                          : 'border-brand-teal/35 bg-brand-teal/15 text-brand-green'
+                          ? 'border-slate-200/90 bg-white text-brand-navy shadow-[inset_0_1px_0_rgba(255,255,255,1)]'
+                          : 'border-brand-teal/30 bg-brand-teal/[0.1] text-brand-teal shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]'
                       }`}
                     >
-                      <IconComponent size={16} className={isBlue ? 'text-white' : 'text-brand-teal'} strokeWidth={2} />
+                      <IconComponent
+                        size={22}
+                        className={isBlue ? 'text-brand-navy' : 'text-brand-teal'}
+                        strokeWidth={2}
+                      />
                     </div>
                     <div className="min-w-0 flex-1 text-left">
                       <p
-                        className={`text-lg font-bold tabular-nums leading-none md:text-xl ${isBlue ? 'text-white' : 'text-brand-teal'}`}
+                        className={`font-bold tabular-nums leading-none tracking-tight ${
+                          isBlue ? 'text-2xl text-brand-navy md:text-3xl' : 'text-2xl text-brand-teal md:text-3xl'
+                        }`}
                       >
                         {metric.value}
                       </p>
-                      <p className="mt-0.5 text-[9px] font-medium uppercase tracking-wide text-white/60 md:text-[10px]">
+                      <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[11px] md:text-xs md:tracking-[0.16em]">
                         {metric.label}
                       </p>
                     </div>
@@ -107,56 +123,57 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Organizational Structure — same hierarchy, refined visual system */}
+      {/* ── Organizational Structure ── */}
       <section
         id="organizational-structure"
-        className="relative overflow-hidden border-t border-slate-100/80 bg-gradient-to-b from-white via-[color-mix(in_srgb,var(--brand-mint)_12%,white)] to-white py-7 md:py-9 px-4 md:px-6"
+        className="relative overflow-hidden bg-gradient-to-b from-[color-mix(in_srgb,var(--brand-navy)_95%,black)] via-brand-navy to-[color-mix(in_srgb,var(--brand-navy)_88%,#020617)] py-16 px-4 sm:px-6 md:py-24 lg:py-28"
       >
-        {/* Soft grid + ambient light */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-teal/[0.05] via-transparent to-brand-navy/80" />
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.35]"
-          style={{
-            backgroundImage: `radial-gradient(color-mix(in srgb, var(--brand-navy) 14%, transparent) 1px, transparent 1px)`,
-            backgroundSize: '20px 20px',
-          }}
+          className="pointer-events-none absolute inset-0 opacity-[0.08]"
+          style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
         />
-        <div className="pointer-events-none absolute -right-20 top-0 h-[320px] w-[320px] rounded-full bg-brand-teal/[0.07] blur-3xl md:h-[420px] md:w-[420px]" />
-        <div className="pointer-events-none absolute -left-16 bottom-0 h-[260px] w-[260px] rounded-full bg-brand-navy/[0.06] blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 top-1/4 h-[min(480px,65vw)] w-[min(480px,65vw)] rounded-full bg-brand-teal/[0.16] blur-[120px]" />
+        <div className="pointer-events-none absolute -left-24 bottom-0 h-[min(380px,50vw)] w-[min(380px,50vw)] rounded-full bg-brand-green/[0.08] blur-[100px]" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-[min(85%,44rem)] -translate-x-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-        <div className="relative z-10 mx-auto max-w-4xl">
-          <div className="mb-4 text-center md:mb-5">
-            <div className="mb-3 inline-flex items-center rounded-full border border-brand-teal/20 bg-white/70 px-3 py-1 text-[10px] font-bold tracking-[0.2em] text-brand-teal shadow-[0_1px_0_rgba(255,255,255,0.8)_inset,0_4px_14px_-4px_rgba(23,94,126,0.15)] backdrop-blur-sm md:text-[11px]">
+        <div className="relative z-10 mx-auto max-w-5xl">
+          {/* Header */}
+          <div className="mb-12 text-center md:mb-16">
+            <div className="mb-4 inline-flex rounded-full border border-white/20 bg-white/[0.08] px-5 py-2.5 text-xs font-bold tracking-[0.22em] text-white/95 shadow-[0_0_40px_-12px_rgba(45,212,191,0.3)] backdrop-blur-md md:text-sm">
               ORGANIZATIONAL FRAMEWORK
             </div>
-            <h2 className="bg-gradient-to-br from-brand-navy to-[color-mix(in_srgb,var(--brand-navy)_55%,black)] bg-clip-text text-2xl font-bold tracking-tight text-transparent md:text-3xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl lg:text-[2.85rem] lg:leading-tight">
               Organizational Structure
             </h2>
-            <div className="mx-auto mt-2.5 mb-2 h-1 w-14 rounded-full bg-gradient-to-r from-brand-teal/40 via-brand-teal to-brand-green/80 md:w-20" />
-            <p className="mx-auto max-w-xl text-xs leading-relaxed text-slate-600 [text-wrap:balance] md:text-sm">
+            <div className="mx-auto mt-4 mb-4 h-1.5 w-20 rounded-full bg-gradient-to-r from-brand-teal/50 via-brand-teal to-brand-green/80 shadow-[0_0_24px_rgba(45,212,191,0.4)] md:w-28" />
+            <p className="mx-auto max-w-2xl text-pretty text-lg leading-relaxed text-white/80 md:text-xl">
               Our professional framework for delivering excellence and sustainable impact
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-0">
-            {/* CEO */}
-            <div className="group relative z-10 w-full max-w-sm">
-              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-brand-teal/40 via-brand-green/20 to-transparent opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-brand-navy via-brand-navy to-[color-mix(in_srgb,var(--brand-navy)_72%,black)] text-white shadow-[0_12px_40px_-12px_rgba(23,94,126,0.45),0_0_0_1px_rgba(255,255,255,0.06)_inset] transition-transform duration-300 group-hover:-translate-y-0.5">
-                <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/[0.06]" />
-                <div className="absolute -bottom-6 left-1/4 h-20 w-20 rounded-full bg-brand-teal/[0.08] blur-2xl" />
-                <div className="h-1 w-full bg-gradient-to-r from-brand-teal via-brand-green to-brand-teal" />
-                <div className="relative flex items-center gap-3 px-3 py-2.5 md:gap-3.5 md:px-4 md:py-3">
+
+            {/* ─── CEO ─── */}
+            <div className="group relative z-10 w-full max-w-lg">
+              <div className="absolute -inset-1 rounded-[1.25rem] bg-gradient-to-br from-brand-teal/50 via-brand-green/25 to-white/10 opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="relative overflow-hidden rounded-[1.25rem] border border-white/20 bg-gradient-to-br from-white/[0.14] to-white/[0.04] shadow-[0_20px_56px_-20px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_28px_64px_-24px_rgba(23,94,126,0.5)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand-teal/[0.12] blur-2xl" />
+                <div className="absolute -bottom-8 left-1/4 h-24 w-24 rounded-full bg-brand-green/[0.1] blur-2xl" />
+                <div className="h-1.5 w-full bg-gradient-to-r from-brand-teal via-brand-green to-brand-teal shadow-[0_0_16px_rgba(45,212,191,0.6)]" />
+                <div className="relative flex items-center gap-5 px-5 py-5 md:gap-6 md:px-7 md:py-6">
                   <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 rounded-xl bg-brand-teal/30 blur-md" />
-                    <div className="relative rounded-xl border border-white/20 bg-white/10 p-1.5 shadow-inner backdrop-blur-sm md:p-2">
-                      <Crown size={18} className="text-brand-green drop-shadow-sm" strokeWidth={2} />
+                    <div className="absolute inset-0 rounded-2xl bg-brand-teal/40 blur-md" />
+                    <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white/25 bg-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_6px_24px_-6px_rgba(45,212,191,0.4)] backdrop-blur-sm md:h-16 md:w-16">
+                      <Crown size={28} className="text-brand-green drop-shadow-[0_0_10px_rgba(124,227,149,0.5)]" strokeWidth={1.75} />
                     </div>
                   </div>
                   <div className="min-w-0 text-left">
-                    <p className="text-sm font-bold leading-snug text-white drop-shadow-sm md:text-base">
+                    <p className="text-lg font-extrabold leading-tight tracking-tight text-white drop-shadow-sm md:text-xl">
                       Managing Director / CEO
                     </p>
-                    <p className="mt-0.5 text-[9px] font-semibold tracking-[0.18em] text-brand-green md:text-[10px]">
+                    <p className="mt-1.5 text-xs font-bold tracking-[0.2em] text-brand-green/90 sm:text-sm">
                       STRATEGIC LEADERSHIP
                     </p>
                   </div>
@@ -166,42 +183,40 @@ export default function AboutPage() {
 
             {/* Connector L1 → L2 */}
             <div className="flex w-full flex-col items-center">
-              <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-brand-navy/50 to-brand-teal/40 md:h-4" />
+              <div className="h-6 w-px bg-gradient-to-b from-brand-teal/60 to-brand-teal/20 md:h-8" />
               <div className="relative hidden w-full px-[calc(100%/6)] md:block">
-                <div className="h-[2px] w-full rounded-full bg-gradient-to-r from-transparent via-slate-300/90 to-transparent" />
-                <div className="absolute left-[calc(100%/6)] -top-[4px] h-2 w-2 rounded-full border-2 border-white bg-brand-navy shadow-sm ring-1 ring-brand-teal/40" />
-                <div className="absolute left-1/2 -top-[4px] h-2 w-2 -translate-x-1/2 rounded-full border-2 border-white bg-brand-navy shadow-sm ring-1 ring-brand-teal/40" />
-                <div className="absolute right-[calc(100%/6)] -top-[4px] h-2 w-2 rounded-full border-2 border-white bg-brand-navy shadow-sm ring-1 ring-brand-teal/40" />
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-brand-teal/40 to-transparent" />
+                {[`left-[calc(100%/6)]`, 'left-1/2 -translate-x-1/2', `right-[calc(100%/6)]`].map((pos, i) => (
+                  <div key={i} className={`absolute ${pos} -top-[5px] h-2.5 w-2.5 rounded-full border-2 border-brand-navy bg-brand-teal shadow-[0_0_10px_rgba(45,212,191,0.6)]`} />
+                ))}
               </div>
               <div className="hidden w-full justify-around px-[calc(100%/6-1px)] md:flex">
-                <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-brand-navy/35 to-brand-teal/25 md:h-4" />
-                <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-brand-navy/35 to-brand-teal/25 md:h-4" />
-                <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-brand-navy/35 to-brand-teal/25 md:h-4" />
+                {[0,1,2].map(i => <div key={i} className="h-6 w-px bg-gradient-to-b from-brand-teal/40 to-brand-teal/15 md:h-8" />)}
               </div>
-              <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-brand-navy/40 to-brand-teal/30 md:hidden" />
+              <div className="h-5 w-px bg-gradient-to-b from-brand-teal/40 to-brand-teal/15 md:hidden" />
             </div>
 
-            {/* Directors */}
-            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-2.5">
+            {/* ─── Directors ─── */}
+            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 md:gap-5">
               {[
-                { title: 'Operations Director', subtitle: 'Admin & Finance', icon: Briefcase, bg: 'bg-brand-navy', ring: 'ring-brand-teal/15' },
-                { title: 'Technical Director', subtitle: 'Core Services', icon: Settings, bg: 'bg-brand-navy-mid', ring: 'ring-white/10' },
-                { title: 'Business Dev. Director', subtitle: 'Growth & Partnerships', icon: TrendingUp, bg: 'bg-brand-teal', ring: 'ring-white/20' },
-              ].map((role, idx) => {
+                { title: 'Operations Director', subtitle: 'Admin & Finance', icon: Briefcase, gradient: 'from-brand-navy via-brand-navy to-[color-mix(in_srgb,var(--brand-navy)_75%,black)]' },
+                { title: 'Technical Director', subtitle: 'Core Services', icon: Settings, gradient: 'from-[color-mix(in_srgb,var(--brand-navy)_85%,var(--brand-teal))] via-brand-navy to-brand-navy' },
+                { title: 'Business Dev. Director', subtitle: 'Growth & Partnerships', icon: TrendingUp, gradient: 'from-brand-teal via-[color-mix(in_srgb,var(--brand-teal)_85%,var(--brand-navy))] to-brand-teal' },
+              ].map((role) => {
                 const IconComp = role.icon;
                 return (
-                  <div key={idx} className="group relative">
-                    <div
-                      className={`relative ${role.bg} overflow-hidden rounded-2xl border border-white/15 text-white shadow-[0_10px_28px_-12px_rgba(23,94,126,0.35)] ring-1 ${role.ring} transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_36px_-14px_rgba(23,94,126,0.4)]`}
-                    >
-                      <div className="absolute -right-3 -top-3 h-14 w-14 rounded-full bg-white/[0.07]" />
-                      <div className="absolute -bottom-4 -left-2 h-12 w-12 rounded-full bg-black/10" />
-                      <div className="relative p-3 md:p-3.5">
-                        <div className="mb-2 inline-flex rounded-lg border border-white/15 bg-white/10 p-1.5 shadow-inner backdrop-blur-[2px]">
-                          <IconComp size={15} className="text-white" strokeWidth={2} />
+                  <div key={role.title} className="group relative">
+                    <div className="absolute -inset-px rounded-[1.15rem] bg-gradient-to-br from-brand-teal/35 via-white/10 to-transparent opacity-0 blur-[6px] transition-opacity duration-500 group-hover:opacity-100" />
+                    <div className={`relative overflow-hidden rounded-[1.15rem] border border-white/15 bg-gradient-to-br ${role.gradient} text-white shadow-[0_16px_40px_-16px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_24px_56px_-20px_rgba(23,94,126,0.4)]`}>
+                      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                      <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/[0.06]" />
+                      <div className="absolute -bottom-5 -left-3 h-16 w-16 rounded-full bg-black/10" />
+                      <div className="relative p-5 md:p-6">
+                        <div className="mb-4 inline-flex rounded-xl border border-white/20 bg-white/[0.1] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-sm">
+                          <IconComp size={22} className="text-white drop-shadow-sm" strokeWidth={1.75} />
                         </div>
-                        <p className="text-xs font-bold leading-tight drop-shadow-sm md:text-[13px]">{role.title}</p>
-                        <p className="mt-0.5 text-[10px] font-medium leading-snug text-white/80 md:text-[11px]">{role.subtitle}</p>
+                        <p className="text-base font-extrabold leading-tight tracking-tight drop-shadow-sm md:text-lg">{role.title}</p>
+                        <p className="mt-1.5 text-sm font-medium leading-snug text-white/80 md:text-base">{role.subtitle}</p>
                       </div>
                     </div>
                   </div>
@@ -212,31 +227,29 @@ export default function AboutPage() {
             {/* Connector L2 → L3 */}
             <div className="flex w-full flex-col items-center">
               <div className="hidden w-full justify-around px-[calc(100%/6-1px)] md:flex">
-                <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-slate-300 to-slate-200/80 md:h-3.5" />
-                <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-slate-300 to-slate-200/80 md:h-3.5" />
-                <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-slate-300 to-slate-200/80 md:h-3.5" />
+                {[0,1,2].map(i => <div key={i} className="h-5 w-px bg-gradient-to-b from-brand-teal/35 to-brand-teal/10 md:h-7" />)}
               </div>
-              <div className="h-3 w-[2px] rounded-full bg-gradient-to-b from-slate-300 to-slate-200 md:hidden" />
+              <div className="h-5 w-px bg-gradient-to-b from-brand-teal/30 to-transparent md:hidden" />
             </div>
 
-            {/* Specialists */}
-            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-2.5">
+            {/* ─── Specialists ─── */}
+            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 md:gap-5">
               {[
                 { title: 'Program Managers', icon: Users },
                 { title: 'Project Officers', icon: ClipboardList },
                 { title: 'M&E Specialists', icon: BarChart3 },
-              ].map((role, idx) => {
+              ].map((role) => {
                 const IconComp = role.icon;
                 return (
-                  <div key={idx} className="group relative">
-                    <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white/90 shadow-[0_4px_20px_-8px_rgba(23,94,126,0.12)] ring-1 ring-slate-100/80 backdrop-blur-[2px] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-brand-teal/35 group-hover:shadow-[0_12px_28px_-10px_rgba(85,197,147,0.22)]">
-                      <div className="h-0.5 w-full bg-gradient-to-r from-brand-teal/50 via-brand-teal to-brand-green/70" />
-                      <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-brand-teal/[0.04]" />
-                      <div className="relative flex items-center gap-2.5 px-2.5 py-2 md:gap-3 md:px-3 md:py-2.5">
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-brand-teal/15 bg-gradient-to-br from-brand-mint/40 to-brand-teal/10 shadow-inner">
-                          <IconComp size={14} className="text-brand-teal" strokeWidth={2} />
+                  <div key={role.title} className="group relative">
+                    <div className="relative overflow-hidden rounded-[1.15rem] border border-white/12 bg-gradient-to-br from-white/[0.1] to-white/[0.03] shadow-[0_8px_28px_-12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-1 group-hover:border-brand-teal/30 group-hover:shadow-[0_16px_36px_-14px_rgba(45,212,191,0.25)]">
+                      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                      <div className="h-px w-full bg-gradient-to-r from-brand-teal/40 via-brand-teal to-brand-green/60" />
+                      <div className="relative flex items-center gap-4 px-4 py-4 md:gap-4 md:px-5 md:py-4.5">
+                        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-brand-teal/30 bg-brand-teal/[0.15] shadow-[inset_0_1px_0_rgba(45,212,191,0.2)] transition-transform duration-300 group-hover:scale-105 md:h-12 md:w-12">
+                          <IconComp size={20} className="text-brand-teal drop-shadow-sm" strokeWidth={2} />
                         </div>
-                        <p className="text-[11px] font-semibold leading-tight text-brand-navy md:text-xs">{role.title}</p>
+                        <p className="text-sm font-bold leading-tight text-white md:text-base">{role.title}</p>
                       </div>
                     </div>
                   </div>
@@ -245,37 +258,33 @@ export default function AboutPage() {
             </div>
 
             {/* Connector L3 → L4 */}
-            <div className="flex flex-col items-center py-0.5">
-              <div className="h-2 w-[2px] rounded-full bg-gradient-to-b from-slate-200 to-transparent" />
-              <div className="h-2 w-2 rounded-full border-2 border-white bg-gradient-to-br from-brand-teal to-brand-green shadow-[0_0_0_3px_rgba(85,197,147,0.2)]" />
-              <div className="h-2 w-[2px] rounded-full bg-gradient-to-b from-transparent to-slate-200" />
+            <div className="flex flex-col items-center py-1">
+              <div className="h-4 w-px bg-gradient-to-b from-brand-teal/30 to-transparent" />
+              <div className="h-3 w-3 rounded-full border-2 border-brand-navy bg-brand-teal shadow-[0_0_14px_rgba(45,212,191,0.6)]" />
+              <div className="h-4 w-px bg-gradient-to-b from-transparent to-brand-teal/20" />
             </div>
 
-            {/* Pool + consultants */}
-            <div className="grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-2.5">
+            {/* ─── Pool + Consultants ─── */}
+            <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 md:gap-5">
               {[
-                { title: 'Pool of Experts', desc: 'Pre-vetted specialists by sector', icon: Award, bg: 'bg-brand-navy', glow: brand.navy },
-                { title: 'Short-term Consultants', desc: 'Ad hoc specialists for specific projects', icon: UserCheck, bg: 'bg-brand-teal', glow: brand.green },
-              ].map((item, idx) => {
+                { title: 'Pool of Experts', desc: 'Pre-vetted specialists by sector', icon: Award, gradient: 'from-brand-navy via-brand-navy to-[color-mix(in_srgb,var(--brand-navy)_80%,black)]' },
+                { title: 'Short-term Consultants', desc: 'Ad hoc specialists for specific projects', icon: UserCheck, gradient: 'from-brand-teal via-[color-mix(in_srgb,var(--brand-teal)_80%,var(--brand-navy))] to-brand-teal' },
+              ].map((item) => {
                 const IconComp = item.icon;
                 return (
-                  <div key={idx} className="group relative">
-                    <div
-                      className="absolute -inset-[1px] rounded-2xl opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-90"
-                      style={{ background: `linear-gradient(135deg, ${item.glow}55, transparent)` }}
-                    />
-                    <div
-                      className={`relative ${item.bg} overflow-hidden rounded-2xl border border-white/15 text-white shadow-[0_10px_32px_-14px_rgba(23,94,126,0.38)] ring-1 ring-white/10 transition-all duration-300 group-hover:-translate-y-0.5`}
-                    >
-                      <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-white/[0.07]" />
-                      <div className="absolute bottom-0 left-0 h-16 w-32 rounded-full bg-black/10 blur-2xl" />
-                      <div className="relative flex items-start gap-3 p-3 md:p-3.5">
-                        <div className="flex-shrink-0 rounded-xl border border-white/20 bg-white/10 p-2 shadow-inner backdrop-blur-sm">
-                          <IconComp size={16} className="text-white" strokeWidth={2} />
+                  <div key={item.title} className="group relative">
+                    <div className="absolute -inset-px rounded-[1.15rem] bg-gradient-to-br from-brand-teal/30 via-white/10 to-transparent opacity-0 blur-[6px] transition-opacity duration-500 group-hover:opacity-100" />
+                    <div className={`relative overflow-hidden rounded-[1.15rem] border border-white/15 bg-gradient-to-br ${item.gradient} text-white shadow-[0_16px_44px_-18px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_24px_56px_-20px_rgba(23,94,126,0.4)]`}>
+                      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                      <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-white/[0.06]" />
+                      <div className="absolute bottom-0 left-0 h-20 w-36 rounded-full bg-black/10 blur-2xl" />
+                      <div className="relative flex items-start gap-4 p-5 md:p-6">
+                        <div className="flex-shrink-0 rounded-xl border border-white/20 bg-white/[0.1] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
+                          <IconComp size={24} className="text-white drop-shadow-sm" strokeWidth={1.75} />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-bold leading-tight drop-shadow-sm md:text-[13px]">{item.title}</p>
-                          <p className="mt-1 text-[10px] leading-snug text-white/88 md:text-[11px]">{item.desc}</p>
+                          <p className="text-base font-extrabold leading-tight tracking-tight drop-shadow-sm md:text-lg">{item.title}</p>
+                          <p className="mt-2 text-sm leading-snug text-white/85 md:text-base">{item.desc}</p>
                         </div>
                       </div>
                     </div>

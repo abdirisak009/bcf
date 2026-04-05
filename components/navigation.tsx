@@ -242,14 +242,14 @@ export default function Navigation() {
       {/* Main Navigation */}
       <nav className="border-b border-slate-200/90 bg-white/95 shadow-[0_8px_30px_-12px_rgba(23,94,126,0.18)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-[4.5rem]">
+          <div className="flex h-[4.75rem] items-center justify-between sm:h-[5rem]">
             <Link href="/" className="flex-shrink-0 transition-opacity hover:opacity-90">
               <Image
                 src={SITE_LOGO_SRC}
                 alt="Baraarug Consulting Firm"
-                width={200}
-                height={56}
-                className="h-12 w-auto max-w-[200px] object-contain"
+                width={240}
+                height={66}
+                className="h-[3.35rem] w-auto max-w-[220px] object-contain sm:h-14 sm:max-w-[240px] md:h-[3.75rem]"
                 priority
               />
             </Link>

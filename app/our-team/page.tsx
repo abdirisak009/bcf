@@ -148,6 +148,10 @@ type TeamMember = {
   photoPortraitClassName?: string;
   /** If primary `photo` 404s, try these in order (e.g. `/images/if.jpeg` vs `/if.jpeg`) */
   photoSrcFallbacks?: string[];
+  /** Shown on the card instead of a generic “Contact” label */
+  email?: string;
+  /** Public LinkedIn profile URL (opens in new tab) */
+  linkedinUrl?: string;
 };
 
 const teamMembers: TeamMember[] = [
@@ -157,16 +161,18 @@ const teamMembers: TeamMember[] = [
     gender: 'female',
     cardTheme: 'ceo',
     surface: 'bg-brand-navy',
-    tagline: '14 Years of Visionary Leadership',
-    bio: 'CEO with 14 years in public financial management, procurement, and institutional reform — partnering with World Bank, AfDB, UNDP, and UN-Habitat.',
+    tagline: '15 Years of Visionary Leadership',
+    bio: 'CEO with 15 years in public financial management, procurement, and institutional reform — partnering with World Bank, AfDB, UNDP, and UN-Habitat.',
     expertise: ['Public Financial Management', 'Fiscal Governance', 'Institutional Capacity Building', 'Public Procurement'],
-    stats: [{ label: 'Years Exp.', value: '14+' }, { label: 'Organizations', value: '10+' }, { label: 'Countries', value: '5+' }],
+    stats: [{ label: 'Years Exp.', value: '15+' }, { label: 'Organizations', value: '10+' }, { label: 'Countries', value: '5+' }],
     /** Primary portrait: `public/ayan.jpg` (fallback: `public/ayan.jpeg`) */
     photo: '/ayan.jpg',
     photoSrcFallbacks: ['/ayan.jpeg'],
     photoPortraitClassName: 'h-36 w-36 sm:h-40 sm:w-40',
     photoImageClassName:
       'object-cover object-[40%_42%] transition-transform duration-500 ease-out group-hover:scale-105',
+    email: 'ayan@bcf.so',
+    linkedinUrl: 'https://www.linkedin.com/in/ayan-ali-69535496',
   },
   {
     name: 'Dr. Abdinur Ahmed',
@@ -175,11 +181,13 @@ const teamMembers: TeamMember[] = [
     cardTheme: 'chairman',
     surface: 'bg-brand-teal',
     tagline: 'Economic Theory & Climate Expert',
-    bio: 'Former Dean at SIMAD University; research on climate economics, financial inclusion, and policy across East Africa.',
+    bio: 'Chairman of Baraarug: board strategy and governance leadership—aligning vision, ethics, and long-term impact with expertise in economic theory, climate economics, financial inclusion, and policy across East Africa.',
     expertise: ['Economic Theory', 'Financial Inclusion', 'Climate Economics', 'Policy Development'],
-    stats: [{ label: 'Research Papers', value: '20+' }, { label: 'Yrs. Academic', value: '12+' }, { label: 'Policy Reports', value: '30+' }],
+    stats: [{ label: 'Years Exp.', value: '16+' }, { label: 'Research Papers', value: '20+' }, { label: 'Policy Reports', value: '30+' }],
     photo: '/abdinor.jpg',
     photoAccent: true,
+    email: 'abdinor@bcf.so',
+    linkedinUrl: 'https://www.linkedin.com/in/abdinur-ali-mohamed-phd-211270163',
   },
   {
     name: 'Mss. Ifrah Abdirahman',
@@ -187,7 +195,7 @@ const teamMembers: TeamMember[] = [
     gender: 'female',
     cardTheme: 'coo',
     surface: 'bg-brand-navy-mid',
-    tagline: '10+ Years Driving Strategic Excellence',
+    tagline: '10 Years Driving Strategic Excellence',
     bio: 'COO focused on public-sector consulting, audit, strategic policy, and transformation across the Horn of Africa.',
     expertise: ['Public Sector Consulting', 'Audit & Assurance', 'Strategic Policy', 'Organizational Transformation'],
     stats: [{ label: 'Years Exp.', value: '10+' }, { label: 'Projects Led', value: '50+' }, { label: 'Sectors', value: '8+' }],
@@ -196,6 +204,7 @@ const teamMembers: TeamMember[] = [
     photoPortraitClassName: 'h-32 w-32 sm:h-36 sm:w-36',
     photoImageClassName:
       'object-cover object-[50%_35%] transition-transform duration-500 ease-out group-hover:scale-105',
+    email: 'ifrah@bcf.so',
   },
 ];
 
@@ -343,7 +352,7 @@ function TeamCard({ member, idx }: { member: TeamMember; idx: number }) {
             ))}
           </div>
 
-          <p className="line-clamp-2 text-center text-[11px] leading-snug text-slate-600 sm:text-xs">{member.bio}</p>
+          <p className="line-clamp-3 text-center text-[11px] leading-snug text-slate-600 sm:text-xs">{member.bio}</p>
 
           <div className="flex flex-wrap justify-center gap-1">
             {tagPreview.map((tag, tIdx) => (
@@ -362,23 +371,38 @@ function TeamCard({ member, idx }: { member: TeamMember; idx: number }) {
           </div>
 
           <div className="mt-auto flex gap-1.5 border-t border-slate-100/90 pt-2.5">
-            <button
-              type="button"
-              className={`flex flex-1 items-center justify-center gap-1 rounded-lg ${member.surface} py-2 text-[10px] font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[0.98] sm:text-[11px]`}
+            <a
+              href={member.email ? `mailto:${member.email}` : '/contact'}
+              className={`flex min-h-[2.75rem] flex-1 items-center justify-center gap-1 rounded-lg px-1 py-2 text-center text-[9px] font-bold leading-tight text-white shadow-sm transition hover:brightness-110 active:scale-[0.98] sm:min-h-0 sm:text-[10px] md:text-[11px] ${member.surface}`}
             >
               <Mail className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" strokeWidth={2.25} />
-              Contact
-            </button>
-            <button
-              type="button"
-              className={cn(
-                'flex flex-1 items-center justify-center gap-1 rounded-lg border bg-white py-2 text-[10px] font-bold text-slate-700 shadow-sm transition active:scale-[0.98] sm:text-[11px]',
-                t.linkedin,
-              )}
-            >
-              <Linkedin className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" strokeWidth={2.25} />
-              LinkedIn
-            </button>
+              <span className="break-all [overflow-wrap:anywhere]">{member.email ?? 'Contact'}</span>
+            </a>
+            {member.linkedinUrl ? (
+              <a
+                href={member.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'flex flex-1 items-center justify-center gap-1 rounded-lg border bg-white py-2 text-[10px] font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.98] sm:text-[11px]',
+                  t.linkedin,
+                )}
+              >
+                <Linkedin className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" strokeWidth={2.25} />
+                LinkedIn
+              </a>
+            ) : (
+              <button
+                type="button"
+                className={cn(
+                  'flex flex-1 items-center justify-center gap-1 rounded-lg border bg-white py-2 text-[10px] font-bold text-slate-700 shadow-sm transition active:scale-[0.98] sm:text-[11px]',
+                  t.linkedin,
+                )}
+              >
+                <Linkedin className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" strokeWidth={2.25} />
+                LinkedIn
+              </button>
+            )}
           </div>
         </div>
 

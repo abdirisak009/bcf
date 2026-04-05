@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Training & Events: sawirro maxalli ah (`/public`) si ay u soo baxaan si joogto ah.
- * Training = maktabad / barasho guud (aan coding ahayn). Events = marxalad / dhacdo (sawir maxalli ah).
+ * Sawirada: `public/blogs.jpg`, `training.jpg`, `research.jpg`, `events.jpg`
+ * Research: isku day `/research` iyo `/Research` + `.jpg`/`.png`/…
  */
 const items = [
   {
@@ -17,42 +17,87 @@ const items = [
     href: "/news",
     description: "Stories & insights",
     ariaLabel: "Blogs — stories and updates",
-    imageSrc:
-      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1600&q=82",
+    imageSrc: "/blogs.jpg",
   },
   {
     label: "Training",
     href: "/training",
     description: "Catalogue & apply",
     ariaLabel: "Training catalogue and applications",
-    imageSrc: "/explore-training.jpg",
+    imageSrc: "/training.jpg",
   },
   {
     label: "Research",
     href: "/publications",
     description: "Reports & briefs",
     ariaLabel: "Research publications and briefs",
-    imageSrc:
-      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1600&q=82",
+    /** `public/research.jpg` (ama `Research.jpg` — Linux wuu kala duwan yahay magaca). */
+    imageSrc: "/research.jpg",
   },
   {
     label: "Events",
     href: "/#events",
     description: "News & highlights",
     ariaLabel: "Events and news highlights on the home page",
-    imageSrc: "/explore-events-venue.jpg",
+    imageSrc: "/events.jpg",
   },
 ] as const;
 
-/** Hal nidaam midab — brand teal + navy (aan indigo/emerald kala duwan) */
-const OVERLAY_TINT =
-  "from-brand-teal/50 via-brand-navy/28 to-brand-navy/[0.82]";
-const OVERLAY_VIGNETTE = "from-brand-navy/[0.9] via-brand-navy/38 to-transparent";
+const EXPLORE_IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp"] as const;
 
-function ExploreTileBg({ src, priority }: { src: string; priority?: boolean }) {
-  const [failed, setFailed] = useState(false);
+/** Kadib `/research.*`: isku day `/Research.*` (xarfaha waaweyn), ka dib magacyadii hore. */
+const EXPLORE_LEGACY_STEMS = ["/Research", "/explore-research"] as const;
 
-  if (failed) {
+function exploreImageStem(src: string): string {
+  return src.replace(/\.(jpg|jpeg|png|webp)$/i, "");
+}
+
+function urlForExploreAttempt(
+  attempt: number,
+  primaryStem: string,
+  fallbackSrc?: string,
+): string | null {
+  const perStem = EXPLORE_IMAGE_EXTS.length;
+  const legacyCount = EXPLORE_LEGACY_STEMS.length * perStem;
+  const localTotal = perStem + legacyCount;
+
+  if (attempt < perStem) {
+    return primaryStem + EXPLORE_IMAGE_EXTS[attempt];
+  }
+  if (attempt < localTotal) {
+    const i = attempt - perStem;
+    const stemIdx = Math.floor(i / perStem);
+    const extIdx = i % perStem;
+    return EXPLORE_LEGACY_STEMS[stemIdx] + EXPLORE_IMAGE_EXTS[extIdx];
+  }
+  if (attempt === localTotal && fallbackSrc) {
+    return fallbackSrc;
+  }
+  return null;
+}
+
+function ExploreTileBg({
+  src,
+  fallbackSrc,
+  priority,
+}: {
+  src: string;
+  fallbackSrc?: string;
+  priority?: boolean;
+}) {
+  const primaryStem = useMemo(() => exploreImageStem(src), [src]);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    setAttempt(0);
+  }, [primaryStem, fallbackSrc]);
+
+  const resolved = useMemo(
+    () => urlForExploreAttempt(attempt, primaryStem, fallbackSrc),
+    [attempt, primaryStem, fallbackSrc],
+  );
+
+  if (resolved === null) {
     return (
       <div
         className="absolute inset-0 bg-gradient-to-br from-brand-teal via-brand-navy to-brand-navy-mid"
@@ -63,13 +108,13 @@ function ExploreTileBg({ src, priority }: { src: string; priority?: boolean }) {
 
   return (
     <Image
-      src={src}
+      src={resolved}
       alt=""
       fill
       priority={priority}
       className="object-cover transition duration-[850ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
       sizes="(max-width: 640px) 50vw, 36vw"
-      onError={() => setFailed(true)}
+      onError={() => setAttempt((a) => a + 1)}
     />
   );
 }
@@ -130,51 +175,48 @@ export default function HomeExploreStrip() {
                   <ExploreTileBg
                     key={item.imageSrc}
                     src={item.imageSrc}
+                    fallbackSrc={
+                      "fallbackSrc" in item && typeof item.fallbackSrc === "string"
+                        ? item.fallbackSrc
+                        : undefined
+                    }
                     priority={i < 2 || i === 3}
                   />
 
-                  {/* Midab isku mid ah; Events: overlay fudud si sawirka marxaladda uu u muuqdo */}
+                  {/* Sawirka badankiis wuu muuqdaa; halbeeg hoosta oo keliya + hadh fudud — aan daboolin card-ka oo dhan */}
+                  <div
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/[0.07] via-transparent to-transparent"
+                    aria-hidden
+                  />
+
                   <div
                     className={cn(
-                      "pointer-events-none absolute inset-0 bg-gradient-to-br transition-opacity duration-500",
+                      "pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent transition-opacity duration-500",
                       item.label === "Events"
-                        ? "opacity-[0.76] group-hover:opacity-[0.84]"
-                        : "opacity-[0.88] group-hover:opacity-[0.92]",
-                      OVERLAY_TINT,
+                        ? "h-[50%] from-brand-navy/[0.78] via-brand-navy/[0.28]"
+                        : "h-[54%] sm:h-[52%] from-brand-navy/[0.85] via-brand-navy/[0.32]",
+                      "group-hover:from-brand-navy/[0.9] group-hover:via-brand-navy/[0.38]",
                     )}
                     aria-hidden
                   />
 
                   <div
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/12 via-transparent to-transparent opacity-55"
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-brand-teal/[0.12] via-transparent to-brand-navy/[0.08] opacity-70 mix-blend-soft-light"
                     aria-hidden
                   />
 
                   <div
-                    className={cn(
-                      "pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent",
-                      OVERLAY_VIGNETTE,
-                    )}
-                    aria-hidden
-                  />
-
-                  <div
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-brand-mint/[0.06] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                    aria-hidden
-                  />
-
-                  <div
-                    className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/20"
+                    className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/25"
                     aria-hidden
                   />
 
                   <div className="relative z-[1] flex flex-col gap-1.5 p-4 sm:p-6 md:p-7">
                     <div className="flex items-end justify-between gap-3">
                       <div className="min-w-0 flex-1 pr-2">
-                        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-brand-mint sm:text-[0.7rem]">
+                        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-white/95 drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] sm:text-[0.7rem]">
                           {item.description}
                         </p>
-                        <h3 className="mt-1.5 text-[1.35rem] font-bold leading-[1.15] tracking-tight text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.4)] sm:text-2xl md:text-[1.75rem]">
+                        <h3 className="mt-1.5 text-[1.35rem] font-bold leading-[1.15] tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.55),0_8px_28px_rgba(0,0,0,0.45)] sm:text-2xl md:text-[1.75rem]">
                           {item.label}
                         </h3>
                       </div>
@@ -191,7 +233,7 @@ export default function HomeExploreStrip() {
                         <ArrowUpRight className="h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem]" strokeWidth={2.2} aria-hidden />
                       </span>
                     </div>
-                    <p className="text-[0.8rem] font-semibold text-white/90 transition-colors group-hover:text-white sm:text-sm">
+                    <p className="text-[0.8rem] font-semibold text-white/95 drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)] transition-colors group-hover:text-white sm:text-sm">
                       Read more…
                     </p>
                   </div>
