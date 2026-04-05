@@ -96,13 +96,11 @@ export function PublicationPdfActions({ fileUrl, title, mode, className }: Props
           {/* Framed “page” area — aligns with publication layout feel */}
           <div className="relative flex min-h-0 flex-1 flex-col bg-gradient-to-b from-slate-100/90 to-slate-200/50 p-2 sm:p-3">
             <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl bg-white shadow-[inset_0_0_0_1px_rgba(15,23,42,0.06)] ring-1 ring-slate-300/40">
-              {/*
-                Chrome embedded PDF: toolbar=0 / navpanes=0 where honored.
-              */}
               <iframe
                 title={title}
-                src={`${iframeSrc}#toolbar=0&navpanes=0&view=FitH`}
+                src={iframeSrc}
                 className="absolute inset-0 h-full w-full border-0 bg-white"
+                allow="autoplay"
               />
             </div>
           </div>
