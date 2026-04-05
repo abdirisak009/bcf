@@ -8,8 +8,9 @@ import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Sawirada: `public/blogs.jpg`, `training.jpg`, `research.jpg`, `events.jpg`
- * Research: isku day `/research` iyo `/Research` + `.jpg`/`.png`/…
+ * Magacyada faylasha waa inay ku dhigmaan `public/` si sax ah (xarfaha) — Linux production
+ * (case-sensitive) wuxuu 404 u celinayaa `/blogs.jpg` haddii faylku yahay `Blogs.jpg`, kaas oo
+ * markaa u horseeday in dhammaan kaararka ay u gudbeen hal fallback (`Research.jpg`).
  */
 const items = [
   {
@@ -17,39 +18,45 @@ const items = [
     href: "/news",
     description: "Stories & insights",
     ariaLabel: "Blogs — stories and updates",
-    imageSrc: "/blogs.jpg",
+    imageSrc: "/Blogs.jpg",
   },
   {
     label: "Training",
     href: "/training",
     description: "Catalogue & apply",
     ariaLabel: "Training catalogue and applications",
-    imageSrc: "/training.jpg",
+    imageSrc: "/Training.jpg",
   },
   {
     label: "Research",
     href: "/publications",
     description: "Reports & briefs",
     ariaLabel: "Research publications and briefs",
-    /** `public/research.jpg` (ama `Research.jpg` — Linux wuu kala duwan yahay magaca). */
-    imageSrc: "/research.jpg",
+    imageSrc: "/Research.jpg",
   },
   {
     label: "Events",
     href: "/#events",
     description: "News & highlights",
     ariaLabel: "Events and news highlights on the home page",
-    imageSrc: "/events.jpg",
+    imageSrc: "/Events.jpg",
   },
 ] as const;
 
 const EXPLORE_IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp"] as const;
 
-/** Kadib `/research.*`: isku day `/Research.*` (xarfaha waaweyn), ka dib magacyadii hore. */
-const EXPLORE_LEGACY_STEMS = ["/Research", "/explore-research"] as const;
+/** Kaliya Research: isku day `/Research.*` iyo `/explore-research.*` (magacyada Linux/Mac). */
+const EXPLORE_RESEARCH_LEGACY_STEMS = ["/Research", "/explore-research"] as const;
 
 function exploreImageStem(src: string): string {
   return src.replace(/\.(jpg|jpeg|png|webp)$/i, "");
+}
+
+function researchLegacyStemsFor(primaryStem: string): readonly string[] {
+  // e.g. `/Research` ama `/research` — kaliya Research tile
+  const base = primaryStem.split("/").pop() ?? "";
+  if (base.toLowerCase() !== "research") return [];
+  return EXPLORE_RESEARCH_LEGACY_STEMS;
 }
 
 function urlForExploreAttempt(
@@ -58,7 +65,8 @@ function urlForExploreAttempt(
   fallbackSrc?: string,
 ): string | null {
   const perStem = EXPLORE_IMAGE_EXTS.length;
-  const legacyCount = EXPLORE_LEGACY_STEMS.length * perStem;
+  const legacyStems = researchLegacyStemsFor(primaryStem);
+  const legacyCount = legacyStems.length * perStem;
   const localTotal = perStem + legacyCount;
 
   if (attempt < perStem) {
@@ -68,7 +76,7 @@ function urlForExploreAttempt(
     const i = attempt - perStem;
     const stemIdx = Math.floor(i / perStem);
     const extIdx = i % perStem;
-    return EXPLORE_LEGACY_STEMS[stemIdx] + EXPLORE_IMAGE_EXTS[extIdx];
+    return legacyStems[stemIdx] + EXPLORE_IMAGE_EXTS[extIdx];
   }
   if (attempt === localTotal && fallbackSrc) {
     return fallbackSrc;

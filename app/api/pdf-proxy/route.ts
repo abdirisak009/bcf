@@ -5,9 +5,11 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
- * Streams a publication PDF from Cloudinary through the site origin so the in-page reader iframe
- * works on HTTPS (avoids mixed content when `file_url` was saved as `http://...`) and improves
- * embedding behaviour. Only `https://*.cloudinary.com` URLs are allowed (SSRF-safe).
+ * Streams a publication PDF from Cloudinary through the site origin.
+ *
+ * **Path must NOT be** `/api/publications/...` — in production, `/api` is often proxied to Go,
+ * which already defines `GET /api/publications/:id`. A segment like `pdf-proxy` was being parsed
+ * as an id and returned `invalid id`.
  */
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get('url')

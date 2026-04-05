@@ -46,23 +46,23 @@ export default function Footer() {
 
       <div className="relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Main grid */}
-          <div className="grid gap-12 border-b border-white/10 py-16 sm:gap-14 md:grid-cols-2 lg:grid-cols-4 lg:gap-10 lg:py-20">
-            {/* Brand — same logo treatment as header */}
-            <div className="lg:pr-4">
+          {/* Main grid — padding yare */}
+          <div className="grid gap-8 border-b border-white/10 py-10 sm:gap-10 md:grid-cols-2 md:py-12 lg:grid-cols-4 lg:gap-10 lg:py-12">
+            {/* Brand */}
+            <div className="lg:pr-3">
               <Link
                 href="/"
-                className="mb-6 inline-block transition-opacity duration-300 hover:opacity-90"
+                className="mb-4 inline-flex w-fit max-w-full rounded-xl border border-white/90 bg-gradient-to-br from-white via-sky-50/95 to-[#cfe8f5] p-3 shadow-[0_6px_24px_-10px_rgba(23,94,126,0.22),inset_0_1px_0_rgba(255,255,255,0.95)] ring-1 ring-slate-200/70 transition-all duration-300 hover:shadow-[0_10px_28px_-8px_rgba(23,94,126,0.28)] hover:ring-brand-teal/35"
               >
                 <Image
                   src={SITE_LOGO_SRC}
                   alt="Baraarug Consulting Firm"
                   width={200}
                   height={56}
-                  className="h-12 w-auto max-w-[200px] object-contain"
+                  className="h-11 w-auto max-w-[200px] object-contain drop-shadow-[0_1px_2px_rgba(15,23,42,0.06)]"
                 />
               </Link>
-              <p className="mb-8 max-w-sm text-sm leading-relaxed text-white/70">
+              <p className="mb-5 max-w-sm text-sm leading-relaxed text-white/70">
                 Empowering organizations through innovative solutions and sustainable transformation.
               </p>
               <div className="flex flex-wrap gap-3">
@@ -88,7 +88,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h4 className="mb-6 text-base font-bold tracking-tight">
+              <h4 className="mb-4 text-base font-bold tracking-tight">
                 Quick Links
                 <span className="mt-2 block h-1 w-10 rounded-full bg-brand-teal shadow-[0_0_12px_rgba(45,212,191,0.45)]" />
               </h4>
@@ -108,7 +108,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h4 className="mb-6 text-base font-bold tracking-tight">
+              <h4 className="mb-4 text-base font-bold tracking-tight">
                 Our Services
                 <span className="mt-2 block h-1 w-10 rounded-full bg-brand-teal shadow-[0_0_12px_rgba(45,212,191,0.45)]" />
               </h4>
@@ -128,7 +128,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h4 className="mb-6 text-base font-bold tracking-tight">
+              <h4 className="mb-4 text-base font-bold tracking-tight">
                 Contact Us
                 <span className="mt-2 block h-1 w-10 rounded-full bg-brand-teal shadow-[0_0_12px_rgba(45,212,191,0.45)]" />
               </h4>
@@ -170,8 +170,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Single bottom bar: one row — copyright | legal | back to top */}
-          <div className="flex items-center justify-between gap-3 border-t border-white/15 py-6 sm:gap-5 sm:py-7">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/15 py-5 sm:gap-5 sm:py-6">
             <p className="min-w-0 flex-1 truncate text-[11px] leading-snug text-white/55 sm:text-sm">
               <span className="sm:hidden">© {year} Baraarug</span>
               <span className="hidden sm:inline">

@@ -1,15 +1,15 @@
-'use client';
-
-import { brand } from '@/lib/brand';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { PageHeroShell, pageHeroSubtitleClass, pageHeroTitleClass } from '@/components/page-hero';
 import { AboutKeyClientsSection } from '@/components/about-key-clients';
+import { fetchClientsForPublic } from '@/lib/fetch-clients-public';
 import WhoWeAre from '@/components/who-we-are';
 import CoreValues from '@/components/core-values';
 import { BookOpen, Calendar, Users, Handshake, Flag, Users2, Crown, Briefcase, Settings, TrendingUp, ClipboardList, BarChart3, Award, UserCheck } from 'lucide-react';
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const clients = await fetchClientsForPublic(100);
+
   const metrics = [
     { label: 'Founded', value: '2012', icon: Calendar, color: 'blue' },
     { label: 'Projects', value: '100+', icon: BookOpen, color: 'green' },
@@ -296,7 +296,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <AboutKeyClientsSection />
+      <AboutKeyClientsSection clients={clients} />
 
       <Footer />
     </main>

@@ -33,7 +33,8 @@ export function publicationPdfIframeSrc(fileUrl: string): string {
     if (u.protocol !== 'https:') return normalized
     const h = u.hostname.toLowerCase()
     if (!h.endsWith('cloudinary.com')) return normalized
-    return `/api/publications/pdf-proxy?url=${encodeURIComponent(normalized)}`
+    /** Not under `/api/publications/*` — Go already binds `GET /publications/:id` and treats `pdf-proxy` as an id. */
+    return `/api/pdf-proxy?url=${encodeURIComponent(normalized)}`
   } catch {
     return normalized
   }

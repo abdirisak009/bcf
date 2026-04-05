@@ -2,17 +2,19 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { 
-  Landmark, 
-  Search, 
-  Users, 
-  BarChart3, 
-  Calculator, 
-  LineChart, 
-  Briefcase, 
-  GraduationCap, 
-  Leaf 
+import {
+  Landmark,
+  Search,
+  Users,
+  BarChart3,
+  Calculator,
+  LineChart,
+  Briefcase,
+  GraduationCap,
+  Leaf,
 } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 export default function Services() {
   const services = [
@@ -130,29 +132,65 @@ export default function Services() {
         >
           {services.map((service, index) => {
             const Icon = service.icon;
+            /** 0 = cad dhab ah, 1 = cagaarka brand-ka, 2 = buluuga brand-ka */
+            const tone = index % 3;
             return (
               <motion.div
                 key={service.href}
                 variants={cardVariants}
-                whileHover={{ 
-                  y: -8, 
-                  transition: { duration: 0.3 } 
+                whileHover={{
+                  y: -8,
+                  transition: { duration: 0.3 },
                 }}
                 className="group h-full"
               >
                 <Link
                   href={service.href}
-                  className="block h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                  className={cn(
+                    "block h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2",
+                    tone === 2 ? "focus-visible:ring-offset-brand-navy" : "focus-visible:ring-offset-white",
+                  )}
                   aria-label={`${service.title} — open service page`}
                 >
-                  <div className="bg-slate-50 rounded-xl p-6 h-full border border-slate-200/80 shadow-sm hover:border-brand-teal/40 hover:bg-white hover:shadow-md transition-all duration-300 cursor-pointer">
-                    <div className="w-12 h-12 bg-brand-teal/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-brand-teal/15 transition-colors duration-300">
-                      <Icon className="w-6 h-6 text-brand-teal group-hover:text-brand-navy transition-colors duration-300" aria-hidden />
+                  <div
+                    className={cn(
+                      "rounded-xl p-6 h-full border-2 shadow-sm transition-all duration-300 cursor-pointer",
+                      "hover:shadow-md",
+                      /* Midabada buuxa (aan la yareynin opacity) — cad, cagaar (mint), buluug (navy) */
+                      tone === 0 &&
+                        "border-slate-300 bg-white hover:border-brand-teal",
+                      tone === 1 && "border-brand-teal bg-brand-mint hover:border-brand-navy",
+                      tone === 2 && "border-brand-navy-deep bg-brand-navy hover:border-brand-mint",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "mb-4 flex h-12 w-12 items-center justify-center rounded-lg transition-colors duration-300",
+                        tone === 0 && "bg-brand-teal text-white group-hover:bg-brand-navy",
+                        tone === 1 && "bg-brand-teal text-white group-hover:bg-brand-navy",
+                        tone === 2 && "bg-brand-mint text-brand-navy group-hover:bg-white",
+                      )}
+                    >
+                      <Icon className="h-6 w-6" aria-hidden />
                     </div>
-                    <h3 className="text-lg font-semibold text-brand-navy mb-2 group-hover:text-brand-teal transition-colors duration-300">
+                    <h3
+                      className={cn(
+                        "mb-2 text-lg font-semibold transition-colors duration-300",
+                        tone === 2
+                          ? "text-white group-hover:text-brand-mint"
+                          : "text-brand-navy group-hover:text-brand-teal",
+                      )}
+                    >
                       {service.title}
                     </h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">
+                    <p
+                      className={cn(
+                        "text-sm leading-relaxed",
+                        tone === 0 && "text-slate-600",
+                        tone === 1 && "text-brand-navy-deep",
+                        tone === 2 && "text-brand-mint",
+                      )}
+                    >
                       {service.description}
                     </p>
                   </div>

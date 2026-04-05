@@ -11,8 +11,8 @@ import { mapPublicationRowToCard } from '@/lib/map-publications-to-cards';
 
 export default async function Home() {
   const [newsRows, publicationRows] = await Promise.all([
-    fetchNewsFromApi(12),
-    fetchPublicationsFromApi(12),
+    fetchNewsFromApi(6),
+    fetchPublicationsFromApi(6),
   ]);
   const newsCards = newsRows.map(mapNewsRowToCard);
   const publicationCards = publicationRows.map(mapPublicationRowToCard);

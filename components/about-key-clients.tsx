@@ -1,63 +1,10 @@
-'use client';
+import { ClientLogoGrid, type ClientLogoRow } from '@/components/client-logo-carousel'
 
-import { useEffect, useState } from 'react';
-import { ClientLogoCarousel } from '@/components/client-logo-carousel';
-import { getApiBase } from '@/lib/api';
+type Props = {
+  clients: ClientLogoRow[]
+}
 
-type ClientRow = {
-  id: string;
-  name: string;
-  logo_url?: string | null;
-  sort_order?: number;
-};
-
-export function AboutKeyClientsSection() {
-  const [items, setItems] = useState<ClientRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setLoadError(null);
-      try {
-        const res = await fetch(`${getApiBase()}/api/clients?limit=100`, {
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-        });
-        if (!res.ok) {
-          if (!cancelled) {
-            setLoadError(`Could not load clients (${res.status})`);
-            setItems([]);
-          }
-          return;
-        }
-        const json = (await res.json()) as {
-          success?: boolean;
-          data?: { items?: ClientRow[] };
-        };
-        if (cancelled) return;
-        const raw = json.success && json.data?.items ? json.data.items : [];
-        const sorted = [...raw].sort(
-          (a, b) =>
-            (a.sort_order ?? 0) - (b.sort_order ?? 0) || String(a.id).localeCompare(String(b.id)),
-        );
-        setItems(sorted);
-      } catch {
-        if (!cancelled) {
-          setLoadError('Could not load clients. Check API connection.');
-          setItems([]);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+export function AboutKeyClientsSection({ clients }: Props) {
   return (
     <section className="relative overflow-hidden bg-slate-50 py-12 md:py-16 px-4 sm:px-6">
       <div className="absolute top-0 right-0 h-[280px] w-[280px] rounded-full bg-brand-teal/4 blur-3xl -mr-32 -mt-24 md:h-[400px] md:w-[400px]" />
@@ -79,12 +26,13 @@ export function AboutKeyClientsSection() {
         </div>
 
         <div className="mb-8">
-          <ClientLogoCarousel
-            items={items}
-            loading={loading}
-            loadError={loadError}
-            emptyMessage="No clients listed yet. Add organizations in the dashboard under Clients."
-          />
+          {clients.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground">
+              No clients listed yet. Add organizations in the dashboard under Clients.
+            </p>
+          ) : (
+            <ClientLogoGrid items={clients} />
+          )}
         </div>
 
         <div className="flex flex-wrap justify-center gap-2.5 sm:gap-3 md:gap-4">
@@ -105,5 +53,5 @@ export function AboutKeyClientsSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }

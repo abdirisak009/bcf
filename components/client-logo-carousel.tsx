@@ -13,6 +13,86 @@ export type ClientLogoRow = {
   logo_url?: string | null;
 };
 
+/** Single logo tile — shared by carousel and full grid (About page). */
+export function ClientLogoCard({
+  client,
+  className,
+}: {
+  client: ClientLogoRow;
+  /** e.g. carousel: flex-1 basis-0; grid: w-full */
+  className?: string;
+}) {
+  const logo = client.logo_url?.trim();
+  return (
+    <div className={cn("group min-w-0", className)}>
+      <div
+        className={cn(
+          "relative flex h-full min-h-[152px] flex-col items-stretch justify-center overflow-hidden rounded-tl-3xl rounded-tr-3xl rounded-bl-3xl rounded-br-none p-2.5 pb-7 sm:min-h-[168px] sm:p-3 sm:pb-8",
+          "border border-slate-200/90 bg-white",
+          "shadow-[0_2px_0_0_rgba(255,255,255,1)_inset,0_10px_36px_-16px_rgba(15,23,42,0.18)]",
+          "ring-1 ring-slate-200/45 transition-[box-shadow,transform,border-color] duration-500",
+          "before:pointer-events-none before:absolute before:inset-0 before:rounded-tl-3xl before:rounded-tr-3xl before:rounded-bl-3xl before:bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(45,212,191,0.08),transparent_55%)]",
+          "group-hover:border-brand-teal/30 group-hover:shadow-[0_2px_0_0_rgba(255,255,255,1)_inset,0_18px_40px_-16px_rgba(23,94,126,0.2)]",
+        )}
+      >
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-teal/[0.04] via-transparent to-brand-navy/[0.02] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+        <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-brand-teal/[0.05] blur-2xl transition-all duration-700 group-hover:bg-brand-teal/10" />
+        <div
+          className={cn(
+            "relative z-10 flex min-h-[6rem] flex-1 flex-col items-center justify-center rounded-lg border border-slate-200/90 bg-white px-3 py-4",
+            "shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_0_rgba(15,23,42,0.04)]",
+            "sm:min-h-[6.5rem] sm:px-4 sm:py-5",
+          )}
+        >
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logo}
+              alt={client.name}
+              decoding="async"
+              className={cn(
+                "h-[4.5rem] w-full max-w-[min(100%,11rem)] object-contain object-center sm:h-[5rem]",
+                "transition-transform duration-500 group-hover:scale-[1.03]",
+                "[image-rendering:auto]",
+              )}
+            />
+          ) : (
+            <span className="px-1 text-center text-xs font-bold leading-snug tracking-tight text-brand-navy sm:text-sm">
+              {client.name}
+            </span>
+          )}
+        </div>
+        {logo ? (
+          <span className="pointer-events-none absolute bottom-2.5 left-2 right-2 z-10 line-clamp-2 translate-y-1 text-center text-[10px] font-medium leading-tight text-slate-600 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 sm:bottom-3 sm:text-xs">
+            {client.name}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** All clients in a responsive grid (About page — no API from browser). */
+export function ClientLogoGrid({ items }: { items: ClientLogoRow[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 md:gap-5 lg:grid-cols-5 lg:gap-6">
+      {items.map((client) => (
+        <motion.div
+          key={client.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={{ y: -4, scale: 1.01 }}
+          className="h-full w-full"
+        >
+          <ClientLogoCard client={client} className="h-full w-full" />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 const SLIDE_SIZE = 4;
 const AUTOPLAY_MS = 5500;
 
@@ -135,70 +215,25 @@ export function ClientLogoCarousel({
                 partialRow && "justify-center",
               )}
             >
-              {slice.map((client, index) => {
-                const logo = client.logo_url?.trim();
-                return (
-                  <motion.div
-                    key={client.id}
-                    initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: reduceMotion ? 0.12 : 0.38,
-                      delay: reduceMotion ? 0 : index * 0.05,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                    whileHover={reduceMotion ? undefined : { y: -6, scale: 1.015 }}
-                    className={cn(
-                      "group min-w-0",
-                      partialRow ? "w-full max-w-[15.5rem] shrink-0 sm:max-w-[17rem]" : "flex-1 basis-0",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "relative flex h-full min-h-[152px] flex-col items-stretch justify-center overflow-hidden rounded-tl-3xl rounded-tr-3xl rounded-bl-3xl rounded-br-none p-2.5 pb-7 sm:min-h-[168px] sm:p-3 sm:pb-8",
-                        "border border-slate-200/90 bg-white",
-                        "shadow-[0_2px_0_0_rgba(255,255,255,1)_inset,0_10px_36px_-16px_rgba(15,23,42,0.18)]",
-                        "ring-1 ring-slate-200/45 transition-[box-shadow,transform,border-color] duration-500",
-                        "before:pointer-events-none before:absolute before:inset-0 before:rounded-tl-3xl before:rounded-tr-3xl before:rounded-bl-3xl before:bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(45,212,191,0.08),transparent_55%)]",
-                        "group-hover:border-brand-teal/30 group-hover:shadow-[0_2px_0_0_rgba(255,255,255,1)_inset,0_18px_40px_-16px_rgba(23,94,126,0.2)]",
-                      )}
-                    >
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-teal/[0.04] via-transparent to-brand-navy/[0.02] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-brand-teal/[0.05] blur-2xl transition-all duration-700 group-hover:bg-brand-teal/10" />
-                      <div
-                        className={cn(
-                          "relative z-10 flex min-h-[6rem] flex-1 flex-col items-center justify-center rounded-lg border border-slate-200/90 bg-white px-3 py-4",
-                          "shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_0_rgba(15,23,42,0.04)]",
-                          "sm:min-h-[6.5rem] sm:px-4 sm:py-5",
-                        )}
-                      >
-                        {logo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={logo}
-                            alt={client.name}
-                            decoding="async"
-                            className={cn(
-                              "h-[4.5rem] w-full max-w-[min(100%,11rem)] object-contain object-center sm:h-[5rem]",
-                              "transition-transform duration-500 group-hover:scale-[1.03]",
-                              "[image-rendering:auto]",
-                            )}
-                          />
-                        ) : (
-                          <span className="px-1 text-center text-xs font-bold leading-snug tracking-tight text-brand-navy sm:text-sm">
-                            {client.name}
-                          </span>
-                        )}
-                      </div>
-                      {logo ? (
-                        <span className="pointer-events-none absolute bottom-2.5 left-2 right-2 z-10 line-clamp-2 translate-y-1 text-center text-[10px] font-medium leading-tight text-slate-600 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 sm:bottom-3 sm:text-xs">
-                          {client.name}
-                        </span>
-                      ) : null}
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {slice.map((client, index) => (
+                <motion.div
+                  key={client.id}
+                  initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: reduceMotion ? 0.12 : 0.38,
+                    delay: reduceMotion ? 0 : index * 0.05,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  whileHover={reduceMotion ? undefined : { y: -6, scale: 1.015 }}
+                  className={cn(
+                    "min-w-0",
+                    partialRow ? "w-full max-w-[15.5rem] shrink-0 sm:max-w-[17rem]" : "flex-1 basis-0",
+                  )}
+                >
+                  <ClientLogoCard client={client} className="h-full w-full" />
+                </motion.div>
+              ))}
             </motion.div>
           </AnimatePresence>
 
