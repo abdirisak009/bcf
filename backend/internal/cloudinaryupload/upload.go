@@ -80,10 +80,17 @@ func uploadPayload(ctx context.Context, data []byte, filename string) (string, e
 		return "", fmt.Errorf("invalid public id stem")
 	}
 
+	ext := strings.ToLower(path.Ext(base))
+	resourceType := "auto"
+	switch ext {
+	case ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".txt", ".rtf", ".odt", ".ods", ".pptx", ".ppt":
+		resourceType = "raw"
+	}
+
 	params := uploader.UploadParams{
 		Folder:         folder,
 		PublicID:       stem,
-		ResourceType:   "auto",
+		ResourceType:   resourceType,
 		UniqueFilename: api.Bool(false),
 	}
 

@@ -4,75 +4,108 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
- * Streams publication PDFs from Cloudinary through the **site origin** (not under `/api`).
- * In production, `/api/*` is often forwarded entirely to the Go backend, so `/api/pdf-proxy`
- * never hits Next.js and returns 404. This route lives at `/pdf-stream` so it always serves
- * from Next.js.
+ * Proxy that streams publication PDFs from Cloudinary through the site origin.
+ *
+ * Why a proxy?
+ *  - PDFs uploaded with `resource_type: "auto"` land under `/image/upload/`
+ *    in Cloudinary, which returns a rasterised image preview — not the PDF.
+ *  - Changing the path to `/raw/upload/` gives 404 (wrong resource namespace).
+ *  - Adding the `fl_attachment` flag tells Cloudinary to serve the original
+ *    file bytes but sets `Content-Disposition: attachment` (triggers download).
+ *  - This proxy fetches with `fl_attachment`, then re-serves the bytes with
+ *    `Content-Disposition: inline` so the browser renders the PDF in the
+ *    iframe instead of downloading it.
+ *
+ * Route lives at `/pdf-stream` (not `/api/*`) because in production Nginx
+ * forwards `/api/*` to the Go backend.
  */
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get('url')
   if (!raw?.trim()) {
-    return new Response(JSON.stringify({ success: false, error: 'Missing url' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonError('Missing url', 400)
   }
 
   let target: URL
   try {
     target = new URL(raw.trim())
   } catch {
-    return new Response(JSON.stringify({ success: false, error: 'Invalid url' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonError('Invalid url', 400)
   }
 
-  if (target.protocol !== 'https:') {
-    return new Response(JSON.stringify({ success: false, error: 'Invalid protocol' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
+  if (target.protocol === 'http:') target.protocol = 'https:'
+  if (target.protocol !== 'https:') return jsonError('Invalid protocol', 400)
 
   const host = target.hostname.toLowerCase()
-  if (!host.endsWith('cloudinary.com')) {
-    return new Response(JSON.stringify({ success: false, error: 'Forbidden' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
+  if (!host.endsWith('cloudinary.com')) return jsonError('Forbidden', 403)
 
-  let upstream: Response
+  // Build the fetch URL with fl_attachment to get original file bytes
+  const fetchUrl = withAttachmentFlag(target.toString())
+
+  let upstream: Response | null = null
   try {
-    upstream = await fetch(target.toString(), {
+    upstream = await fetch(fetchUrl, {
       headers: { Accept: 'application/pdf,application/octet-stream,*/*' },
       cache: 'no-store',
       redirect: 'follow',
     })
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'fetch failed'
-    console.error('[pdf-stream]', msg)
-    return new Response(JSON.stringify({ success: false, error: 'Upstream unavailable' }), {
-      status: 502,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    console.error('[pdf-stream] primary fetch failed:', e instanceof Error ? e.message : e)
   }
 
-  if (!upstream.ok) {
-    return new Response(JSON.stringify({ success: false, error: 'Document not found' }), {
-      status: upstream.status === 404 ? 404 : 502,
-      headers: { 'Content-Type': 'application/json' },
-    })
+  // Fallback: if fl_attachment failed, try /raw/upload/ path (works for
+  // files that were uploaded with resource_type: "raw")
+  if (!upstream || !upstream.ok) {
+    try {
+      const rawUrl = target.toString().replace(
+        /\/(image|video)\/upload\//,
+        '/raw/upload/',
+      )
+      const fallback = await fetch(rawUrl, {
+        headers: { Accept: 'application/pdf,application/octet-stream,*/*' },
+        cache: 'no-store',
+        redirect: 'follow',
+      })
+      if (fallback.ok) upstream = fallback
+    } catch {
+      // ignore — we'll return an error below
+    }
+  }
+
+  if (!upstream || !upstream.ok) {
+    const status = upstream?.status ?? 502
+    return jsonError('Document not found', status === 404 ? 404 : 502)
   }
 
   const headers = new Headers()
-  const ct = upstream.headers.get('content-type')
-  if (ct) headers.set('Content-Type', ct)
-  else headers.set('Content-Type', 'application/pdf')
+  headers.set('Content-Type', 'application/pdf')
   headers.set('Content-Disposition', 'inline')
   headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400')
   headers.set('X-Content-Type-Options', 'nosniff')
 
   return new Response(upstream.body, { status: 200, headers })
+}
+
+/* ------------------------------------------------------------------ */
+
+function jsonError(message: string, status: number) {
+  return new Response(JSON.stringify({ success: false, error: message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+function withAttachmentFlag(url: string): string {
+  try {
+    const u = new URL(url)
+    if (!u.hostname.toLowerCase().endsWith('cloudinary.com')) return url
+    if (u.pathname.includes('/fl_attachment')) return url
+    // Insert fl_attachment right after /upload/ to get the original file
+    u.pathname = u.pathname.replace(
+      /\/(image|video)\/upload\//,
+      '/$1/upload/fl_attachment/',
+    )
+    return u.toString()
+  } catch {
+    return url
+  }
 }
