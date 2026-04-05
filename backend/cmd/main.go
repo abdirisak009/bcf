@@ -188,6 +188,7 @@ func main() {
 		api.POST("/news", dash(permissions.News), newsH.Create)
 
 		api.GET("/publications/:id", pubH.Get)
+		api.GET("/publications/:id/file", pubH.ServeFile)
 		api.GET("/publications", pubH.List)
 		api.POST("/publications", dash(permissions.Publications), pubH.Create)
 		api.PATCH("/publications/:id", dash(permissions.Publications), pubH.Update)

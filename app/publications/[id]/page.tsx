@@ -100,7 +100,7 @@ export default async function PublicationDetailPage({ params }: { params: Promis
 
           {pub.file_url ? (
             <PublicationPdfActions
-              fileUrl={pub.file_url}
+              pubId={pub.id}
               title={pub.title}
               mode={
                 String(pub.file_display_mode ?? '').toLowerCase().trim() === 'read'

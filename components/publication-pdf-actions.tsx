@@ -12,26 +12,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { normalizePublicationFileUrlForBrowser, publicationPdfIframeSrc } from '@/lib/publication-file-url'
+import { publicationPdfIframeSrc, publicationFileDownloadUrl } from '@/lib/publication-file-url'
 import { cn } from '@/lib/utils'
 
 export type PublicationPdfMode = 'read' | 'download'
 
 type Props = {
-  fileUrl: string
+  pubId: string
   title: string
   mode: PublicationPdfMode
   className?: string
 }
 
 /**
- * Download link, or “Read document” opening a full-screen style dialog with an embedded PDF viewer.
+ * Download link, or "Read document" opening a full-screen style dialog with an embedded PDF viewer.
+ * Files are streamed through the Go backend (/api/publications/:id/file) which generates
+ * a Cloudinary signed URL and proxies the bytes — bypassing Cloudinary 401 auth errors.
  */
-export function PublicationPdfActions({ fileUrl, title, mode, className }: Props) {
+export function PublicationPdfActions({ pubId, title, mode, className }: Props) {
   const [open, setOpen] = useState(false)
   const readMode = mode === 'read'
-  const downloadHref = normalizePublicationFileUrlForBrowser(fileUrl)
-  const iframeSrc = publicationPdfIframeSrc(fileUrl)
+  const downloadHref = publicationFileDownloadUrl(pubId)
+  const iframeSrc = publicationPdfIframeSrc(pubId)
 
   if (!readMode) {
     return (
@@ -67,9 +69,7 @@ export function PublicationPdfActions({ fileUrl, title, mode, className }: Props
             '!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2',
             'flex !max-w-none flex-col gap-0 overflow-hidden p-0 shadow-2xl',
             'rounded-2xl border border-slate-200/90 bg-white ring-2 ring-slate-900/[0.06]',
-            /* Width: line up with wide content (~max-w-7xl), gutters on small screens */
             'w-[min(calc(100vw-1.25rem),72rem)] sm:w-[min(calc(100vw-2rem),72rem)]',
-            /* Height: fit dynamic viewport, max ~56rem so it stays balanced on large displays */
             'h-[min(calc(100dvh-1.25rem),56rem)] max-h-[min(calc(100dvh-1.25rem),56rem)]',
             'sm:h-[min(calc(100dvh-2rem),56rem)] sm:max-h-[min(calc(100dvh-2rem),56rem)]',
           )}
@@ -93,7 +93,6 @@ export function PublicationPdfActions({ fileUrl, title, mode, className }: Props
               </DialogClose>
             </div>
           </DialogHeader>
-          {/* Framed “page” area — aligns with publication layout feel */}
           <div className="relative flex min-h-0 flex-1 flex-col bg-gradient-to-b from-slate-100/90 to-slate-200/50 p-2 sm:p-3">
             <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl bg-white shadow-[inset_0_0_0_1px_rgba(15,23,42,0.06)] ring-1 ring-slate-300/40">
               <iframe
