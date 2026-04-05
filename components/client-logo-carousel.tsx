@@ -94,7 +94,7 @@ export function ClientLogoGrid({ items }: { items: ClientLogoRow[] }) {
 }
 
 const SLIDE_SIZE = 4;
-const AUTOPLAY_MS = 5500;
+const AUTOPLAY_MS = 5000;
 
 type ClientLogoCarouselProps = {
   items: ClientLogoRow[];

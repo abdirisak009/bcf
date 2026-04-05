@@ -1,15 +1,13 @@
 import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
-/** Query string varies per document; always run on the server. */
 export const dynamic = 'force-dynamic'
 
 /**
- * Streams a publication PDF from Cloudinary through the site origin.
- *
- * **Path must NOT be** `/api/publications/...` — in production, `/api` is often proxied to Go,
- * which already defines `GET /api/publications/:id`. A segment like `pdf-proxy` was being parsed
- * as an id and returned `invalid id`.
+ * Streams publication PDFs from Cloudinary through the **site origin** (not under `/api`).
+ * In production, `/api/*` is often forwarded entirely to the Go backend, so `/api/pdf-proxy`
+ * never hits Next.js and returns 404. This route lives at `/pdf-stream` so it always serves
+ * from Next.js.
  */
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get('url')
@@ -50,10 +48,11 @@ export async function GET(req: NextRequest) {
     upstream = await fetch(target.toString(), {
       headers: { Accept: 'application/pdf,application/octet-stream,*/*' },
       cache: 'no-store',
+      redirect: 'follow',
     })
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'fetch failed'
-    console.error('[pdf-proxy]', msg)
+    console.error('[pdf-stream]', msg)
     return new Response(JSON.stringify({ success: false, error: 'Upstream unavailable' }), {
       status: 502,
       headers: { 'Content-Type': 'application/json' },
